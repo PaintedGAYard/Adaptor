@@ -6,7 +6,7 @@
   <Folder Name="/src/driver/" >
     <Project Path="src/Driver/Postgre/Adaptor.Driver.Postgre.csproj" />
   </Folder>
-  <Folder Name="/test">
+  <Folder Name="/test/">
     <project Path="test/Adaptor.Coordinator.Tests/Adaptor.Coordinator.Tests.csproj" />
     <project Path="test/Adaptor.Service.Tests/Adaptor.Service.Tests.csproj" />  
     <project Path="test/Adaptor.Driver.Postgre.Tests/Adaptor.Driver.Postgre.Tests.csproj" />  
