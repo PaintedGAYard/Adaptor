@@ -95,6 +95,43 @@ public sealed class TransactionCoordinator : IDisposable
     }
 
     /// <summary>
+    /// 开始一个用于 Blob Streaming 的长期事务。
+    /// 使用独立的超时配置（<see cref="CoordinatorOptions.BlobStreamTransactionTimeout"/>）
+    /// 以避免长时间流操作受默认短超时限制。
+    /// Consumer 应为每个 Blob Stream 连接创建独立的事务，
+    /// 不要混用执行 SQL 的短事务和流事务。
+    /// </summary>
+    public async Task<BeginTransactionResult> BeginBlobStreamTransactionAsync(
+        TimeSpan? timeout = null,
+        string? connectionId = null,
+        CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+
+        var txTimeout = timeout ?? _options.BlobStreamTransactionTimeout;
+        if (txTimeout > _options.MaxBlobStreamTransactionTimeout)
+        {
+            txTimeout = _options.MaxBlobStreamTransactionTimeout;
+        }
+
+        var committableTx = new CommittableTransaction(txTimeout);
+        var localKey = committableTx.TransactionInformation.LocalIdentifier;
+
+        var entry = new TransactionEntry(committableTx, txTimeout);
+        _entries[localKey] = entry;
+
+        var session = _sessionManager.CreateSession(committableTx, connectionId);
+
+        var expiresAt = DateTime.UtcNow + txTimeout;
+
+        _logger.LogInformation(
+            "BlobStream transaction '{LocalId}' started, timeout={Timeout}, session={SessionId}",
+            localKey, txTimeout, session.SessionId);
+
+        return new BeginTransactionResult(committableTx, expiresAt);
+    }
+
+    /// <summary>
     /// 提交事务（两阶段提交）。
     /// 内部由 CommittableTransaction.Commit() 触发 .NET DTC 协调。
     /// </summary>

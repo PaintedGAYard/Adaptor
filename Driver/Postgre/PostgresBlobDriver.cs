@@ -23,6 +23,7 @@ public sealed class PostgresBlobDriver :
     ITransactionalResourceManager,
     IBlobUploadCapability,
     IBlobDownloadCapability,
+    IBlobRandomAccessCapability,
     IHealthCheckCapability,
     IDisposable
 {
@@ -193,6 +194,291 @@ public sealed class PostgresBlobDriver :
         {
             _logger?.LogError(ex, "PostgresBlobDriver DownloadAsync failed for key={Key}", request.Key);
             return new BlobDownloadResult(request.Key, Array.Empty<byte>(), null, ex.Message);
+        }
+    }
+
+    // ─── IBlobRandomAccessCapability ────────────────────────────────────────
+
+    public async Task<BlobOpenResult> OpenAsync(string key, BlobAccessMode mode, Transaction transaction, CancellationToken ct = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(transaction);
+
+        var entry = GetEntry(transaction);
+        await EnsureTableAsync(entry.Connection, entry.LocalTransaction, ct).ConfigureAwait(false);
+
+        try
+        {
+            if (mode is BlobAccessMode.Create or BlobAccessMode.CreateOrReplace)
+            {
+                // ── Create or CreateOrReplace ──
+                await using var cmdCheck = entry.Connection.CreateCommand();
+                cmdCheck.CommandText = $"SELECT oid FROM {DefaultTableName} WHERE key = @key";
+                cmdCheck.Transaction = entry.LocalTransaction;
+                cmdCheck.Parameters.AddWithValue("key", key);
+                var existingOid = await cmdCheck.ExecuteScalarAsync(ct).ConfigureAwait(false);
+
+                if (mode == BlobAccessMode.Create && existingOid != null)
+                {
+                    return new BlobOpenResult(0, 0, $"BLOB key '{key}' already exists.");
+                }
+
+                int oid;
+                if (existingOid != null)
+                {
+                    // CreateOrReplace: create new LO, swap OID, unlink old
+                    await using var cmdCreate = entry.Connection.CreateCommand();
+                    cmdCreate.CommandText = "SELECT lo_creat(-1)";
+                    cmdCreate.Transaction = entry.LocalTransaction;
+                    oid = Convert.ToInt32(await cmdCreate.ExecuteScalarAsync(ct).ConfigureAwait(false));
+
+                    await using var cmdUpdate = entry.Connection.CreateCommand();
+                    cmdUpdate.CommandText = $"""
+                        UPDATE {DefaultTableName}
+                        SET oid = @oid, size = 0, content_type = NULL
+                        WHERE key = @key
+                        """;
+                    cmdUpdate.Transaction = entry.LocalTransaction;
+                    cmdUpdate.Parameters.AddWithValue("oid", oid);
+                    cmdUpdate.Parameters.AddWithValue("key", key);
+                    await cmdUpdate.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
+
+                    var oldOid = Convert.ToInt32(existingOid);
+                    await using var cmdUnlink = entry.Connection.CreateCommand();
+                    cmdUnlink.CommandText = "SELECT lo_unlink(@oid)";
+                    cmdUnlink.Transaction = entry.LocalTransaction;
+                    cmdUnlink.Parameters.AddWithValue("oid", oldOid);
+                    await cmdUnlink.ExecuteScalarAsync(ct).ConfigureAwait(false);
+                }
+                else
+                {
+                    // Pure Create
+                    await using var cmdCreate = entry.Connection.CreateCommand();
+                    cmdCreate.CommandText = "SELECT lo_creat(-1)";
+                    cmdCreate.Transaction = entry.LocalTransaction;
+                    oid = Convert.ToInt32(await cmdCreate.ExecuteScalarAsync(ct).ConfigureAwait(false));
+
+                    await using var cmdInsert = entry.Connection.CreateCommand();
+                    cmdInsert.CommandText = $$"""
+                        INSERT INTO {{DefaultTableName}} (key, oid, content_type, metadata, size)
+                        VALUES (@key, @oid, NULL, '{}'::jsonb, 0)
+                        """;
+                    cmdInsert.Transaction = entry.LocalTransaction;
+                    cmdInsert.Parameters.AddWithValue("key", key);
+                    cmdInsert.Parameters.AddWithValue("oid", oid);
+                    await cmdInsert.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
+                }
+
+                // Open with INV_WRITE
+                await using var cmdOpen = entry.Connection.CreateCommand();
+                cmdOpen.CommandText = "SELECT lo_open(@oid, @mode)";
+                cmdOpen.Transaction = entry.LocalTransaction;
+                cmdOpen.Parameters.AddWithValue("oid", oid);
+                cmdOpen.Parameters.AddWithValue("mode", 0x40000); // INV_WRITE
+                var fd = Convert.ToInt32(await cmdOpen.ExecuteScalarAsync(ct).ConfigureAwait(false));
+
+                _logger?.LogDebug("PostgresBlobDriver Open(Create) key={Key} oid={Oid} fd={Fd}", key, oid, fd);
+                return new BlobOpenResult(fd, 0);
+            }
+            else
+            {
+                // ── Open existing blob ──
+                await using var cmdQuery = entry.Connection.CreateCommand();
+                cmdQuery.CommandText = $"SELECT oid, size FROM {DefaultTableName} WHERE key = @key";
+                cmdQuery.Transaction = entry.LocalTransaction;
+                cmdQuery.Parameters.AddWithValue("key", key);
+
+                int oid;
+                long blobSize;
+                await using (var reader = await cmdQuery.ExecuteReaderAsync(ct).ConfigureAwait(false))
+                {
+                    if (!await reader.ReadAsync(ct).ConfigureAwait(false))
+                    {
+                        return new BlobOpenResult(0, 0, $"BLOB key '{key}' not found.");
+                    }
+                    oid = reader.GetInt32(0);
+                    blobSize = reader.GetInt64(1);
+                }
+
+                var pgMode = mode switch
+                {
+                    BlobAccessMode.Read => 0x20000,      // INV_READ
+                    BlobAccessMode.Write => 0x40000,     // INV_WRITE
+                    BlobAccessMode.ReadWrite => 0x60000, // INV_READ | INV_WRITE
+                    BlobAccessMode.Append => 0x40000,    // INV_WRITE
+                    _ => 0x20000,
+                };
+
+                await using var cmdOpen = entry.Connection.CreateCommand();
+                cmdOpen.CommandText = "SELECT lo_open(@oid, @mode)";
+                cmdOpen.Transaction = entry.LocalTransaction;
+                cmdOpen.Parameters.AddWithValue("oid", oid);
+                cmdOpen.Parameters.AddWithValue("mode", pgMode);
+                var fd = Convert.ToInt32(await cmdOpen.ExecuteScalarAsync(ct).ConfigureAwait(false));
+
+                // For Append mode, seek to end
+                if (mode == BlobAccessMode.Append && blobSize > 0)
+                {
+                    await using var cmdSeek = entry.Connection.CreateCommand();
+                    cmdSeek.CommandText = "SELECT lo_lseek(@fd, 0, 2)"; // SEEK_END
+                    cmdSeek.Transaction = entry.LocalTransaction;
+                    cmdSeek.Parameters.AddWithValue("fd", fd);
+                    await cmdSeek.ExecuteScalarAsync(ct).ConfigureAwait(false);
+                }
+
+                _logger?.LogDebug("PostgresBlobDriver Open key={Key} oid={Oid} fd={Fd} mode={Mode} size={Size}",
+                    key, oid, fd, mode, blobSize);
+                return new BlobOpenResult(fd, blobSize);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "PostgresBlobDriver OpenAsync failed for key={Key}", key);
+            return new BlobOpenResult(0, 0, ex.Message);
+        }
+    }
+
+    public async Task CloseAsync(int loFd, Transaction transaction, CancellationToken ct = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(transaction);
+
+        var entry = GetEntry(transaction);
+
+        try
+        {
+            await using var cmd = entry.Connection.CreateCommand();
+            cmd.CommandText = "SELECT lo_close(@fd)";
+            cmd.Transaction = entry.LocalTransaction;
+            cmd.Parameters.AddWithValue("fd", loFd);
+            await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+
+            _logger?.LogDebug("PostgresBlobDriver closed fd={Fd}", loFd);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "PostgresBlobDriver CloseAsync failed for fd={Fd}", loFd);
+            throw;
+        }
+    }
+
+    public async Task<BlobReadResult> ReadAsync(int loFd, int count, Transaction transaction, CancellationToken ct = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(transaction);
+
+        var entry = GetEntry(transaction);
+
+        try
+        {
+            await using var cmd = entry.Connection.CreateCommand();
+            cmd.CommandText = "SELECT lo_read(@fd, @count)";
+            cmd.Transaction = entry.LocalTransaction;
+            cmd.Parameters.AddWithValue("fd", loFd);
+            cmd.Parameters.AddWithValue("count", count);
+
+            var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+            var data = result as byte[] ?? Array.Empty<byte>();
+
+            _logger?.LogDebug("PostgresBlobDriver Read fd={Fd} count={Count} got={BytesRead}", loFd, count, data.Length);
+            return new BlobReadResult(data, data.Length);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "PostgresBlobDriver ReadAsync failed for fd={Fd}", loFd);
+            return new BlobReadResult(Array.Empty<byte>(), 0, ex.Message);
+        }
+    }
+
+    public async Task<int> WriteAsync(int loFd, byte[] data, Transaction transaction, CancellationToken ct = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(transaction);
+        ArgumentNullException.ThrowIfNull(data);
+
+        var entry = GetEntry(transaction);
+
+        try
+        {
+            await using var cmd = entry.Connection.CreateCommand();
+            cmd.CommandText = "SELECT lo_write(@fd, @data)";
+            cmd.Transaction = entry.LocalTransaction;
+            cmd.Parameters.AddWithValue("fd", loFd);
+            cmd.Parameters.AddWithValue("data", data);
+
+            var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+            var bytesWritten = Convert.ToInt32(result);
+
+            _logger?.LogDebug("PostgresBlobDriver Write fd={Fd} wrote={BytesWritten}", loFd, bytesWritten);
+            return bytesWritten;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "PostgresBlobDriver WriteAsync failed for fd={Fd}", loFd);
+            throw;
+        }
+    }
+
+    public async Task<long> SeekAsync(int loFd, long offset, SeekOrigin origin, Transaction transaction, CancellationToken ct = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(transaction);
+
+        var entry = GetEntry(transaction);
+
+        try
+        {
+            var whence = origin switch
+            {
+                SeekOrigin.Begin => 0,
+                SeekOrigin.Current => 1,
+                SeekOrigin.End => 2,
+                _ => 0,
+            };
+
+            await using var cmd = entry.Connection.CreateCommand();
+            cmd.CommandText = "SELECT lo_lseek(@fd, @offset, @whence)";
+            cmd.Transaction = entry.LocalTransaction;
+            cmd.Parameters.AddWithValue("fd", loFd);
+            cmd.Parameters.AddWithValue("offset", offset);
+            cmd.Parameters.AddWithValue("whence", whence);
+
+            var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+            var newPosition = Convert.ToInt64(result);
+
+            _logger?.LogDebug("PostgresBlobDriver Seek fd={Fd} offset={Offset} whence={Whence} newPos={NewPos}",
+                loFd, offset, origin, newPosition);
+            return newPosition;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "PostgresBlobDriver SeekAsync failed for fd={Fd}", loFd);
+            throw;
+        }
+    }
+
+    public async Task TruncateAsync(int loFd, long length, Transaction transaction, CancellationToken ct = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(transaction);
+
+        var entry = GetEntry(transaction);
+
+        try
+        {
+            await using var cmd = entry.Connection.CreateCommand();
+            cmd.CommandText = "SELECT lo_truncate(@fd, @length)";
+            cmd.Transaction = entry.LocalTransaction;
+            cmd.Parameters.AddWithValue("fd", loFd);
+            cmd.Parameters.AddWithValue("length", length);
+            await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+
+            _logger?.LogDebug("PostgresBlobDriver Truncate fd={Fd} length={Length}", loFd, length);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "PostgresBlobDriver TruncateAsync failed for fd={Fd}", loFd);
+            throw;
         }
     }
 

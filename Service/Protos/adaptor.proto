@@ -241,6 +241,55 @@ message BlobListResponse {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// BlobStream 服务 — 流式 BLOB 会话管理（控制面）
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// gRPC 负责: 身份验证、参数协商、签发 session_token
+// WebSocket 负责: 数据面传输（凭 token 连接）
+//
+// 生命周期:
+//   1. Consumer 调用 BeginSession → 服务端验证身份、协商参数、签发 token
+//   2. Consumer 用 token 连接 WebSocket /blob-stream?token=xxx
+//   3. 服务端验证 token → 创建事务 → 开始流
+//   4. Consumer 调用 EndSession 关闭会话（或 WS 断开自动回滚）
+
+service BlobStreamControl {
+  rpc BeginSession(BlobStreamSessionRequest) returns (BlobStreamSessionResponse);
+  rpc EndSession(BlobStreamSessionEndRequest) returns (BlobStreamSessionEndResponse);
+}
+
+message BlobStreamSessionRequest {
+  // 可选: 客户端建议的超时。服务端最终决定。
+  google.protobuf.Duration suggested_timeout = 1;
+  // 可选: 客户端建议的 chunk 大小（字节）
+  uint32 suggested_chunk_size = 2;
+  // 应用层元数据（如 bucket/tenant 标识）
+  map<string, string> metadata = 3;
+}
+
+message BlobStreamSessionResponse {
+  // 会话令牌 — WebSocket 连接时通过 ?token=xxx 传递
+  string session_token = 1;
+  // 服务端最终决定的超时
+  google.protobuf.Duration negotiated_timeout = 2;
+  // 服务端建议的 chunk 大小
+  uint32 negotiated_chunk_size = 3;
+  // 令牌过期时间
+  google.protobuf.Timestamp expires_at = 4;
+  // WebSocket 端点路径（始终为 /blob-stream）
+  string websocket_endpoint = 5;
+}
+
+message BlobStreamSessionEndRequest {
+  string session_token = 1;
+}
+
+message BlobStreamSessionEndResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // 枚举定义
 // ═══════════════════════════════════════════════════════════════════════════
 
