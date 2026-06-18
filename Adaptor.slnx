@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Coordinator/Adaptor.Coordinator.csproj" />
+    <Project Path="src/Service/Adaptor.Service.csproj" />
+  </Folder>
+  <Folder Name="/src/driver/" >
+    <Project Path="src/Driver/Postgre/Adaptor.Driver.Postgre.csproj" />
+  </Folder>
+  <Folder Name="/test">
+    <project Path="test/Adaptor.Coordinator.Tests/Adaptor.Coordinator.Tests.csproj" />
+    <project Path="test/Adaptor.Service.Tests/Adaptor.Service.Tests.csproj" />  
+    <project Path="test/Adaptor.Driver.Postgre.Tests/Adaptor.Driver.Postgre.Tests.csproj" />  
+  </Folder>
+</Solution>
