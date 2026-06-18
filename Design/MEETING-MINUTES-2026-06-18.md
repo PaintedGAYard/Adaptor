@@ -37,11 +37,11 @@
 
 **决策**:
 - 协议：**完全自定义的 gRPC 协议**
-- Service 组织：**统一服务，不同 endpoint path**
+- Service 组织：**统一 namespace，多个 service 作为 endpoint group**
   - 明确：gRPC 的 `service` 关键字在此项目中**不是自包含的 service 单元**
   - 仅视为 **endpoint group**（端点分组）
   - 真正的 service 单元是"围绕中间件事务对象生命周期管理形成的 API 整体"
-- 即：一个 `service Adaptor { ... }` 包含事务、SQL、Vector、BLOB 所有 RPC
+- 即：`namespace Adaptor` 下包含 `service Transaction`、`service DBSQL`、`service DBVector`、`service DBBLOB`，每个 service 是一组相关端点
 
 ---
 
@@ -69,6 +69,9 @@
   - 下游事务按需启动（延迟 Enlistment）
   - 与中间件事务同时结束（Commit / Rollback）
 - **无需自定义 Transaction 子类**（除非 .NET 内置设施不满足需求时再考虑）
+- Driver 采用 **Resource Manager 模式**设计：每个 Driver 是一个 RM，管理一种存储资源，作为分布式事务的基本参与单元
+- **Composition over Inheritance**：不定义大一统的 `IStorageDriver` 接口；能力通过正交的独立接口暴露（`ISqlQueryCapability`、`IVectorSearchCapability` 等），Driver 按需组合
+- **Semantic Kernel 技术栈**：Driver 和中间件均基于 `Microsoft.SemanticKernel` 构建，利用其 Plugin/Connector 模型和 DI 基础设施
 - Driver 通过 .NET 标准接口（`IEnlistmentNotification`、`IPromotableSinglePhaseNotification` 等）实现分布式事务支持
 - **Driver 提供完整的分布式事务支持，中间件只负责聚合**
 - 利用 .NET `CommittableTransaction` 作为顶层事务对象
@@ -121,6 +124,8 @@
 - 当需要自定义 Driver 接口时：将接口抽离为独立项目（`Adaptor.Core`）
 - Driver 实现放在 `Drivers/` 子目录中，按存储类型分类（Sql / Vector / Blob）
 - 每个 Driver 是自包含的类，通过 DI 注册到中间件
+- 抽象层从单一的 `IStorageDriver` 拆分为多个正交的能力接口（`IResourceManager`、`ITransactionalResourceManager`、`ISqlQueryCapability` 等）
+- 中间件基于 `Microsoft.SemanticKernel` 的 `Kernel` 作为编排核心，Driver 作为 `KernelPlugin` 加载
 
 ---
 
@@ -131,7 +136,8 @@
 | Transaction | .NET `System.Transactions.Transaction` 实例，代表一个工作单元 |
 | Enlistment | Driver 将自身及关联本地事务注册到 .NET Transaction 的过程 |
 | Session | Consumer 与中间件之间的 gRPC 会话上下文，绑定到一个活跃事务 |
-| Driver | 实现对特定存储引擎的适配器，提供事务能力声明和数据操作 |
+| Driver | 实现 `IResourceManager` 的适配器，通过组合独立的能力接口暴露操作，基于 Semantic Kernel Plugin 模型加载 |
+| Resource Manager | 分布式事务的基本参与单元。每个 Driver 是一个 RM，管理一种存储资源，通过 `IEnlistmentNotification` 参与两阶段提交
 | Endpoint Group | gRPC `service` 关键字在此项目中仅作为方法分组，非自包含单元 |
 | Service Unit | 围绕中间件事务对象生命周期管理形成的 API 整体 |
 

@@ -7,14 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Protobuf Include="Protos\adaptor.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\greet.proto" GrpcServices="Server" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" Version="2.64.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.28.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Coordinator\Adaptor.Coordinator.csproj" />
+    <ProjectReference Include="..\Driver\Postgre\Adaptor.Driver.Postgre.csproj" />
   </ItemGroup>
 </Project>

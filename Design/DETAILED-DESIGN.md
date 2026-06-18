@@ -43,6 +43,8 @@ Adaptor 是一个基于 .NET 10 的独立中间件服务，面向**缺乏 DTC �
 | **All or Nothing** | 事务最终要么全部成功，要么全部回滚 |
 | **Driver 负责事务** | Driver 实现完整的分布式事务支持（.NET 标准接口），中间件只负责聚合 |
 | **无自定义事务类型** | 仅在 .NET 内置设施不满足需求时才考虑自定义 Transaction 子类 |
+| **Composition over Inheritance** | 不定义大一统的 Driver 接口；能力通过正交的独立接口暴露，Driver 按需组合 |
+| **Semantic Kernel 技术栈** | Driver 和中间件均基于 `Microsoft.SemanticKernel` 构建，利用其 Plugin/Connector 模型 |
 
 ---
 
@@ -85,17 +87,26 @@ Adaptor 是一个基于 .NET 10 的独立中间件服务，面向**缺乏 DTC �
 │  │  └──────────────────────────────────────────────┘  │   │
 │  └────────────────────────────────────────────────────┘   │
 │                                                            │
+│  ┌────────────────────────────────────────────────────┐   │
+│  │  Semantic Kernel Orchestration                     │   │
+│  │  (Kernel + KernelPlugin + KernelFunction)          │   │
+│  └────────────────────────────────────────────────────┘   │
+│                                                            │
 │  ┌──────────────┬──────────────┬──────────────────────┐   │
-│  │  SQL Driver   │  Vector Driver│  BLOB Driver         │   │
-│  │  Manager      │  Manager      │  Manager             │   │
+│  │  SQL          │  Vector       │  BLOB                 │   │
+│  │  Resource     │  Resource     │  Resource             │   │
+│  │  Manager      │  Manager      │  Manager              │   │
 │  ├──────────────┤├──────────────┤├──────────────────────┤   │
-│  │ IStorageDriver<TSqlTx>        │ IStorageDriver<TBlobTx>   │
-│  │ : IEnlistmentNotification     │ : IEnlistmentNotification │
+│  │ IResourceManager              │ IResourceManager          │
+│  │ + ITransactionalResource      │ + ITransactionalResource  │
+│  │ + ISqlExecuteCapability       │ + IBlobUploadCapability   │
+│  │ + ISqlQueryCapability         │ + IBlobDownloadCapability │
+│  │ + IHealthCheckCapability      │ + IHealthCheckCapability  │
 │  └──────┬───────┴──────┬───────┴──────────┬───────────┘   │
 │         │              │                  │                │
 │  ┌──────▼──────┐ ┌─────▼──────┐  ┌────────▼────────┐     │
 │  │ PgSQL       │ │ pgvector   │  │ BYTEA + LO      │     │
-│  │ MySQL       │ │ SQLite-Vec │  │ AWS S3 + 补偿   │     │
+│  │ MySQL       │ │ Milvus     │  │ AWS S3 + 补偿   │     │
 │  │ ...         │ │ ...        │  │ ...             │     │
 │  └─────────────┘ └────────────┘  └─────────────────┘     │
 └──────────────────────────────────────────────────────────┘
@@ -106,9 +117,10 @@ Adaptor 是一个基于 .NET 10 的独立中间件服务，面向**缺乏 DTC �
 | 概念 | 定义 |
 |------|------|
 | **Transaction** | .NET `System.Transactions.Transaction` 实例，代表一个工作单元。中间件内部使用 `CommittableTransaction` 作为顶层事务 |
-| **Enlistment** | Driver 将自身（及关联的本地事务）注册到 .NET Transaction 的过程 |
+| **Resource Manager (RM)** | 分布式事务的基本参与单元。每个 Driver 是一个 RM，管理一种存储资源，通过 `IEnlistmentNotification` 参与两阶段提交 |
+| **Enlistment** | RM (Driver) 将自身注册到 .NET Transaction 的过程 |
 | **Session** | Consumer 与中间件之间的 gRPC 会话上下文，绑定到一个活跃事务 |
-| **Driver** | 实现对特定存储引擎的适配器，提供事务能力声明和数据操作 |
+| **Driver** | 实现 `IResourceManager` 的适配器，通过组合独立的能力接口对外暴露操作，基于 Semantic Kernel Plugin 模型加载 |
 
 ### 2.3 事务生命周期
 
@@ -117,7 +129,7 @@ Consumer              Middleware              Driver 1 (SQL)      Driver 2 (Vect
    │                      │                       │                   │                   │
    │── BeginTransaction ──│                       │                   │                   │
    │                      │── 创建 .NET CommittableTransaction        │                   │
-   │                      │── 为每个配置的 Driver 准备事务上下文       │                   │
+   │                      │── 注册到事务表                            │                   │
    │<── tx_id ────────────│                       │                   │                   │
    │                      │                       │                   │                   │
    │── SqlQuery(tx_id) ───│                       │                   │                   │
@@ -173,8 +185,8 @@ service Transaction {
   rpc BeginTransaction(BeginTransactionRequest) returns (BeginTransactionResponse);
   rpc CommitTransaction(CommitTransactionRequest) returns (CommitTransactionResponse);
   rpc RollbackTransaction(RollbackTransactionRequest) returns (RollbackTransactionResponse);
+  // 查询事务状态（映射自 System.Transactions.TransactionStatus）
   rpc GetTransactionStatus(GetTransactionStatusRequest) returns (GetTransactionStatusResponse);
-  rpc SetTransactionTimeout(SetTransactionTimeoutRequest) returns (SetTransactionTimeoutResponse);
 }
 
 service DBSQL {
@@ -202,8 +214,6 @@ service DBBLOB {
 
 // ...
 ```
-
-> **注意**：上述 RPC 列表是框架性的。具体的请求/响应消息结构需在 API 需求冻结后设计。
 
 ### 3.3 事务上下文传递
 
@@ -273,39 +283,26 @@ message GetTransactionStatusRequest {
 
 message GetTransactionStatusResponse {
   TransactionState state = 1;
-  google.protobuf.Timestamp expires_at = 2;
-  repeated string enlisted_drivers = 3;
+  google.protobuf.Timestamp expires_at = 2;  // 一次性计算，不维护
 }
 
 enum TransactionState {
   TRANSACTION_STATE_UNSPECIFIED = 0;
   TRANSACTION_STATE_ACTIVE = 1;
-  TRANSACTION_STATE_PREPARING = 2;
-  TRANSACTION_STATE_PREPARED = 3;
-  TRANSACTION_STATE_COMMITTING = 4;
-  TRANSACTION_STATE_COMMITTED = 5;
-  TRANSACTION_STATE_ROLLING_BACK = 6;
-  TRANSACTION_STATE_ROLLED_BACK = 7;
-  TRANSACTION_STATE_TIMEOUT = 8;
+  TRANSACTION_STATE_COMMITTED = 2;
+  TRANSACTION_STATE_ROLLED_BACK = 3;
+  TRANSACTION_STATE_IN_DOUBT = 4;
 }
 
-// ─── 超时设置 ───
-message SetTransactionTimeoutRequest {
-  string transaction_id = 1;
-  google.protobuf.Duration timeout = 2;
-}
-
-message SetTransactionTimeoutResponse {
-  bool success = 1;
-}
 ```
 
 ### 3.5 连接与 KeepAlive
 
 - 使用 gRPC 内置的 HTTP/2 keepalive ping
-- Consumer 可通过 `SetTransactionTimeout` 控制事务级别的超时
+- 超时在 `BeginTransaction` 时通过 `timeout` 参数指定（可选，默认 30s）
+- 如需长时间操作，Consumer 应创建超时无限的独立事务
 - 中间件服务端配置默认事务超时 + 会话空闲超时
-- 超时未 commit 的事务自动回滚
+- 超时未 commit 的事务自动回滚（由 CommittableTransaction 内建机制处理）
 
 ---
 
@@ -374,40 +371,45 @@ message SetTransactionTimeoutResponse {
 默认使用 `System.Transactions.IsolationLevel.ReadCommitted`。
 后续可根据 Driver 能力暴露可配置的隔离级别选择。
 
-### 4.4 事务状态机
+### 4.4 事务状态
+
+事务状态直接使用 .NET `System.Transactions.TransactionStatus` 枚举：
+
+| TransactionStatus | 说明 |
+|-------------------|------|
+| `Active` | 事务活跃，可执行数据操作 |
+| `Committed` | 事务已成功提交 |
+| `Aborted` | 事务已回滚 |
+| `InDoubt` | 事务结果不确定（极少发生） |
+
+Coordinator 不维护中间状态（Preparing / Committing / RollingBack 等），
+这些状态由 .NET DTC 基础设施在内部管理，不对外暴露。
 
 ```
                          ┌─────────┐
                          │  ACTIVE  │ ◀── BeginTransaction
                          └────┬─────┘
                               │
-               ┌──────────────┼──────────────┐
-               │              │              │
-          Data Op      SetTimeout       Commit / Rollback
-               │              │              │
-               ▼              ▼              ▼
-          (Enlist)      (更新超时)     ┌──────────┐
-                         │           │ PREPARING │── Commit
-                         ▼           └─────┬─────┘
-                    (继续 ACTIVE)           │
-                                    ┌──────▼──────┐
-                               ┌────┤   PREPARED   ├────┐
-                               │    └──────┬──────┘    │
-                               ▼           ▼           ▼
-                         ┌──────────┐ ┌──────────┐ ┌──────────┐
-                         │COMMITTING│ │ROLLBACK  │ │ROLLBACK  │
-                         │          │ │(Prepare  │ │(Timeout  │
-                         │          │ │ 失败)    │ │ 触发)    │
-                         └────┬─────┘ └────┬─────┘ └────┬─────┘
-                              │            │            │
-                         ┌────▼────┐  ┌────▼────┐  ┌────▼────┐
-                         │COMMITTED│  │ROLLED   │  │ROLLED   │
-                         │         │  │BACK     │  │BACK     │
-                         └─────────┘  └─────────┘  └─────────┘
+                    ┌─────────┼─────────┐
+                    │         │         │
+               Data Op    Commit    Rollback
+                    │         │         │
+                    ▼         ▼         ▼
+               (Enlist)  ┌──────────┐  │
+                         │ .NET 内部│  │
+                         │ 协调 2PC │  │
+                         └────┬─────┘  │
+                              │         │
+                    ┌─────────┼─────────┘
+                    │         │
+               ┌────▼────┐ ┌─▼────────┐
+               │COMMITTED│ │ ABORTED  │
+               │(终态)   │ │ (终态)   │
+               └─────────┘ └──────────┘
 
-               所有终态不可逆。TIMEOUT 状态在超时时进入，
-               自动触发回滚。COMMITTED / ROLLED_BACK / TIMEOUT
-               为终态。
+           IN_DOUBT 为极罕见的终态，仅当与 MSDTC
+           通信失败且无法恢复时进入。
+```
 ```
 
 ---
@@ -416,139 +418,338 @@ message SetTransactionTimeoutResponse {
 
 ### 5.1 设计原则
 
-- Driver 利用 .NET 现有的分布式事务接口（`IEnlistmentNotification` 等）
-- Driver 不需要实现自定义事务接口，除非 .NET 内置设施不足
-- 每个 Driver 类型面向一种存储引擎
-- Driver 通过依赖注入（DI）注册到中间件
+1. **Resource Manager 模式** — 每个 Driver 是一个 Resource Manager (RM)，管理一种存储资源，参与 .NET `System.Transactions` 两阶段提交协调
+2. **Composition over Inheritance** — 不定义大一统的 `IStorageDriver` 接口；能力通过正交的独立接口暴露，Driver 按需组合
+3. **Semantic Kernel 技术栈** — Driver 和中间件均基于 `Microsoft.SemanticKernel` 构建，利用其 Plugin/Connector 模型和 DI 基础设施
 
-### 5.2 Driver 能力声明
+### 5.2 Resource Manager 模式
 
-```csharp
-[Flags]
-public enum StorageCapabilities
-{
-    None = 0,
-    /// <summary>支持单阶段提交 (IEnlistmentNotification)</summary>
-    SinglePhase = 1 << 0,
-    /// <summary>支持可提升单阶段提交 (IPromotableSinglePhaseNotification)</summary>
-    Promotable = 1 << 1,
-    /// <summary>支持原生分布式事务 (如 XA)</summary>
-    Distributed = 1 << 2,
-    /// <summary>支持补偿事务（用于 All or Nothing 回滚）</summary>
-    Compensating = 1 << 3,
-}
+在 .NET `System.Transactions` 中，Resource Manager (RM) 是参与分布式事务的基本单元：
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  TransactionCoordinator (Transaction Manager)            │
+│                                                          │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │  System.Transactions                              │  │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌────────┐ │  │
+│  │  │ Committable  │  │ Enlistment   │  │ Two-   │ │  │
+│  │  │ Transaction  │  │ Notification │  │ Phase  │ │  │
+│  │  └──────────────┘  └──────────────┘  └────────┘ │  │
+│  └───────────────────────────────────────────────────┘  │
+│              │ Enlist          │ Enlist          │ Enlist│
+│     ┌────────▼────┐   ┌────────▼────┐   ┌────────▼────┐│
+│     │ SQL RM      │   │ Vector RM   │   │ BLOB RM     ││
+│     │ (Driver)    │   │ (Driver)    │   │ (Driver)    ││
+│     └─────────────┘   └─────────────┘   └─────────────┘│
+└─────────────────────────────────────────────────────────┘
 ```
 
-### 5.3 Driver 核心约定
+每个 Driver (RM) 必须：
+- 实现 `IEnlistmentNotification`（两阶段提交回调接口）
+- 通过 `Transaction.EnlistVolatile()` / `EnlistDurable()` 注册自身
+- 在 `Prepare()` 中投票，在 `Commit()` / `Rollback()` 中执行最终操作
 
-Driver 通过实现 `IEnlistmentNotification`（系统.Transactions 命名空间）表明自己支持两阶段提交。这是一个 .NET 标准接口，不是自定义接口。
+### 5.3 能力接口体系（Composition）
+
+Driver 的能力通过独立的接口暴露，各接口职责正交、可独立实现：
 
 ```csharp
-public interface IStorageDriver : IEnlistmentNotification
+/// <summary>
+/// 最基础标记：该 Driver 是一个资源管理器。
+/// 所有 Driver 必须实现此接口。
+/// </summary>
+public interface IResourceManager
 {
-    /// <summary>Driver 名称，用于日志和错误报告</summary>
     string Name { get; }
-
-    /// <summary>存储类型</summary>
-    StorageType StorageType { get; }
-
-    /// <summary>能力声明</summary>
-    StorageCapabilities Capabilities { get; }
-
-    /// <summary>
-    /// 将当前 Driver 注册到指定的 .NET 事务中。
-    /// 该方法在第一次数据操作时由 TransactionCoordinator 调用。
-    /// </summary>
-    void Enlist(Transaction transaction);
-
-    /// <summary>
-    /// 检查 Driver 连接状态。
-    /// </summary>
-    bool HealthCheck();
+    ResourceType ResourceType { get; }
 }
 
-public enum StorageType
+[Flags]
+public enum ResourceType
 {
     Sql,
     Vector,
     Blob,
 }
+
+/// <summary>
+/// 声明该 Driver 支持事务性 Enlistment。
+/// 只有实现此接口的 Driver 才会参与分布式事务协调。
+/// </summary>
+public interface ITransactionalResourceManager : IResourceManager
+{
+    void Enlist(Transaction transaction);
+}
 ```
 
-### 5.4 IEnlistmentNotification 回调映射
+能力接口（按存储类型和应用场景分离）：
 
 ```csharp
-public class MySqlDriver : IStorageDriver
+// ─── SQL 能力 ───
+public interface ISqlExecuteCapability
 {
-    // ─── IEnlistmentNotification ───
+    Task<SqlExecuteResult> ExecuteAsync(
+        SqlExecuteRequest request, CancellationToken ct);
+}
 
-    /// <summary>
-    /// Phase 1: Prepare。系统.Transactions 在提交时自动调用。
-    /// 在此方法中验证本地事务是否可以提交。
-    /// </summary>
-    void IEnlistmentNotification.Prepare(PreparingEnlistment preparingEnlistment)
+public interface ISqlQueryCapability
+{
+    Task<SqlQueryResult> QueryAsync(
+        SqlQueryRequest request, CancellationToken ct);
+}
+
+// ─── Vector 能力 ───
+public interface IVectorUpsertCapability
+{
+    Task<VectorUpsertResult> UpsertAsync(
+        VectorUpsertRequest request, CancellationToken ct);
+}
+
+public interface IVectorSearchCapability
+{
+    Task<VectorSearchResult> SearchAsync(
+        VectorSearchRequest request, CancellationToken ct);
+}
+
+// ─── BLOB 能力 ───
+public interface IBlobUploadCapability
+{
+    Task<BlobUploadResult> UploadAsync(
+        BlobUploadRequest request, CancellationToken ct);
+}
+
+public interface IBlobDownloadCapability
+{
+    Task<BlobDownloadResult> DownloadAsync(
+        BlobDownloadRequest request, CancellationToken ct);
+}
+
+// ─── 公共能力 ───
+public interface IHealthCheckCapability
+{
+    Task<bool> HealthCheckAsync(CancellationToken ct);
+}
+```
+
+### 5.4 Driver 实现范例（Composition in action）
+
+Driver 不继承、不实现任何"大一统"接口，而是按需选择能力接口：
+
+```csharp
+// ── PostgreSQL Driver：SQL RM + SQL Execute/Query + HealthCheck ──
+public sealed class PostgreSqlDriver :
+    IResourceManager,
+    ITransactionalResourceManager,  // 参与分布式事务
+    ISqlExecuteCapability,
+    ISqlQueryCapability,
+    IHealthCheckCapability
+{
+    public string Name => "PostgreSQL";
+    public ResourceType ResourceType => ResourceType.Sql;
+
+    // ITransactionalResourceManager
+    public void Enlist(Transaction transaction)
     {
-        try
-        {
-            // 验证本地事务状态
-            // 如果一切正常:
-            preparingEnlistment.Prepared();
-            // 如果失败:
-            // preparingEnlistment.ForceRollback(error);
-        }
-        catch (Exception ex)
-        {
-            preparingEnlistment.ForceRollback(ex);
-        }
+        // 将 NpgsqlConnection enlist 到 System.Transactions
     }
 
-    /// <summary>
-    /// Phase 2: Commit。所有 Driver 都 Prepared 后调用。
-    /// </summary>
-    void IEnlistmentNotification.Commit(Enlistment enlistment)
+    // IEnlistmentNotification（显式接口实现）
+    void IEnlistmentNotification.Prepare(PreparingEnlistment pe)
     {
-        // 提交本地事务
-        // 通知中间件完成
-        enlistment.Done();
+        try { /* 验证本地事务可提交 */ pe.Prepared(); }
+        catch { pe.ForceRollback(); }
+    }
+    void IEnlistmentNotification.Commit(Enlistment e) { /* 提交 */ e.Done(); }
+    void IEnlistmentNotification.Rollback(Enlistment e) { /* 回滚 */ e.Done(); }
+    void IEnlistmentNotification.InDoubt(Enlistment e) { /* 记录 */ e.Done(); }
+
+    // ISqlQueryCapability
+    public Task<SqlQueryResult> QueryAsync(SqlQueryRequest request, CancellationToken ct)
+    {
+        // 实际的 SQL 查询逻辑
     }
 
-    /// <summary>
-    /// Rollback。任一阶段失败或主动回滚时调用。
-    /// </summary>
-    void IEnlistmentNotification.Rollback(Enlistment enlistment)
-    {
-        // 回滚本地事务
-        enlistment.Done();
-    }
+    // ISqlExecuteCapability
+    public Task<SqlExecuteResult> ExecuteAsync(SqlExecuteRequest request, CancellationToken ct) { /* ... */ }
 
-    /// <summary>
-    /// InDoubt。事务状态不确定时调用（罕见）。
-    /// </summary>
-    void IEnlistmentNotification.InDoubt(Enlistment enlistment)
+    // IHealthCheckCapability
+    public Task<bool> HealthCheckAsync(CancellationToken ct) { /* ... */ }
+}
+
+// ── AWS S3 Driver：BLOB RM + Upload/Download/Delete + HealthCheck ──
+// 注意：S3 没有原生事务支持，Driver应自行实现事务逻辑
+public sealed class S3BlobDriver :
+    IResourceManager,
+    ITransactionalResourceManager,  // 应用层补偿事务
+    IBlobUploadCapability,
+    IBlobDownloadCapability,
+    IHealthCheckCapability
+{
+    public string Name => "AWS S3";
+    public ResourceType ResourceType => ResourceType.Blob;
+    // ... 类似实现
+}
+```
+
+### 5.5 Semantic Kernel 集成
+
+Adaptor 基于 `Microsoft.SemanticKernel` 技术栈构建，利用其 Plugin/Connector 模型作为 Driver 的承载框架：
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  Adaptor Middleware                                       │
+│                                                            │
+│  ┌──────────────────── Kernel ─────────────────────────┐  │
+│  │                                                      │  │
+│  │  Plugins:                                            │  │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐          │  │
+│  │  │PostgreSQL│  │pgvector  │  │S3 BLOB   │  ← KernelPlugin │
+│  │  │Plugin    │  │Plugin    │  │Plugin    │          │  │
+│  │  │          │  │          │  │          │          │  │
+│  │  │• Query   │  │• Search  │  │• Upload  │  ← KernelFunction│
+│  │  │• Execute │  │• Upsert  │  │• Download│          │  │
+│  │  └──────────┘  └──────────┘  └──────────┘          │  │
+│  │                                                      │  │
+│  │  Services (DI):                                      │  │
+│  │  ┌──────────────────────────────────────────────┐   │  │
+│  │  │ TransactionCoordinator                        │   │  │
+│  │  │ SessionManager                                │   │  │
+│  │  └──────────────────────────────────────────────┘   │  │
+│  └──────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────┘
+```
+
+```csharp
+// 1. Driver 作为 IResourceManager 注册到 Kernel 的 DI 容器
+IKernelBuilder builder = Kernel.CreateBuilder();
+
+builder.Services.AddSingleton<IResourceManager>(sp =>
+    new PostgreSqlDriver("Host=..."));
+builder.Services.AddSingleton<IResourceManager>(sp =>
+    new PgVectorDriver("Host=..."));
+builder.Services.AddSingleton<IResourceManager>(sp =>
+    new PostgresBlobDriver("Host=..."));
+
+Kernel kernel = builder.Build();
+
+// 2. 每个 IResourceManager 被包装为 KernelPlugin，
+//    其能力接口方法自动暴露为 KernelFunction
+foreach (var rm in kernel.Services.GetServices<IResourceManager>())
+{
+    kernel.Plugins.AddFromObject(rm, rm.Name);
+}
+
+// 3. TransactionCoordinator 通过 Kernel 发现和调度 Driver
+public sealed class TransactionCoordinator
+{
+    private readonly Kernel _kernel;
+
+    public async Task<SqlQueryResult> QueryAsync(
+        string transactionId,
+        SqlQueryRequest request,
+        CancellationToken ct)
     {
-        // 记录不确定状态，人工介入
-        enlistment.Done();
+        // 查找提供 ISqlQueryCapability 的 Driver
+        var sqlDriver = _kernel.Services
+            .GetServices<IResourceManager>()
+            .OfType<ISqlQueryCapability>()
+            .FirstOrDefault()
+            ?? throw new InvalidOperationException(
+                "No SQL query driver registered");
+
+        // Enlist 到当前事务（如果支持）
+        if (sqlDriver is ITransactionalResourceManager txRm)
+            txRm.Enlist(GetCurrentTransaction(transactionId));
+
+        return await sqlDriver.QueryAsync(request, ct);
     }
 }
 ```
 
-### 5.5 Driver 实现示例
+**SK 技术栈在本项目中的使用要点：**
 
-#### 例 1: PgSQL (SQL) + pgvector (Vector) + BYTEA/LO (BLOB)
+| SK 概念 | Adaptor 映射 |
+|---------|-------------|
+| `Kernel` | 中间件内部编排核心 |
+| `KernelPlugin` | Driver 的包装单元 |
+| `KernelFunction` | Driver 能力接口方法（预留 AI/自动化扩展点） |
+| `KernelBuilder` / `IServiceCollection` | 中间件启动时组装 Driver |
+| `IMemoryStore` (SK 内置) | 与 `IVectorSearchCapability` 可相互适配 |
+| Plugin 自动发现 | 中间件通过 DI 容器自动发现已注册的 Driver |
 
-三者全部在同一个 PostgreSQL 实例中。这种情况下：
+### 5.6 Driver 事务能力声明
 
-- **优化策略**：三个 Driver 共享同一个 `NpgsqlConnection`
-- **PSPE**：使用 `IPromotableSinglePhaseNotification`，初始为本地 PG 事务，仅在需要跨 PG 实例时提升为分布式
-- 实际场景中如果三者同库，单数据库事务即可覆盖所有操作
+Driver 通过自身实现的接口组合来声明能力，同时保留显式枚举以支持运行时查询：
 
-#### 例 2: MySQL (SQL) + SQLite-Vector (Vector) + AWS S3 (BLOB)
+```csharp
+[Flags]
+public enum TransactionCapabilities
+{
+    None = 0,
+    /// <summary>支持 IEnlistmentNotification（标准两阶段提交）</summary>
+    TwoPhaseCommit = 1 << 0,
+    /// <summary>支持可提升单阶段提交 PSPE</summary>
+    Promotable = 1 << 1,
+    /// <summary>支持补偿事务（Commit 失败后可回滚）</summary>
+    Compensating = 1 << 2,
+}
 
-三者分属不同存储系统，需要完整的 2PC：
+public static class ResourceManagerExtensions
+{
+    /// <summary>运行时查询 Driver 的事务能力</summary>
+    public static TransactionCapabilities GetTransactionCapabilities(
+        this IResourceManager rm)
+    {
+        var caps = TransactionCapabilities.None;
+        if (rm is ITransactionalResourceManager) caps |= TransactionCapabilities.TwoPhaseCommit;
+        // 通过 reflection 或已注册的元数据检查 PSPE/Compensating
+        return caps;
+    }
+}
+```
 
-- **MySQL Driver**：通过 `IEnlistmentNotification` 实现 2PC
-- **SQLite-Vector Driver**：通过 `IEnlistmentNotification` 实现 2PC
-- **AWS S3 Driver**：需要应用层补偿事务 — 在 `Prepare()` 中预上传并记录版本号，`Commit()` 中确认，`Rollback()` 中删除（补偿）
+### 5.7 示例场景
+
+#### 例 1: PgSQL + pgvector + BYTEA/LO（三者同库）
+
+```
+PostgreSqlDriver     : IResourceManager
+                     + ITransactionalResourceManager  (PSPE 优化)
+                     + ISqlExecuteCapability + ISqlQueryCapability
+                     + IHealthCheckCapability
+
+PgVectorDriver       : IResourceManager
+                     + ITransactionalResourceManager  (共享连接, PSPE)
+                     + IVectorUpsertCapability + IVectorSearchCapability
+                     + IHealthCheckCapability
+
+PostgresBlobDriver   : IResourceManager
+                     + ITransactionalResourceManager  (共享连接, PSPE)
+                     + IBlobUploadCapability + IBlobDownloadCapability
+                     + IHealthCheckCapability
+```
+
+三者共享同一个 `NpgsqlConnection`，PSPE 使整个事务在 PG 本地完成，无需提升为分布式。
+
+#### 例 2: MySQL + SQLite-Vector + AWS S3（完全异构）
+
+```
+MySqlDriver          : IResourceManager
+                     + ITransactionalResourceManager  (2PC)
+                     + ISqlExecuteCapability + ISqlQueryCapability
+
+SqliteVectorDriver   : IResourceManager
+                     + ITransactionalResourceManager  (2PC)
+                     + IVectorUpsertCapability + IVectorSearchCapability
+
+S3BlobDriver         : IResourceManager
+                     + ITransactionalResourceManager  (应用层补偿)
+                     + IBlobUploadCapability + IBlobDownloadCapability
+                     + IHealthCheckCapability
+```
+
+三者分属不同存储系统，需完整 2PC。S3 在 `Prepare()` 中预上传并记录版本号，`Commit()` 确认，`Rollback()` 删除（补偿）。
 
 ---
 
@@ -624,19 +825,21 @@ TransactionCoordinator.Rollback():
 
 ### 6.4 超时管理
 
+超时由 `CommittableTransaction` 内建机制处理，Coordinator 不手写监控。
+
 ```
-BeginTransaction
-  → 启动 .NET CommittableTransaction 并设置超时
-  → 启动后台 CancellationTokenSource 关联
+BeginTransaction(timeout)
+  → 创建 CommittableTransaction 并设置超时
 
 Timeout 触发:
   → .NET 自动调用所有 Enlisted Driver 的 Rollback()
   → 清理事务状态
   → (可选) 通知 Consumer（如 gRPC 连接仍存活）
 
-Consumer 调用 SetTimeout:
-  → 更新 CancellationTokenSource
-  → 不能超过服务端限制的最大超时
+注意:
+  - CommittableTransaction 构造后超时不可修改
+  - 如需长时间操作，Consumer 应创建超时无限的独立事务
+  - SetTransactionTimeout RPC 已移除
 ```
 
 ---
@@ -668,8 +871,10 @@ Consumer 调用 SetTimeout:
 
 - 每个事务在一个独立的 `Task` 中处理
 - 多个 Consumer 可并行发起多个事务
-- 同一事务内的操作顺序执行（通过 `SemaphoreSlim` 或 `AsyncLocal` 协调）
-- 事务表 `ConcurrentDictionary<string, TransactionState>` 管理全局事务状态
+- 同一事务内并发操作的串行化由 **Driver 层自行负责**，Coordinator 不做约束
+  - Npgsql 等有状态驱动的 Driver 内部使用 per-transaction `SemaphoreSlim`
+  - S3 等无状态驱动的 Driver 天然支持并发
+- Coordinator 仅维护 `ConcurrentDictionary<string, TransactionEntry>` 事务表
 
 ### 7.3 驱逐策略
 
@@ -702,30 +907,35 @@ Adaptor/
 │   └── SessionManager.cs       # 会话管理
 │
 ├── Abstractions/
-│   ├── IStorageDriver.cs       # Driver 接口
-│   └── StorageCapabilities.cs  # 能力声明
+│   ├── IResourceManager.cs         # 基础 RM 标记接口
+│   ├── ITransactionalResourceManager.cs  # 事务性 RM（含 Enlist）
+│   ├── ISqlExecuteCapability.cs    # SQL 执行能力
+│   ├── ISqlQueryCapability.cs      # SQL 查询能力
+│   ├── IVectorUpsertCapability.cs  # 向量写入能力
+│   ├── IVectorSearchCapability.cs  # 向量搜索能力
+│   ├── IBlobUploadCapability.cs    # BLOB 上传能力
+│   ├── IBlobDownloadCapability.cs  # BLOB 下载能力
+│   └── IHealthCheckCapability.cs   # 健康检查能力
 │
 ├── Drivers/
 │   ├── Sql/
-│   │   ├── PostgreSqlDriver.cs # PostgreSQL + pgvector (SQL 部分)
+│   │   ├── PostgreSqlDriver.cs     # PostgreSQL + pgvector (SQL 部分)
 │   │   └── MySqlDriver.cs
 │   ├── Vector/
-│   │   ├── PgVectorDriver.cs   # pgvector (Vector 部分)
+│   │   ├── PgVectorDriver.cs       # pgvector (Vector 部分)
 │   │   └── SqliteVectorDriver.cs
 │   └── Blob/
-│       ├── PostgresBlobDriver.cs # BYTEA + Large Object
-│       └── S3BlobDriver.cs       # AWS S3
+│       ├── PostgresBlobDriver.cs   # BYTEA + Large Object
+│       └── S3BlobDriver.cs         # AWS S3 + 应用层补偿
 │
 ├── Models/
-│   ├── TransactionState.cs     # 事务状态模型
-│   └── DriverCommitResult.cs   # 提交结果记录
+│   └── DriverCommitResult.cs   # 提交结果记录（含 CommitStatus 枚举）
 │
 ├── Configuration/
 │   └── AdaptorOptions.cs       # 配置模型
 │
 └── Utilities/
-    ├── RetryPolicy.cs           # 重试策略（指数退避）
-    └── TimeoutManager.cs        # 超时管理
+    └── (暂空，后续按需添加)
 ```
 
 ### 8.2 多项目扩展（当需要自定义 Driver 接口时）
@@ -736,7 +946,15 @@ Adaptor.sln
 │   ├── Adaptor.Core/           # 核心：gRPC 服务、协调器、抽象接口
 │   │   ├── Adaptor.Core.csproj
 │   │   ├── Abstractions/
-│   │   │   └── IStorageDriver.cs
+│   │   │   ├── IResourceManager.cs
+│   │   │   ├── ITransactionalResourceManager.cs
+│   │   │   ├── ISqlExecuteCapability.cs
+│   │   │   ├── ISqlQueryCapability.cs
+│   │   │   ├── IVectorUpsertCapability.cs
+│   │   │   ├── IVectorSearchCapability.cs
+│   │   │   ├── IBlobUploadCapability.cs
+│   │   │   ├── IBlobDownloadCapability.cs
+│   │   │   └── IHealthCheckCapability.cs
 │   │   ├── Services/
 │   │   │   ├── TransactionCoordinator.cs
 │   │   │   └── AdaptorService.cs
