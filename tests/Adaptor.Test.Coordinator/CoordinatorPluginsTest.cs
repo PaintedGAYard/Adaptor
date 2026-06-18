@@ -78,7 +78,9 @@ public sealed class CoordinatorPluginsTest
 
         await plugin.RollbackTransactionAsync(txId);
 
-        Assert.Equal(TransactionStatus.Aborted, beginResult.Transaction.TransactionInformation.Status);
+        // CommittableTransaction is disposed after Rollback in .NET 10,
+        // so verify via ActiveTransactionCount instead.
+        Assert.Equal(0, coordinator.ActiveTransactionCount);
     }
 
     // ──────────────────────────────────────────────

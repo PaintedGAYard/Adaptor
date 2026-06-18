@@ -10,7 +10,7 @@ namespace Adaptor.Coordinator.Services;
 /// <summary>
 /// Manages session-to-consumer mappings, idle timeout, and automatic rollback.
 /// </summary>
-public sealed class SessionManager : IDisposable
+public class SessionManager : IDisposable
 {
     private readonly ConcurrentDictionary<string, SessionContext> _sessions = new();
     private readonly ConcurrentDictionary<string, HashSet<string>> _connectionSessions = new();

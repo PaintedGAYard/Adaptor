@@ -15,7 +15,7 @@ public sealed class HandleManagerTest
 
     private static HandleManager CreateManager()
     {
-        return new HandleManager(Substitute.For<ILogger<HandleManager>>());
+        return new HandleManager(Microsoft.Extensions.Logging.Abstractions.NullLogger<HandleManager>.Instance);
     }
 
     // ──────────────────────────────────────────────

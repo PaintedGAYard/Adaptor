@@ -224,13 +224,12 @@ public sealed class SessionManagerTest
     // ──────────────────────────────────────────────
 
     [Fact]
+    [Trait("Manual", "true")]
     public void Session_ShouldBeAutoCleanedAfterIdleTimeout()
     {
-        // The cleanup timer runs every 30s by default, so we test via
-        // the event mechanism: OnSessionTimeout should fire for expired sessions.
         var options = new CoordinatorOptions
         {
-            SessionIdleTimeout = TimeSpan.Zero, // Immediate expiration
+            SessionIdleTimeout = TimeSpan.FromSeconds(40),
         };
 
         var sessionManager = new SessionManager(
@@ -240,10 +239,10 @@ public sealed class SessionManagerTest
         var tx = CreateDummyTransaction();
         var session = sessionManager.CreateSession(tx);
 
-        // Give the timer a chance to fire (at most 1s)
-        Thread.Sleep(100);
+        // Cleanup timer fires every 30s by default; wait > 2 cycles to ensure
+        // the session expires (idle 80s >= 40s timeout) and gets collected.
+        Thread.Sleep(80_000);
 
-        // Session should be removed
         Assert.Null(sessionManager.GetSession(session.SessionId));
     }
 

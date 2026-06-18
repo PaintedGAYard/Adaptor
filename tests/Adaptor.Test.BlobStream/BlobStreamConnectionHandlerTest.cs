@@ -140,7 +140,7 @@ public sealed class BlobStreamConnectionHandlerTest
     public void ConnectionCleanup_ShouldRemoveAllHandles()
     {
         // BLOB-STREAM §4.4: "WebSocket 断开 → HandleManager.RemoveAllForConnection(connectionId)"
-        var mgr = new HandleManager(Substitute.For<ILogger<HandleManager>>());
+        var mgr = new HandleManager(Microsoft.Extensions.Logging.Abstractions.NullLogger<HandleManager>.Instance);
 
         mgr.Register("conn-1", 1, "k1", "tx-1");
         mgr.Register("conn-1", 2, "k2", "tx-1");
@@ -174,12 +174,20 @@ public sealed class BlobStreamConnectionHandlerTest
         var beginResult = await coordinator.BeginTransactionAsync(connectionId: "ws-conn-1");
         var txId = beginResult.Transaction.TransactionInformation.LocalIdentifier;
 
-        // Simulate session timeout (as would happen on WS disconnect)
-        sessionManager.OnSessionTimeout += Raise.Event<Action<SessionContext>>(
-            new SessionContext { TransactionLocalIdentifier = txId });
+        // Simulate session timeout via reflection (event is non-virtual, so
+        // NSubstitute's Raise.Event cannot be used on a class proxy).
+        var eventField = typeof(SessionManager).GetField(
+            "OnSessionTimeout",
+            System.Reflection.BindingFlags.Instance |
+            System.Reflection.BindingFlags.NonPublic |
+            System.Reflection.BindingFlags.Public);
+        var handlers = eventField?.GetValue(sessionManager) as Action<SessionContext>;
+        handlers?.Invoke(new SessionContext { TransactionLocalIdentifier = txId });
 
-        // After rollback, the transaction should be aborted
-        Assert.Equal(TransactionStatus.Aborted, beginResult.Transaction.TransactionInformation.Status);
+        // After rollback the CommittableTransaction is disposed in .NET 10,
+        // so TransactionInformation is inaccessible. Verify by checking that
+        // the entry was removed from the coordinator's tracking.
+        Assert.Equal(0, coordinator.ActiveTransactionCount);
     }
 
     // ──────────────────────────────────────────────
@@ -190,7 +198,7 @@ public sealed class BlobStreamConnectionHandlerTest
     public void HandleManager_InvalidateHandlesForTransaction_ShouldCleanupAfterCommit()
     {
         // BLOB-STREAM §9.1 (#4): "InvalidateHandlesForTransaction(txId)"
-        var mgr = new HandleManager(Substitute.For<ILogger<HandleManager>>());
+        var mgr = new HandleManager(Microsoft.Extensions.Logging.Abstractions.NullLogger<HandleManager>.Instance);
 
         mgr.Register("conn-1", 1, "k1", "tx-1");
         mgr.Register("conn-1", 2, "k2", "tx-1");
