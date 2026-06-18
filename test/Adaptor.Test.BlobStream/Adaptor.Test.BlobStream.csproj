@@ -20,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Coordinator\Adaptor.Coordinator.csproj" />
-    <ProjectReference Include="..\..\Service\Adaptor.Service.csproj" />
+    <ProjectReference Include="..\..\src\Coordinator\Adaptor.Coordinator.csproj" />
+    <ProjectReference Include="..\..\src\Service\Adaptor.Service.csproj" />
   </ItemGroup>
 
 </Project>

@@ -20,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Coordinator\Adaptor.Coordinator.csproj" />
-    <ProjectReference Include="..\..\Driver\Postgre\Adaptor.Driver.Postgre.csproj" />
+    <ProjectReference Include="..\..\src\Coordinator\Adaptor.Coordinator.csproj" />
+    <ProjectReference Include="..\..\src\Driver\Postgre\Adaptor.Driver.Postgre.csproj" />
   </ItemGroup>
 
 </Project>

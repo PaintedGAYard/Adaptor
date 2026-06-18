@@ -7,8 +7,8 @@
     <Project Path="src/Driver/Postgre/Adaptor.Driver.Postgre.csproj" />
   </Folder>
   <Folder Name="/test/">
-    <project Path="test/Adaptor.Coordinator.Tests/Adaptor.Coordinator.Tests.csproj" />
-    <project Path="test/Adaptor.Service.Tests/Adaptor.Service.Tests.csproj" />  
-    <project Path="test/Adaptor.Driver.Postgre.Tests/Adaptor.Driver.Postgre.Tests.csproj" />  
+    <project Path="test/Adaptor.Test.Coordinator/Adaptor.Test.Coordinator.csproj" />
+    <project Path="test/Adaptor.Test.BlobStream/Adaptor.Test.BlobStream.csproj" />  
+    <project Path="test/Adaptor.Test.Driver/Adaptor.Test.Driver.csproj" />  
   </Folder>
 </Solution>
