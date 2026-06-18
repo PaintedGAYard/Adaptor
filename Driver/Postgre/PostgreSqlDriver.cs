@@ -9,8 +9,8 @@ using Npgsql;
 namespace Adaptor.Driver.Postgre;
 
 /// <summary>
-/// PostgreSQL SQL Driver — 提供 SQL Execute/Query 能力，支持通过
-/// <see cref="ITransactionalResourceManager.Enlist"/> 参与 .NET 分布式事务。
+/// PostgreSQL SQL driver providing Execute/Query capabilities with
+/// .NET distributed transaction support via <see cref="ITransactionalResourceManager.Enlist"/>.
 /// </summary>
 public sealed class PostgreSqlDriver :
     IResourceManager,
@@ -37,7 +37,7 @@ public sealed class PostgreSqlDriver :
         _logger = logger;
     }
 
-    // ─── ITransactionalResourceManager ──────────────────────────────────────
+    #region ITransactionalResourceManager
 
     public void Enlist(Transaction transaction)
     {
@@ -72,7 +72,9 @@ public sealed class PostgreSqlDriver :
         _logger?.LogDebug("PostgreSqlDriver enlisted in transaction {TxId}", txId);
     }
 
-    // ─── IRelationalExecuteCapability ────────────────────────────────────────
+    #endregion
+
+    #region IRelationalExecuteCapability
 
     public async Task<RelationalExecuteResult> ExecuteAsync(RelationalExecuteRequest request, Transaction transaction, CancellationToken ct = default)
     {
@@ -117,7 +119,9 @@ public sealed class PostgreSqlDriver :
         }
     }
 
-    // ─── IRelationalQueryCapability ──────────────────────────────────────────
+    #endregion
+
+    #region IRelationalQueryCapability
 
     public async Task<RelationalQueryResult> QueryAsync(RelationalQueryRequest request, Transaction transaction, CancellationToken ct = default)
     {
@@ -175,7 +179,9 @@ public sealed class PostgreSqlDriver :
         }
     }
 
-    // ─── IHealthCheckCapability ─────────────────────────────────────────────
+    #endregion
+
+    #region IHealthCheckCapability
 
     public async Task<bool> HealthCheckAsync(CancellationToken ct = default)
     {
@@ -195,7 +201,9 @@ public sealed class PostgreSqlDriver :
         }
     }
 
-    // ─── Internal helpers ───────────────────────────────────────────────────
+    #endregion
+
+    #region Internal helpers
 
     private ConnectionEntry GetEntry(Transaction transaction)
     {
@@ -220,11 +228,7 @@ public sealed class PostgreSqlDriver :
         }
     }
 
-    /// <summary>
-    /// Called by <see cref="NpgsqlEnlistmentHandler"/> when a transaction
-    /// completes (Commit / Rollback / InDoubt), to release the associated
-    /// connection and local transaction resources.
-    /// </summary>
+    /// <summary>Release resources for a completed transaction.</summary>
     internal void RemoveEntry(string txId)
     {
         if (_connections.TryRemove(txId, out var entry))
@@ -233,7 +237,6 @@ public sealed class PostgreSqlDriver :
             entry.Dispose();
         }
 
-        // 清理 per-transaction 并发锁
         if (_txLocks.TryRemove(txId, out var gate))
         {
             gate.Dispose();
@@ -241,15 +244,17 @@ public sealed class PostgreSqlDriver :
     }
 
     /// <summary>
-    /// 获取或创建 per-transaction 并发锁。
-    /// 同一事务内的数据操作通过此锁串行化，避免 Npgsql 连接并发使用。
+    /// Get or create a per-transaction concurrency lock.
+    /// Serialises operations within the same transaction to avoid concurrent Npgsql use.
     /// </summary>
     private SemaphoreSlim GetOrCreateTxLock(string txId)
     {
         return _txLocks.GetOrAdd(txId, _ => new SemaphoreSlim(1, 1));
     }
 
-    // ─── IDisposable ────────────────────────────────────────────────────────
+    #endregion
+
+    #region IDisposable
 
     public void Dispose()
     {
@@ -269,11 +274,10 @@ public sealed class PostgreSqlDriver :
         _txLocks.Clear();
     }
 
-    // ─── Nested types ───────────────────────────────────────────────────────
+    #endregion
 
-    /// <summary>
-    /// Holds per-transaction connection + local transaction state.
-    /// </summary>
+    #region Nested types
+
     private sealed record ConnectionEntry : IDisposable
     {
         public NpgsqlConnection Connection { get; }
@@ -292,11 +296,8 @@ public sealed class PostgreSqlDriver :
         }
     }
 
-    /// <summary>
-    /// Per-transaction <see cref="IEnlistmentNotification"/> handler.
-    /// Each transaction gets its own handler instance so Prepare/Commit/Rollback
-    /// are always routed to the correct transaction state.
-    /// </summary>
+    /// <summary>Handles Prepare/Commit/Rollback for a single distributed transaction.</summary>
+    /// <remarks>Each transaction gets its own handler instance for correct routing.</remarks>
     private sealed class NpgsqlEnlistmentHandler : IEnlistmentNotification
     {
         private readonly PostgreSqlDriver _driver;
@@ -375,4 +376,6 @@ public sealed class PostgreSqlDriver :
             enlistment.Done();
         }
     }
+
+    #endregion
 }

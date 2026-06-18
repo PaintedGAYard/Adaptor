@@ -10,17 +10,12 @@ using Adaptor.Coordinator.Services;
 
 namespace Adaptor.Service.Services;
 
-// ═══════════════════════════════════════════════════════════════════════════
-// 共享辅助方法
-// ═══════════════════════════════════════════════════════════════════════════
+#region Shared helper methods
 
 /// <summary>
-/// 为四个 gRPC service 实现提供共享的基础设施。
-///
-/// gRPC 层的 transaction_id 直接复用 <see cref="TransactionInformation.LocalIdentifier"/>，
-/// 不自定义 ID。Coordinator 提供 <see cref="TransactionCoordinator.FindTransaction"/>
-/// 进行反向查找。
+/// Shared infrastructure for all gRPC service implementations.
 /// </summary>
+/// <remarks>gRPC transaction_id reuses <see cref="TransactionInformation.LocalIdentifier"/> directly.</remarks>
 public sealed class AdaptorServiceContext
 {
     public TransactionCoordinator Coordinator { get; }
@@ -38,7 +33,7 @@ public sealed class AdaptorServiceContext
     }
 
     /// <summary>
-    /// 将内部 CommitStatus 转换为 gRPC 枚举。
+    /// Map internal <see cref="Coordinator.Models.CommitStatus"/> to the protobuf enum.
     /// </summary>
     public static global::Adaptor.Service.CommitStatus ConvertStatus(
         Adaptor.Coordinator.Models.CommitStatus status) => status switch
@@ -51,7 +46,7 @@ public sealed class AdaptorServiceContext
     };
 
     /// <summary>
-    /// 将 <see cref="System.Transactions.TransactionStatus"/> 映射为 gRPC TransactionState。
+    /// Map <see cref="System.Transactions.TransactionStatus"/> to the protobuf TransactionState.
     /// </summary>
     public static global::Adaptor.Service.TransactionState ConvertTransactionStatus(
         System.Transactions.TransactionStatus status) => status switch
@@ -64,14 +59,14 @@ public sealed class AdaptorServiceContext
     };
 
     /// <summary>
-    /// 将 CLR object 转换为 protobuf <see cref="Value"/>。
-    /// Google.Protobuf 没有内置 FromObject 方法，手动映射类型。
-    /// 注意：字典用 <see cref="Struct"/> 表示，列表用 <see cref="ListValue"/> 表示。
+    /// Convert a CLR object to a protobuf <see cref="Value"/>.
     /// </summary>
+    /// <remarks>
+    /// Google.Protobuf has no built-in FromObject. Dictionaries become <see cref="Struct"/>,
+    /// lists become <see cref="ListValue"/>. Uses if/else chain to avoid type-inference issues.
+    /// </remarks>
     public static Value ObjectToValue(object? value)
     {
-        // 这个方法使用 if/else 链而非 switch 表达式，
-        // 以避免 Value.ForList 的类型推断问题和字典/列表的模式匹配冲突。
         if (value == null) return Value.ForNull();
         if (value is string s) return Value.ForString(s);
         if (value is int i) return Value.ForNumber(i);
@@ -80,7 +75,7 @@ public sealed class AdaptorServiceContext
         if (value is double d) return Value.ForNumber(d);
         if (value is bool b) return Value.ForBool(b);
 
-        // 字典 → Struct
+        // Dictionary → Struct
         if (value is IEnumerable<KeyValuePair<string, object?>> dict)
         {
             var structValue = new Struct();
@@ -91,7 +86,7 @@ public sealed class AdaptorServiceContext
             return Value.ForStruct(structValue);
         }
 
-        // 列表 → ListValue
+        // List → ListValue
         if (value is IEnumerable<object?> list)
         {
             var listValue = new ListValue();
@@ -106,14 +101,14 @@ public sealed class AdaptorServiceContext
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Transaction 服务
-// ═══════════════════════════════════════════════════════════════════════════
+#endregion
+
+#region Transaction service
 
 /// <summary>
-/// gRPC Transaction service 实现。
-/// 管理事务的 Begin / Commit / Rollback 生命周期。
-/// 状态查询映射自 <see cref="System.Transactions.TransactionStatus"/>。
+/// gRPC Transaction service implementation.
+/// Manages Begin / Commit / Rollback lifecycle.
+/// Status queries map from <see cref="System.Transactions.TransactionStatus"/>.
 /// </summary>
 public sealed class TransactionServiceImpl : Transaction.TransactionBase
 {
@@ -133,7 +128,6 @@ public sealed class TransactionServiceImpl : Transaction.TransactionBase
         var result = await _ctx.Coordinator.BeginTransactionAsync(
             timeout, connectionId, context.CancellationToken);
 
-        // gRPC 的 transaction_id 直接复用 .NET TransactionInformation.LocalIdentifier
         var transactionId = result.Transaction.TransactionInformation.LocalIdentifier;
 
         _ctx.Logger.LogInformation(
@@ -207,7 +201,6 @@ public sealed class TransactionServiceImpl : Transaction.TransactionBase
             State = state,
         };
 
-        // expires_at 从 CreationTime + 默认超时计算（一次性的值，不维护）
         var expiry = tx.TransactionInformation.CreationTime + _ctx.Options.DefaultTransactionTimeout;
         response.ExpiresAt = Timestamp.FromDateTime(expiry.ToUniversalTime());
 
@@ -215,13 +208,13 @@ public sealed class TransactionServiceImpl : Transaction.TransactionBase
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// DBSQL 服务
-// ═══════════════════════════════════════════════════════════════════════════
+#endregion
+
+#region DBRelational service
 
 /// <summary>
-/// gRPC DBRelational service 实现。
-/// 提供 Execute / Query / ExecuteBatch 能力。
+/// gRPC DBRelational service implementation.
+/// Provides Execute / Query / ExecuteBatch capabilities.
 /// </summary>
 public sealed class RelationalServiceImpl : DBRelational.DBRelationalBase
 {
@@ -355,13 +348,13 @@ public sealed class RelationalServiceImpl : DBRelational.DBRelationalBase
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// DBRelationalVector 服务
-// ═══════════════════════════════════════════════════════════════════════════
+#endregion
+
+#region DBRelationalVector service
 
 /// <summary>
-/// gRPC DBRelationalVector service 实现。
-/// 仅提供向量相似度搜索，CRUD 通过 DBRelational 执行原生 SQL。
+/// gRPC DBRelationalVector service implementation.
+/// Provides vector similarity search only; CRUD is handled via DBRelational native SQL.
 /// </summary>
 public sealed class RelationalVectorServiceImpl : DBRelationalVector.DBRelationalVectorBase
 {
@@ -454,13 +447,13 @@ public sealed class RelationalVectorServiceImpl : DBRelationalVector.DBRelationa
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// DBBLOB 服务
-// ═══════════════════════════════════════════════════════════════════════════
+#endregion
+
+#region DBBLOB service
 
 /// <summary>
-/// gRPC DBBLOB service 实现。
-/// 提供 BlobUpload / BlobDownload / BlobDelete / BlobList 能力。
+/// gRPC DBBLOB service implementation.
+/// Provides BlobUpload / BlobDownload / BlobDelete / BlobList capabilities.
 /// </summary>
 public sealed class BlobServiceImpl : DBBLOB.DBBLOBBase
 {
@@ -528,10 +521,8 @@ public sealed class BlobServiceImpl : DBBLOB.DBBLOBBase
 
         try
         {
-            // PostgresBlobDriver 有 DeleteAsync 方法，但不在 IBlobUploadCapability 接口中。
-            // 我们通过 isql 直接操作 adaptor_blob_store 表来删除。
-            // 由于 PostgreSQL Large Object 的 lo_unlink 需要特殊处理，
-            // 这里走 ISqlExecuteCapability 执行删除映射记录和 lo_unlink。
+            // PostgresBlobDriver has DeleteAsync but it is not part of IBlobUploadCapability.
+            // Delete the mapping record via SQL; lo_unlink is handled separately.
             var sql = $"DELETE FROM adaptor_blob_store WHERE key = @key";
             await _ctx.Coordinator.ExecuteOnCapabilityAsync<IRelationalExecuteCapability, RelationalExecuteResult>(
                 txId,
@@ -601,4 +592,6 @@ public sealed class BlobServiceImpl : DBBLOB.DBBLOBBase
             return new BlobListResponse { ErrorMessage = ex.Message };
         }
     }
+
+    #endregion
 }

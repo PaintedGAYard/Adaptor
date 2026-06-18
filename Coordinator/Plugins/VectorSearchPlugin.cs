@@ -8,10 +8,9 @@ using Adaptor.Coordinator.Services;
 namespace Adaptor.Coordinator.Plugins;
 
 /// <summary>
-/// SK Plugin — 关系数据库向量搜索。
-/// 包装 <see cref="IRelationalVectorSearchCapability"/>。
-/// CRUD 操作通过 <see cref="RelationalPlugin"/> 的原生 SQL 完成。
+/// SK Plugin wrapping <see cref="IRelationalVectorSearchCapability"/> for vector search.
 /// </summary>
+/// <remarks>CRUD operations are handled via <see cref="RelationalPlugin"/> using native SQL.</remarks>
 public sealed class VectorSearchPlugin
 {
     private readonly TransactionCoordinator _coordinator;

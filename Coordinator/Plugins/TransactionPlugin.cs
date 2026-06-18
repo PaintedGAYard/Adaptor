@@ -7,8 +7,7 @@ using Adaptor.Coordinator.Services;
 namespace Adaptor.Coordinator.Plugins;
 
 /// <summary>
-/// SK Plugin — 事务生命周期管理。
-/// 包装 <see cref="TransactionCoordinator"/> 的 Begin / Commit / Rollback。
+/// SK Plugin wrapping <see cref="TransactionCoordinator"/> for transaction lifecycle management.
 /// </summary>
 public sealed class TransactionPlugin
 {

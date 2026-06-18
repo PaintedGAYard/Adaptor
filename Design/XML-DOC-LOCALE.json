@@ -1,0 +1,216 @@
+{
+  "// This file preserves the original Chinese XML documentation comments for reference.": "",
+  "// English translations are used in the source code; the Chinese originals are archived here.": "",
+
+  "Coordinator/Abstractions/IBlobUploadCapability.cs": {
+    "IBlobUploadCapability": "BLOB 上传能力"
+  },
+  "Coordinator/Abstractions/IBlobDownloadCapability.cs": {
+    "IBlobDownloadCapability": "BLOB 下载能力"
+  },
+  "Coordinator/Abstractions/IBlobRandomAccessCapability.cs": {
+    "BlobAccessMode": "BLOB 打开模式",
+    "BlobAccessMode.Read": "打开已有 blob 进行读取",
+    "BlobAccessMode.Write": "打开已有 blob 进行写入（从 offset 0 开始）",
+    "BlobAccessMode.ReadWrite": "打开已有 blob 进行读写",
+    "BlobAccessMode.Create": "创建新 blob，key 已存在则报错",
+    "BlobAccessMode.CreateOrReplace": "创建新 blob，key 存在则替换",
+    "BlobAccessMode.Append": "打开已有 blob 并在末尾追加",
+    "IBlobRandomAccessCapability": "BLOB 随机访问能力。提供类似文件句柄的 Seek/Read/Write/Close 语义，基于 PostgreSQL Large Object API 实现。此接口与 IBlobUploadCapability / IBlobDownloadCapability 正交，专为流式随机访问场景设计。",
+    "IBlobRandomAccessCapability.OpenAsync": "打开一个 BLOB 用于随机访问。返回底层 Large Object 的文件描述符（fd）。",
+    "IBlobRandomAccessCapability.CloseAsync": "关闭一个先前打开的 Large Object 文件描述符。",
+    "IBlobRandomAccessCapability.ReadAsync": "从当前偏移量读取指定字节数的数据。",
+    "IBlobRandomAccessCapability.WriteAsync": "在当前位置写入数据，偏移量自动前进。返回实际写入的字节数。",
+    "IBlobRandomAccessCapability.SeekAsync": "移动读写位置。参照 System.IO.SeekOrigin 语义。返回新的绝对偏移量。",
+    "IBlobRandomAccessCapability.TruncateAsync": "将 Large Object 截断到指定长度。"
+  },
+  "Coordinator/Abstractions/IHealthCheckCapability.cs": {
+    "IHealthCheckCapability": "健康检查能力"
+  },
+  "Coordinator/Abstractions/IRelationalExecuteCapability.cs": {
+    "IRelationalExecuteCapability": "关系数据库执行能力（INSERT / UPDATE / DELETE / DDL 等不返回结果集的命令）"
+  },
+  "Coordinator/Abstractions/IRelationalQueryCapability.cs": {
+    "IRelationalQueryCapability": "关系数据库查询能力（SELECT 等返回结果集的命令）"
+  },
+  "Coordinator/Abstractions/IRelationalVectorSearchCapability.cs": {
+    "IRelationalVectorSearchCapability": "关系数据库向量搜索能力（相似度搜索）"
+  },
+  "Coordinator/Abstractions/IResourceManager.cs": {
+    "ResourceType": "存储资源类型",
+    "IResourceManager": "最基础标记：该 Driver 是一个资源管理器。所有 Driver 必须实现此接口。",
+    "IResourceManager.ResourceManagerIdentifier": "资源管理器的唯一标识（遵循 ADO 惯例）。用于在 .NET System.Transactions 中唯一标识此 RM。设置/获取方式由具体实现决定。"
+  },
+  "Coordinator/Abstractions/ITransactionalResourceManager.cs": {
+    "ITransactionalResourceManager": "声明该 Driver 支持事务性 Enlistment。只有实现此接口的 Driver 才会参与分布式事务协调。",
+    "ITransactionalResourceManager.Enlist": "将 Driver 注册到指定的 .NET Transaction 中，Driver 内部需调用 Transaction.EnlistVolatile 或 Transaction.EnlistDurable 完成注册。"
+  },
+  "Coordinator/Abstractions/TransactionCapabilities.cs": {
+    "TransactionCapabilities": "Driver 事务能力的运行时枚举",
+    "TransactionCapabilities.TwoPhaseCommit": "支持 IEnlistmentNotification（标准两阶段提交）",
+    "TransactionCapabilities.Promotable": "支持可提升单阶段提交 PSPE",
+    "TransactionCapabilities.Compensating": "支持补偿事务（Commit 失败后可回滚）",
+    "ResourceManagerExtensions": "IResourceManager 的事务能力扩展方法",
+    "ResourceManagerExtensions.GetTransactionCapabilities": "运行时查询 Driver 的事务能力"
+  },
+  "Coordinator/Configuration/CoordinatorOptions.cs": {
+    "CoordinatorOptions": "协调器配置选项",
+    "CoordinatorOptions.DefaultTransactionTimeout": "默认事务超时时间（默认 30 秒）",
+    "CoordinatorOptions.SessionIdleTimeout": "会话空闲超时（默认 60 秒）",
+    "CoordinatorOptions.MaxRetryCount": "每个 Driver Commit 阶段的最大重试次数（默认 3）",
+    "CoordinatorOptions.RetryBackoffBase": "指数退避基数（默认 100ms）",
+    "CoordinatorOptions.MaxTransactionTimeout": "服务端限制的最大超时（默认 5 分钟），防止 Consumer 设置过大超时",
+    "CoordinatorOptions.BlobStreamTransactionTimeout": "Blob Stream 事务超时（默认 24 小时），由 BeginBlobStreamTransaction 使用",
+    "CoordinatorOptions.MaxBlobStreamTransactionTimeout": "Blob Stream 事务最大超时（默认 72 小时）",
+    "CoordinatorOptions.SessionCleanupInterval": "会话清理定时器间隔（默认 30 秒）"
+  },
+  "Coordinator/Models/BlobModels.cs": {
+    "BlobUploadRequest": "BLOB 上传请求",
+    "BlobUploadResult": "BLOB 上传结果",
+    "BlobDownloadRequest": "BLOB 下载请求",
+    "BlobDownloadResult": "BLOB 下载结果"
+  },
+  "Coordinator/Models/BlobStreamModels.cs": {
+    "BlobOpenResult": "BLOB 随机访问打开结果",
+    "BlobOpenResult.LoFd": "PostgreSQL Large Object 文件描述符",
+    "BlobOpenResult.BlobSize": "已有 BLOB 的大小（新建时为 0）",
+    "BlobOpenResult.ErrorMessage": "错误消息，成功时为 null",
+    "BlobReadResult": "BLOB 随机访问读取结果",
+    "BlobReadResult.Data": "读取到的数据",
+    "BlobReadResult.BytesRead": "实际读取的字节数（0 表示已到末尾）",
+    "BlobReadResult.ErrorMessage": "错误消息，成功时为 null"
+  },
+  "Coordinator/Models/DriverCommitResult.cs": {
+    "DriverCommitResult": "各 Driver 的提交结果记录",
+    "CommitResult": "提交操作的最终结果",
+    "BeginTransactionResult": "开始事务的结果。返回 Transaction 基类以保留扩展空间，expires_at 一次性计算，后续不维护。"
+  },
+  "Coordinator/Models/RelationalModels.cs": {
+    "RelationalParameter": "关系数据库参数",
+    "RelationalExecuteRequest": "关系数据库执行请求（INSERT / UPDATE / DELETE / DDL）",
+    "RelationalExecuteResult": "关系数据库执行结果",
+    "RelationalQueryRequest": "关系数据库查询请求（SELECT）",
+    "RelationalQueryResult": "关系数据库查询结果"
+  },
+  "Coordinator/Models/SessionContext.cs": {
+    "SessionContext": "会话上下文，绑定到一个活跃事务",
+    "SessionContext.SessionId": "会话唯一标识",
+    "SessionContext.TransactionLocalIdentifier": "关联事务的 System.Transactions.TransactionInformation.LocalIdentifier。Coordinator 通过此标识查找 System.Transactions.Transaction 实例。",
+    "SessionContext.CreatedAt": "创建时间",
+    "SessionContext.LastActivityAt": "最后活动时间",
+    "SessionContext.IsClosed": "是否已关闭",
+    "SessionContext.Touch": "更新最后活动时间"
+  },
+  "Coordinator/Models/TransactionState.cs": {
+    "CommitStatus": "提交状态枚举",
+    "CommitStatus.Committed": "全部成功",
+    "CommitStatus.Partial": "部分成功（重试耗尽后）",
+    "CommitStatus.RolledBack": "已回滚",
+    "CommitStatus.Timeout": "超时"
+  },
+  "Coordinator/Models/VectorModels.cs": {
+    "SparseVector": "稀疏向量表示。Indices 和 Values 长度必须相同，且 Indices 必须递增。pgvector 格式：{idx1:val1,idx2:val2,...}",
+    "RelationalVectorSearchRequest": "关系数据库向量搜索请求。使用原生 SQL WHERE 片段（通过 @param 引用 Parameters）来支持过滤，复用关系数据库参数化契约，无 SQL 注入风险。DenseVector 和 SparseVector 二选一。",
+    "VectorSearchHit": "搜索结果命中项",
+    "VectorSearchResult": "向量搜索结果"
+  },
+  "Coordinator/Plugins/RelationalPlugin.cs": {
+    "RelationalPlugin": "SK Plugin — 关系数据库通用操作。包装 IRelationalExecuteCapability 和 IRelationalQueryCapability。"
+  },
+  "Coordinator/Plugins/TransactionPlugin.cs": {
+    "TransactionPlugin": "SK Plugin — 事务生命周期管理。包装 TransactionCoordinator 的 Begin / Commit / Rollback。"
+  },
+  "Coordinator/Plugins/VectorSearchPlugin.cs": {
+    "VectorSearchPlugin": "SK Plugin — 关系数据库向量搜索。包装 IRelationalVectorSearchCapability。CRUD 操作通过 RelationalPlugin 的原生 SQL 完成。"
+  },
+  "Coordinator/ServiceCollectionExtensions.cs": {
+    "ServiceCollectionExtensions": "用于将 Coordinator 服务注册到 DI 容器的扩展方法",
+    "ServiceCollectionExtensions.AddAdaptorCoordinator": "注册 Adaptor 协调器核心服务 + SK Plugin",
+    "ServiceCollectionExtensions.AddAdaptorPluginsToKernel": "将已注册的 Adaptor Plugin 加载到 SK Kernel 中",
+    "ServiceCollectionExtensions.AddAdaptorDriver": "注册一个 Driver 到 DI 容器（无参构造）",
+    "ServiceCollectionExtensions.AddAdaptorDriver<TDriver>(factory)": "注册一个 Driver 到 DI 容器（工厂模式）"
+  },
+  "Coordinator/Services/SessionManager.cs": {
+    "SessionManager": "会话管理器：管理 Consumer 与会话的映射，处理空闲超时和自动回滚。",
+    "SessionManager.OnSessionTimeout": "当会话因超时而自动回滚时触发",
+    "SessionManager.CreateSession": "创建新会话",
+    "SessionManager.GetSession": "获取会话",
+    "SessionManager.AttachToConnection": "将会话关联到 gRPC 连接",
+    "SessionManager.RemoveSession": "移除并关闭会话",
+    "SessionManager.OnConnectionClosed": "当 gRPC 连接断开时，回滚关联的所有活跃会话",
+    "SessionManager.TouchSession": "更新会话的活动时间"
+  },
+  "Coordinator/Services/TransactionCoordinator.cs": {
+    "TransactionCoordinator": "事务协调器核心组件。职责：1. 管理 .NET CommittableTransaction 的生命周期 2. 协调多个 Driver 的 Enlistment（延迟 enlistment）3. 执行 All or Nothing 策略（Commit / Rollback）4. 处理超时（由 CommittableTransaction 内建机制自动处理）5. 管理重试逻辑。设计原则：- 不持有 TransactionContext 或自定义状态枚举 - 并发保护下放到 Driver 层，Coordinator 不做串行化 - 超时由 CommittableTransaction 内建机制处理，不手写监控 - 所有公共方法接受 string transactionId（即 LocalIdentifier）为参数",
+    "TransactionCoordinator.BeginTransactionAsync": "开始一个新事务。返回 Transaction 基类以保留扩展空间，ExpiresAt 一次性计算，后续不维护。",
+    "TransactionCoordinator.BeginBlobStreamTransactionAsync": "开始一个用于 Blob Streaming 的长期事务。使用独立的超时配置以避免长时间流操作受默认短超时限制。Consumer 应为每个 Blob Stream 连接创建独立的事务，不要混用执行 SQL 的短事务和流事务。",
+    "TransactionCoordinator.CommitTransactionAsync": "提交事务（两阶段提交）。内部由 CommittableTransaction.Commit() 触发 .NET DTC 协调。",
+    "TransactionCoordinator.RollbackTransactionAsync": "回滚事务。",
+    "TransactionCoordinator.FindTransaction": "通过 transaction_id（即 TransactionInformation.LocalIdentifier）查找对应的 Transaction 实例。未找到时返回 null。",
+    "TransactionCoordinator.GetDriver": "查找提供指定能力的 Driver",
+    "TransactionCoordinator.GetDrivers": "查找所有提供指定能力的 Driver",
+    "TransactionCoordinator.ExecuteOnDriverAsync": "使用指定 Driver 类型在事务上下文中执行数据操作。如果 Driver 支持事务，自动 Enlist 到当前事务。操作回调中会传入当前 .NET Transaction 对象。并发保护由 Driver 层自行负责。",
+    "TransactionCoordinator.ExecuteOnCapabilityAsync": "使用指定能力接口在事务上下文中执行数据操作。",
+    "TransactionCoordinator.OnSessionTimeout": "处理会话超时 — 自动回滚关联事务",
+    "TransactionCoordinator.CleanupTransaction": "清理事务资源并移除活跃记录",
+    "TransactionCoordinator.FindEntry": "通过 transaction_id 查找事务入口。字典以 TransactionInformation.LocalIdentifier 为键，O(1) 查找。",
+    "TransactionCoordinator.ActiveTransactionCount": "获取当前活跃事务数量",
+    "TransactionCoordinator.ShutdownAsync": "优雅关闭：1. 等待所有进行中的 Commit Task 完成（受 gracePeriod 约束）2. 回滚其余活跃事务"
+  },
+  "Driver/Postgre/PostgreSqlDriver.cs": {
+    "PostgreSqlDriver": "PostgreSQL SQL Driver — 提供 SQL Execute/Query 能力，支持通过 ITransactionalResourceManager.Enlist 参与 .NET 分布式事务。"
+  },
+  "Driver/Postgre/PostgresBlobDriver.cs": {
+    "PostgresBlobDriver": "PostgreSQL BLOB Driver — 提供 BLOB 上传/下载能力，基于 PostgreSQL Large Object (LO) API 实现。与 PostgreSqlDriver 和 PgVectorDriver 共享同库模式，通过 ITransactionalResourceManager.Enlist 参与分布式事务。",
+    "PostgresBlobDriver.Remarks": "使用 PostgreSQL 内置的 Large Object 机制（lo_creat/lo_write/lo_read/lo_unlink）。所有 LO 操作在事务内完成，支持事务回滚。首次上传时会自动创建 adaptor_blob_store 映射表。"
+  },
+  "Driver/Postgre/PgVectorDriver.cs": {
+    "PgVectorDriver": "pgvector Vector Driver — 提供向量 Upsert/Search 能力，基于 PostgreSQL pgvector 扩展实现。与 PostgreSqlDriver 共享同库模式，通过 ITransactionalResourceManager.Enlist 参与分布式事务。",
+    "PgVectorDriver.Remarks": "所需 PostgreSQL 扩展：vector（pgvector）。将在首次 Upsert 时自动创建表 adaptor_vector_store。"
+  },
+  "Driver/Postgre/ServiceCollectionExtensions.cs": {
+    "ServiceCollectionExtensions": "用于将 PostgreSQL Driver 注册到 DI 容器的扩展方法。",
+    "ServiceCollectionExtensions.AddAdaptorPostgreDrivers": "注册全部三个 PostgreSQL Driver（SQL + pgvector + BLOB LO），共享同一个连接字符串。",
+    "ServiceCollectionExtensions.AddAdaptorPostgreSqlDriver": "注册 PostgreSQL SQL Driver。",
+    "ServiceCollectionExtensions.AddAdaptorPgVectorDriver": "注册 pgvector Vector Driver。",
+    "ServiceCollectionExtensions.AddAdaptorPostgresBlobDriver": "注册 PostgreSQL BLOB (Large Object) Driver。"
+  },
+  "Service/Services/BlobStreamSessionService.cs": {
+    "BlobStreamSessionServiceImpl": "gRPC BlobStream service 实现（控制面）。职责: 1. BeginSession — 身份验证（通过 gRPC 拦截器）、参数协商、签发 session_token 2. EndSession — 失效 token、关闭关联 WebSocket 连接。WebSocket 数据面不在此服务中——它使用 session_token 在 /blob-stream 端点独立连接。",
+    "BlobStreamSessionServiceImpl.BeginSession": "开始一个 BlobStream 会话。1. 验证身份（由 gRPC 拦截器处理，此处获取已验证的上下文）2. 协商参数（timeout, chunkSize）3. 签发 session_token",
+    "BlobStreamSessionServiceImpl.EndSession": "结束一个 BlobStream 会话。失效 session_token，关闭关联的 WebSocket 连接（如有）。WebSocket 数据面的事务将自动回滚。"
+  },
+  "Service/Services/AdaptorService.cs": {
+    "AdaptorServiceContext": "为四个 gRPC service 实现提供共享的基础设施。gRPC 层的 transaction_id 直接复用 TransactionInformation.LocalIdentifier，不自定义 ID。Coordinator 提供 TransactionCoordinator.FindTransaction 进行反向查找。",
+    "AdaptorServiceContext.ConvertStatus": "将内部 CommitStatus 转换为 gRPC 枚举。",
+    "AdaptorServiceContext.ConvertTransactionStatus": "将 System.Transactions.TransactionStatus 映射为 gRPC TransactionState。",
+    "AdaptorServiceContext.ObjectToValue": "将 CLR object 转换为 protobuf Value。Google.Protobuf 没有内置 FromObject 方法，手动映射类型。注意：字典用 Struct 表示，列表用 ListValue 表示。",
+    "TransactionServiceImpl": "gRPC Transaction service 实现。管理事务的 Begin / Commit / Rollback 生命周期。状态查询映射自 System.Transactions.TransactionStatus。",
+    "RelationalServiceImpl": "gRPC DBRelational service 实现。提供 Execute / Query / ExecuteBatch 能力。",
+    "RelationalVectorServiceImpl": "gRPC DBRelationalVector service 实现。仅提供向量相似度搜索，CRUD 通过 DBRelational 执行原生 SQL。",
+    "BlobServiceImpl": "gRPC DBBLOB service 实现。提供 BlobUpload / BlobDownload / BlobDelete / BlobList 能力。"
+  },
+  "Service/BlobStream/BlobStreamConnectionHandler.cs": {
+    "BlobStreamConnectionHandler": "BlobStream WebSocket 连接处理器。核心设计原则：1. 严格 1:1 绑定：每个 WebSocket 连接拥有一个专用的 Blob Stream 事务（长超时）。事务在 WebSocket 握手时自动创建，连接关闭时自动回滚（若未提交）。gRPC CommitTransaction 可通过 tx_id 提交此事务。2. 事务生命周期 = WebSocket 生命周期：连接建立 → 事务开始，事务超时 → 服务端主动关闭 WebSocket + 发送超时通知，连接关闭 → 事务回滚（若仍 Active）。3. 协议独立性：WebSocket 二进制消息中不携带 tx_id——事务由连接上下文隐式确定。tx_id 仅在握手响应中返回，供 gRPC Commit 使用。",
+    "BlobStreamConnectionHandler.HandleAsync": "处理 WebSocket 连接生命周期。1. 验证 session_token（由 gRPC BeginSession 签发）2. 加载协商参数，创建专用 Blob Stream 事务 3. 注册到 session（支持 gRPC EndSession 主动关闭）4. 发送握手消息 5. 进入消息循环 6. 连接断开时自动回滚事务（若未提交）"
+  },
+  "Service/BlobStream/HandleEntry.cs": {
+    "HandleEntry": "Handle 状态记录。每个 entry 对应客户端一个已打开的 BLOB 句柄，关联到底层 PostgreSQL Large Object 文件描述符。"
+  },
+  "Service/BlobStream/HandleManager.cs": {
+    "HandleManager": "Handle 管理器 — 维护 handle ID 到 HandleEntry 的映射。职责: 1. 分配全局唯一的 handle ID（Interlocked.Increment，起始于随机值）2. 维护 ConcurrentDictionary 映射 3. 定时清理过期 handle（事务已结束 / 空闲超时）4. 限制每连接最大 handle 数"
+  },
+  "Service/BlobStream/BlobStreamSessionStore.cs": {
+    "BlobStreamSessionStore": "BlobStream 会话存储器。管理 session_token → 会话参数的映射，支持: 1. gRPC BeginSession 创建会话 2. WebSocket 连接时凭 token 获取参数 3. gRPC EndSession 失效 token 并关闭关联 WS 4. 后台 GC 清理过期会话"
+  },
+  "Service/BlobStream/Protocol/OpCode.cs": {
+    "OpCode": "BlobStream WebSocket 协议操作码"
+  },
+  "Service/BlobStream/Protocol/BlobStreamMessage.cs": {
+    "BlobStreamMessage": "BlobStream 协议的二进制消息读取器/写入器。消息格式: ┌──────┬────────┬──────────┬──────────────────────────┐ │ 1B   │ 4B     │ 4B       │ N-Bytes                  │ │ Ver  │ OpCode │ BodyLen  │ Body (opcode-specific)   │ │ =0x01│ (uint) │ (uint BE)│                          │ └──────┴────────┴──────────┴──────────────────────────┘ 所有多字节整数均为大端序。"
+  },
+  "Service/BlobStream/Protocol/BlobStreamException.cs": {
+    "BlobStreamErrorCode": "BlobStream 协议错误码",
+    "BlobStreamProtocolException": "BlobStream 协议异常"
+  }
+}

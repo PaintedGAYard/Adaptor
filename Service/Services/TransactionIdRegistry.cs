@@ -1,6 +1,6 @@
-// TransactionIdRegistry 已移除。
+// TransactionIdRegistry has been removed.
 //
-// gRPC transaction_id 直接复用 TransactionInformation.LocalIdentifier，
-// 不再需要自定义 ID 映射。通过 TransactionCoordinator.FindTransactionInfo(localId)
-// 反向查找。本文件保留为注释以避免误引用。
+// gRPC transaction_id now directly reuses TransactionInformation.LocalIdentifier,
+// eliminating the need for custom ID mapping. Use TransactionCoordinator.FindTransactionInfo(localId)
+// for reverse lookups. This file is preserved as a comment to prevent accidental references.
 

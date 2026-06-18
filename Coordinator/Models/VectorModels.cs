@@ -1,20 +1,33 @@
 namespace Adaptor.Coordinator.Models;
 
 /// <summary>
-/// 稀疏向量表示。
-/// Indices 和 Values 长度必须相同，且 Indices 必须递增。
-/// pgvector 格式：{idx1:val1,idx2:val2,...}
+/// Sparse vector representation for vector search.
 /// </summary>
+/// <remarks>
+/// <paramref name="Indices"/> and <paramref name="Values"/> must have the same length;
+/// indices must be strictly increasing.
+/// </remarks>
+/// <param name="Indices">Dimension indices (must be strictly increasing).</param>
+/// <param name="Values">Values at each index; length must match <paramref name="Indices"/>.</param>
 public sealed record SparseVector(
     int[] Indices,
     float[] Values);
 
 /// <summary>
-/// 关系数据库向量搜索请求。
-/// 使用原生 SQL WHERE 片段（通过 @param 引用 Parameters）来支持过滤，
-/// 复用关系数据库参数化契约，无 SQL 注入风险。
-/// DenseVector 和 SparseVector 二选一。
+/// Vector similarity search against a relational database.
+/// Provide either <paramref name="DenseVector"/> or <paramref name="SparseVector"/>, but not both.
 /// </summary>
+/// <remarks>
+/// Filtering uses a native SQL WHERE clause with <c>@param</c> references
+/// (referenced in <paramref name="Parameters"/>) to avoid SQL injection.
+/// </remarks>
+/// <param name="Table">Table or view name. Schema-qualified if needed.</param>
+/// <param name="VectorColumn">Column storing the vector embedding.</param>
+/// <param name="DenseVector">Dense query vector as a float array.</param>
+/// <param name="SparseVector">Sparse query vector; mutually exclusive with <paramref name="DenseVector"/>.</param>
+/// <param name="TopK">Maximum number of results to return.</param>
+/// <param name="WhereClause">Optional SQL WHERE clause using <c>@param</c> placeholders.</param>
+/// <param name="Parameters">Parameters referenced in <paramref name="WhereClause"/>.</param>
 public sealed record RelationalVectorSearchRequest(
     string Table,
     string VectorColumn,
@@ -24,13 +37,17 @@ public sealed record RelationalVectorSearchRequest(
     string? WhereClause = null,
     IReadOnlyList<RelationalParameter>? Parameters = null);
 
-/// <summary>搜索结果命中项</summary>
+/// <param name="Id">Row identifier (primary key value).</param>
+/// <param name="Score">Similarity score; higher is more similar (range 0–1).</param>
+/// <param name="Metadata">Additional columns stored with the vector; null if none.</param>
 public sealed record VectorSearchHit(
     string Id,
     float Score,
     IReadOnlyDictionary<string, object?>? Metadata = null);
 
-/// <summary>向量搜索结果</summary>
+/// <param name="Hits">Results ordered by descending score; empty list if none.</param>
+/// <param name="Duration">Search execution time.</param>
+/// <param name="ErrorMessage">Null on success; describes the failure otherwise.</param>
 public sealed record VectorSearchResult(
     IReadOnlyList<VectorSearchHit> Hits,
     TimeSpan Duration,

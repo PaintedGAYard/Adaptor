@@ -9,27 +9,25 @@ using Adaptor.Coordinator.Models;
 namespace Adaptor.Coordinator.Services;
 
 /// <summary>
-/// 事务协调器核心组件。
-///
-/// 职责：
-/// 1. 管理 .NET CommittableTransaction 的生命周期
-/// 2. 协调多个 Driver 的 Enlistment（延迟 enlistment）
-/// 3. 执行 All or Nothing 策略（Commit / Rollback）
-/// 4. 处理超时（由 CommittableTransaction 内建机制自动处理）
-/// 5. 管理重试逻辑
-///
-/// 设计原则：
-/// - 不持有 TransactionContext 或自定义状态枚举
-/// - 并发保护下放到 Driver 层，Coordinator 不做串行化
-/// - 超时由 CommittableTransaction 内建机制处理，不手写监控
-/// - 所有公共方法接受 string transactionId（即 LocalIdentifier）为参数
+/// Coordinates distributed transactions across multiple resource managers with two-phase commit.
 /// </summary>
+/// <remarks>
+/// Responsibilities:
+/// 1. Manage .NET CommittableTransaction lifecycle
+/// 2. Coordinate multi-driver enlistment (deferred enlistment)
+/// 3. Execute All-or-Nothing commit/rollback strategy
+/// 4. Handle timeouts via CommittableTransaction built-in mechanism
+/// 5. Manage retry logic
+///
+/// Design principles:
+/// - No TransactionContext or custom state enum
+/// - Concurrency protection delegated to driver layer
+/// - All public methods accept string transactionId (LocalIdentifier)
+/// </remarks>
 public sealed class TransactionCoordinator : IDisposable
 {
-    // 唯一的数据存储：transaction_id (LocalIdentifier) → 轻量入口
     private readonly ConcurrentDictionary<string, TransactionEntry> _entries = new();
 
-    // 进行中的 Commit Task 注册表，供 ShutdownAsync 等待
     private readonly ConcurrentDictionary<string, Task<CommitResult>> _pendingCommits = new();
 
     private readonly IEnumerable<IResourceManager> _drivers;
@@ -57,10 +55,12 @@ public sealed class TransactionCoordinator : IDisposable
     }
 
     /// <summary>
-    /// 开始一个新事务。
-    /// 返回 <see cref="Transaction"/> 基类以保留扩展空间，
-    /// ExpiresAt 一次性计算，后续不维护。
+    /// Begin a new distributed transaction.
     /// </summary>
+    /// <param name="timeout">Optional timeout; capped at <see cref="CoordinatorOptions.MaxTransactionTimeout"/>.</param>
+    /// <param name="connectionId">Optional gRPC connection ID for session tracking.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Result containing the <see cref="Transaction"/> and its expiration time.</returns>
     public async Task<BeginTransactionResult> BeginTransactionAsync(
         TimeSpan? timeout = null,
         string? connectionId = null,
@@ -74,17 +74,14 @@ public sealed class TransactionCoordinator : IDisposable
             txTimeout = _options.MaxTransactionTimeout;
         }
 
-        // CommittableTransaction 内建超时机制，超时自动触发 Rollback
         var committableTx = new CommittableTransaction(txTimeout);
         var localKey = committableTx.TransactionInformation.LocalIdentifier;
 
         var entry = new TransactionEntry(committableTx, txTimeout);
         _entries[localKey] = entry;
 
-        // 创建会话
         var session = _sessionManager.CreateSession(committableTx, connectionId);
 
-        // expires_at 一次性计算，仅用于 BeginTransactionResponse
         var expiresAt = DateTime.UtcNow + txTimeout;
 
         _logger.LogInformation(
@@ -95,12 +92,13 @@ public sealed class TransactionCoordinator : IDisposable
     }
 
     /// <summary>
-    /// 开始一个用于 Blob Streaming 的长期事务。
-    /// 使用独立的超时配置（<see cref="CoordinatorOptions.BlobStreamTransactionTimeout"/>）
-    /// 以避免长时间流操作受默认短超时限制。
-    /// Consumer 应为每个 Blob Stream 连接创建独立的事务，
-    /// 不要混用执行 SQL 的短事务和流事务。
+    /// Begin a long-lived transaction for Blob Streaming.
     /// </summary>
+    /// <remarks>Uses an independent timeout to avoid constraining streaming operations.</remarks>
+    /// <param name="timeout">Optional timeout; capped at <see cref="CoordinatorOptions.MaxBlobStreamTransactionTimeout"/>.</param>
+    /// <param name="connectionId">Optional gRPC connection ID for session tracking.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Result containing the <see cref="Transaction"/> and its expiration time.</returns>
     public async Task<BeginTransactionResult> BeginBlobStreamTransactionAsync(
         TimeSpan? timeout = null,
         string? connectionId = null,
@@ -132,9 +130,12 @@ public sealed class TransactionCoordinator : IDisposable
     }
 
     /// <summary>
-    /// 提交事务（两阶段提交）。
-    /// 内部由 CommittableTransaction.Commit() 触发 .NET DTC 协调。
+    /// Commit a transaction using two-phase commit.
     /// </summary>
+    /// <param name="transactionId">The transaction's <see cref="TransactionInformation.LocalIdentifier"/>.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Overall commit result including per-driver outcomes.</returns>
+    /// <exception cref="InvalidOperationException">Transaction not found or already completed.</exception>
     public async Task<CommitResult> CommitTransactionAsync(
         string transactionId,
         CancellationToken ct = default)
@@ -144,7 +145,6 @@ public sealed class TransactionCoordinator : IDisposable
 
         _logger.LogInformation("Transaction '{LocalId}': starting two-phase commit", transactionId);
 
-        // 将 Task 注册到 pending 表，供 ShutdownAsync 等待
         var commitTask = CommitCoreAsync(entry, transactionId, ct);
         _pendingCommits[transactionId] = commitTask;
 
@@ -168,9 +168,6 @@ public sealed class TransactionCoordinator : IDisposable
 
         try
         {
-            // CommittableTransaction.Commit() 是同步的（.NET 约束），
-            // 它在当前线程上触发所有 Enlisted Driver 的 Prepare → Commit 回调链。
-            // 如果任一 Prepare 失败/抛出异常，.NET 自动通知所有已 Prepare 的 Driver 执行 Rollback。
             entry.Transaction.Commit();
 
             _logger.LogInformation("Transaction '{LocalId}': committed successfully", transactionId);
@@ -187,8 +184,10 @@ public sealed class TransactionCoordinator : IDisposable
     }
 
     /// <summary>
-    /// 回滚事务。
+    /// Roll back a transaction. No-op if the transaction is not found.
     /// </summary>
+    /// <param name="transactionId">The transaction's <see cref="TransactionInformation.LocalIdentifier"/>.</param>
+    /// <param name="ct">Cancellation token.</param>
     public async Task RollbackTransactionAsync(
         string transactionId,
         CancellationToken ct = default)
@@ -219,11 +218,6 @@ public sealed class TransactionCoordinator : IDisposable
         }
     }
 
-    /// <summary>
-    /// 通过 transaction_id（即 <see cref="TransactionInformation.LocalIdentifier"/>）
-    /// 查找对应的 <see cref="Transaction"/> 实例。
-    /// 未找到时返回 null。
-    /// </summary>
     public Transaction? FindTransaction(string transactionId)
     {
         return _entries.TryGetValue(transactionId, out var entry)
@@ -232,27 +226,31 @@ public sealed class TransactionCoordinator : IDisposable
     }
 
     /// <summary>
-    /// 查找提供指定能力的 Driver
+    /// Get the first driver implementing <typeparamref name="TDriver"/>.
     /// </summary>
+    /// <returns>The driver, or <c>null</c> if not found.</returns>
     public TDriver? GetDriver<TDriver>() where TDriver : IResourceManager
     {
         return _drivers.OfType<TDriver>().FirstOrDefault();
     }
 
-    /// <summary>
-    /// 查找所有提供指定能力的 Driver
-    /// </summary>
     public IEnumerable<TDriver> GetDrivers<TDriver>() where TDriver : IResourceManager
     {
         return _drivers.OfType<TDriver>();
     }
 
     /// <summary>
-    /// 使用指定 Driver 类型在事务上下文中执行数据操作。
-    /// 如果 Driver 支持事务，自动 Enlist 到当前事务。
-    /// 操作回调中会传入当前 .NET Transaction 对象。
-    /// 并发保护由 Driver 层自行负责。
+    /// Execute an operation on a specific driver within a transaction.
+    /// Auto-enlists if the driver supports <see cref="ITransactionalResourceManager"/>.
     /// </summary>
+    /// <remarks>Concurrency protection is the driver's responsibility.</remarks>
+    /// <param name="transactionId">The transaction's LocalIdentifier.</param>
+    /// <param name="operation">Async callback receiving the driver and transaction.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <typeparam name="TDriver">Driver type implementing <see cref="IResourceManager"/>.</typeparam>
+    /// <typeparam name="TResult">Operation result type.</typeparam>
+    /// <returns>The result of <paramref name="operation"/>.</returns>
+    /// <exception cref="InvalidOperationException">Transaction or driver not found.</exception>
     public async Task<TResult> ExecuteOnDriverAsync<TDriver, TResult>(
         string transactionId,
         Func<TDriver, Transaction, Task<TResult>> operation,
@@ -275,11 +273,11 @@ public sealed class TransactionCoordinator : IDisposable
     }
 
     /// <summary>
-    /// 使用指定能力接口在事务上下文中执行数据操作。
-    /// <typeparamref name="TCapability"/> 是能力接口（如 <see cref="IRelationalExecuteCapability"/>），
-    /// 不需要继承 <see cref="IResourceManager"/>；内部自动查找同时实现两者的 Driver。
-    /// 并发保护由 Driver 层自行负责。
+    /// Execute an operation using a capability interface within a transaction.
+    /// <typeparamref name="TCapability"/> may be any interface; the method finds
+    /// a driver implementing both it and <see cref="IResourceManager"/>.
     /// </summary>
+    /// <remarks>Concurrency protection is the driver's responsibility.</remarks>
     public async Task<TResult> ExecuteOnCapabilityAsync<TCapability, TResult>(
         string transactionId,
         Func<TCapability, Transaction, Task<TResult>> operation,
@@ -304,9 +302,6 @@ public sealed class TransactionCoordinator : IDisposable
         return await operation(driver, entry.Transaction);
     }
 
-    /// <summary>
-    /// 处理会话超时 — 自动回滚关联事务
-    /// </summary>
     private void OnSessionTimeout(SessionContext session)
     {
         var txId = session.TransactionLocalIdentifier;
@@ -330,37 +325,27 @@ public sealed class TransactionCoordinator : IDisposable
         CleanupTransaction(txId);
     }
 
-    /// <summary>
-    /// 清理事务资源并移除活跃记录
-    /// </summary>
     private void CleanupTransaction(string transactionId)
     {
         if (_entries.TryRemove(transactionId, out var entry))
         {
             try { entry.Transaction.Dispose(); }
-            catch { /* 忽略释放时的异常 */ }
+            catch { }
         }
     }
 
-    /// <summary>
-    /// 通过 transaction_id 查找事务入口。
-    /// 字典以 <see cref="TransactionInformation.LocalIdentifier"/> 为键，O(1) 查找。
-    /// </summary>
     private TransactionEntry? FindEntry(string transactionId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(transactionId);
         return _entries.TryGetValue(transactionId, out var entry) ? entry : null;
     }
 
-    /// <summary>
-    /// 获取当前活跃事务数量
-    /// </summary>
     public int ActiveTransactionCount => _entries.Count;
 
     /// <summary>
-    /// 优雅关闭：
-    /// 1. 等待所有进行中的 Commit Task 完成（受 gracePeriod 约束）
-    /// 2. 回滚其余活跃事务
+    /// Gracefully shut down the coordinator:
+    /// 1. Wait for in-flight commit tasks to complete (bounded by gracePeriod)
+    /// 2. Roll back remaining active transactions
     /// </summary>
     public async Task ShutdownAsync(TimeSpan gracePeriod)
     {
@@ -368,7 +353,6 @@ public sealed class TransactionCoordinator : IDisposable
             "Coordinator shutting down, {Count} active transactions, {Pending} pending commits",
             _entries.Count, _pendingCommits.Count);
 
-        // 第一步：等待进行中的提交完成
         if (_pendingCommits.Count > 0)
         {
             using var cts = new CancellationTokenSource(gracePeriod);
@@ -392,7 +376,6 @@ public sealed class TransactionCoordinator : IDisposable
             }
         }
 
-        // 第二步：回滚剩余活跃事务
         foreach (var (txId, entry) in _entries)
         {
             _logger.LogWarning(
@@ -401,7 +384,7 @@ public sealed class TransactionCoordinator : IDisposable
             {
                 entry.Transaction.Rollback();
             }
-            catch { /* 回滚阶段的异常不阻塞整体流程 */ }
+            catch { }
             CleanupTransaction(txId);
         }
 

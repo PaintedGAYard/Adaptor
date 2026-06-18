@@ -1,9 +1,7 @@
 namespace Adaptor.Coordinator.Abstractions;
 
-/// <summary>
-/// 健康检查能力
-/// </summary>
 public interface IHealthCheckCapability
 {
+    /// <returns><c>true</c> if the driver is healthy; <c>false</c> if unreachable or degraded.</returns>
     Task<bool> HealthCheckAsync(CancellationToken ct = default);
 }

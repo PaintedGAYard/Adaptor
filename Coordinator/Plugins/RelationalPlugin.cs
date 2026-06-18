@@ -8,8 +8,7 @@ using Adaptor.Coordinator.Services;
 namespace Adaptor.Coordinator.Plugins;
 
 /// <summary>
-/// SK Plugin — 关系数据库通用操作。
-/// 包装 <see cref="IRelationalExecuteCapability"/> 和 <see cref="IRelationalQueryCapability"/>。
+/// SK Plugin wrapping <see cref="IRelationalExecuteCapability"/> and <see cref="IRelationalQueryCapability"/>.
 /// </summary>
 public sealed class RelationalPlugin
 {

@@ -8,19 +8,19 @@ using Adaptor.Coordinator.Models;
 namespace Adaptor.Coordinator.Services;
 
 /// <summary>
-/// 会话管理器：管理 Consumer 与会话的映射，处理空闲超时和自动回滚。
+/// Manages session-to-consumer mappings, idle timeout, and automatic rollback.
 /// </summary>
 public sealed class SessionManager : IDisposable
 {
     private readonly ConcurrentDictionary<string, SessionContext> _sessions = new();
-    private readonly ConcurrentDictionary<string, HashSet<string>> _connectionSessions = new(); // connectionId -> sessionIds
+    private readonly ConcurrentDictionary<string, HashSet<string>> _connectionSessions = new();
     private readonly CoordinatorOptions _options;
     private readonly ILogger<SessionManager> _logger;
     private readonly Timer _cleanupTimer;
     private bool _disposed;
 
     /// <summary>
-    /// 当会话因超时而自动回滚时触发
+    /// Raised when a session is automatically rolled back due to timeout.
     /// </summary>
     public event Action<SessionContext>? OnSessionTimeout;
 
@@ -38,9 +38,9 @@ public sealed class SessionManager : IDisposable
     }
 
     /// <summary>
-    /// 创建新会话
+    /// Create a new session bound to the specified transaction.
     /// </summary>
-    /// <param name="transaction">关联的 .NET Transaction 对象</param>
+    /// <param name="transaction">The .NET Transaction to associate with this session.</param>
     public SessionContext CreateSession(Transaction transaction, string? connectionId = null)
     {
         var session = new SessionContext
@@ -65,9 +65,6 @@ public sealed class SessionManager : IDisposable
         return session;
     }
 
-    /// <summary>
-    /// 获取会话
-    /// </summary>
     public SessionContext? GetSession(string sessionId)
     {
         _sessions.TryGetValue(sessionId, out var session);
@@ -75,8 +72,10 @@ public sealed class SessionManager : IDisposable
     }
 
     /// <summary>
-    /// 将会话关联到 gRPC 连接
+    /// Associate a session with a gRPC connection.
     /// </summary>
+    /// <param name="sessionId">The session identifier.</param>
+    /// <param name="connectionId">The gRPC connection identifier.</param>
     public void AttachToConnection(string sessionId, string connectionId)
     {
         if (!_sessions.ContainsKey(sessionId)) return;
@@ -88,7 +87,7 @@ public sealed class SessionManager : IDisposable
     }
 
     /// <summary>
-    /// 移除并关闭会话
+    /// Remove and close a session.
     /// </summary>
     public bool RemoveSession(string sessionId)
     {
@@ -102,7 +101,7 @@ public sealed class SessionManager : IDisposable
     }
 
     /// <summary>
-    /// 当 gRPC 连接断开时，回滚关联的所有活跃会话
+    /// When a gRPC connection is closed, roll back all associated active sessions.
     /// </summary>
     public IReadOnlyList<SessionContext> OnConnectionClosed(string connectionId)
     {
@@ -127,7 +126,7 @@ public sealed class SessionManager : IDisposable
     }
 
     /// <summary>
-    /// 更新会话的活动时间
+    /// Update a session's last activity timestamp.
     /// </summary>
     public void TouchSession(string sessionId)
     {

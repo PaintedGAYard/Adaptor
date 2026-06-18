@@ -1,7 +1,7 @@
 namespace Adaptor.Service.BlobStream.Protocol;
 
 /// <summary>
-/// BlobStream 协议错误码
+/// BlobStream protocol error codes.
 /// </summary>
 internal enum BlobStreamErrorCode : uint
 {
@@ -20,7 +20,7 @@ internal enum BlobStreamErrorCode : uint
 }
 
 /// <summary>
-/// BlobStream 协议异常
+/// Exception representing a BlobStream protocol error.
 /// </summary>
 internal sealed class BlobStreamProtocolException : Exception
 {

@@ -4,7 +4,7 @@ using Adaptor.Coordinator.Models;
 namespace Adaptor.Coordinator.Abstractions;
 
 /// <summary>
-/// 关系数据库执行能力（INSERT / UPDATE / DELETE / DDL 等不返回结果集的命令）
+/// Capability to execute non-query SQL commands (INSERT / UPDATE / DELETE / DDL).
 /// </summary>
 public interface IRelationalExecuteCapability
 {

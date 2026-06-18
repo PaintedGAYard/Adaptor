@@ -6,33 +6,20 @@ using Adaptor.Coordinator.Abstractions;
 using Adaptor.Coordinator.Models;
 using Adaptor.Coordinator.Services;
 using Adaptor.Service.BlobStream.Protocol;
-// 别名：避免与 Adaptor.Service.Transaction (gRPC 基类) 冲突
+// Alias to avoid conflict with Adaptor.Service.Transaction (gRPC base class)
 using TxTransaction = System.Transactions.Transaction;
 using TxStatus = System.Transactions.TransactionStatus;
 
 namespace Adaptor.Service.BlobStream;
 
 /// <summary>
-/// BlobStream WebSocket 连接处理器。
-///
-/// ═══ 核心设计原则 ═══
-///
-/// 1. 严格 1:1 绑定
-///    每个 WebSocket 连接拥有一个专用的 Blob Stream 事务（长超时）。
-///    事务在 WebSocket 握手时自动创建，连接关闭时自动回滚（若未提交）。
-///    gRPC CommitTransaction 可通过 tx_id 提交此事务。
-///
-/// 2. 事务生命周期 = WebSocket 生命周期
-///    - 连接建立 → 事务开始
-///    - 事务超时 → 服务端主动关闭 WebSocket + 发送超时通知
-///    - 连接关闭 → 事务回滚（若仍 Active）
-///
-/// 3. 协议独立性
-///    WebSocket 二进制消息中不携带 tx_id——事务由连接上下文隐式确定。
-///    tx_id 仅在握手响应中返回，供 gRPC Commit 使用。
-///
-/// ═══════════════════════════════════════════════════
+/// WebSocket connection handler for BlobStream (1:1 binding: one connection, one transaction).
 /// </summary>
+/// <remarks>
+/// Design principles:
+/// 1. Transaction auto-created on handshake, auto-rolled back on disconnect.
+/// 2. Binary WebSocket messages carry no tx_id — it is implicitly bound to the connection.
+/// </remarks>
 internal sealed class BlobStreamConnectionHandler
 {
     private readonly TransactionCoordinator _coordinator;
@@ -41,10 +28,9 @@ internal sealed class BlobStreamConnectionHandler
     private readonly ILogger<BlobStreamConnectionHandler> _logger;
 
     private const int InitialBufferSize = 16 * 1024;
-    private const int MaxMessageSize = 32 * 1024 * 1024;  // 32 MB
-    private const int MaxReadSize = 4 * 1024 * 1024;      // 4 MiB
+    private const int MaxMessageSize = 32 * 1024 * 1024;
+    private const int MaxReadSize = 4 * 1024 * 1024;
 
-    // 关闭状态码（1000+ 为应用层自定义）
     private const WebSocketCloseStatus TimeoutStatus = (WebSocketCloseStatus)4001;
     private const WebSocketCloseStatus TransactionEndedStatus = (WebSocketCloseStatus)4002;
     private const WebSocketCloseStatus ServerShutdownStatus = (WebSocketCloseStatus)4003;
@@ -63,17 +49,21 @@ internal sealed class BlobStreamConnectionHandler
     }
 
     /// <summary>
-    /// 处理 WebSocket 连接生命周期。
-    /// 1. 验证 session_token（由 gRPC BeginSession 签发）
-    /// 2. 加载协商参数，创建专用 Blob Stream 事务
-    /// 3. 注册到 session（支持 gRPC EndSession 主动关闭）
-    /// 4. 发送握手消息
-    /// 5. 进入消息循环
-    /// 6. 连接断开时自动回滚事务（若未提交）
+    /// Run the WebSocket connection lifecycle (validate, handshake, message loop, cleanup).
     /// </summary>
+    /// <remarks>
+    /// 1. Validate session_token (issued by gRPC BeginSession)
+    /// 2. Create dedicated Blob Stream transaction with negotiated parameters
+    /// 3. Send handshake (only message carrying tx_id)
+    /// 4. Enter message dispatch loop
+    /// 5. Auto-rollback transaction on disconnect
+    /// </remarks>
+    /// <param name="webSocket">The accepted WebSocket connection.</param>
+    /// <param name="connectionId">Connection identifier for logging and session tracking.</param>
+    /// <param name="sessionToken">Token issued by <c>BeginSession</c>.</param>
+    /// <param name="ct">Cancellation token.</param>
     public async Task HandleAsync(WebSocket webSocket, string connectionId, string sessionToken, CancellationToken ct)
     {
-        // ── Step 1: 验证 session_token ─────────────────────────────────
         var sessionEntry = _sessionStore.Validate(sessionToken);
         if (sessionEntry == null)
         {
@@ -83,7 +73,6 @@ internal sealed class BlobStreamConnectionHandler
             return;
         }
 
-        // ── Step 2: 创建专用 Blob Stream 事务（使用协商参数）───────────
         BeginTransactionResult beginResult;
         string transactionId;
         CancellationTokenSource? txTimeoutCts = null;
@@ -108,12 +97,10 @@ internal sealed class BlobStreamConnectionHandler
             return;
         }
 
-        // ── Step 3: 注册到 session（支持 gRPC EndSession 主动关闭）────
         using var sessionCancelCts = new CancellationTokenSource();
         sessionEntry.WsCancellation = sessionCancelCts;
         sessionEntry.ConnectionId = connectionId;
 
-        // ── Step 4: 超时 / 外部取消 / 服务端关闭 → 主动关闭 WS ──────
         using var timeoutCts = txTimeoutCts;
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
             ct, sessionCancelCts.Token);
@@ -126,7 +113,6 @@ internal sealed class BlobStreamConnectionHandler
                 _ = CloseWebSocketAsync(webSocket, TimeoutStatus, "Transaction timeout");
             });
         }
-        // gRPC EndSession 触发 → 关闭 WS
         sessionCancelCts.Token.Register(() =>
         {
             if (webSocket.State == WebSocketState.Open)
@@ -142,7 +128,6 @@ internal sealed class BlobStreamConnectionHandler
         _logger.LogInformation("BlobStream WS {ConnectionId} opened, tx={TxId}, timeout={Timeout}",
             connectionId, transactionId, beginResult.ExpiresAt - DateTime.UtcNow);
 
-        // ── Step 5: 发送握手（唯一一次暴露 tx_id）─────────────────────
         try
         {
             var handshake = BlobStreamMessage.BuildHandshakeResponse(transactionId, beginResult.ExpiresAt);
@@ -152,7 +137,6 @@ internal sealed class BlobStreamConnectionHandler
         }
         catch (OperationCanceledException) when (sessionCancelCts.IsCancellationRequested)
         {
-            // gRPC EndSession 在握手完成前触发——无需额外操作
             await CleanupTransactionAsync(connectionId, transactionId);
             return;
         }
@@ -162,7 +146,6 @@ internal sealed class BlobStreamConnectionHandler
             return;
         }
 
-        // ── Step 6: 消息循环 ──────────────────────────────────────────
         byte[] buffer = ArrayPool<byte>.Shared.Rent(InitialBufferSize);
         try
         {
@@ -175,11 +158,10 @@ internal sealed class BlobStreamConnectionHandler
                 }
                 catch (OperationCanceledException) when (linkedToken.IsCancellationRequested)
                 {
-                    // 事务超时 / gRPC EndSession → Close 已在 Register 中触发
                     break;
                 }
 
-                if (message == null) break; // 客户端主动关闭
+                if (message == null) break; // Client initiated close
 
                 byte[] response;
                 bool shouldClose = false;
@@ -224,16 +206,15 @@ internal sealed class BlobStreamConnectionHandler
             ArrayPool<byte>.Shared.Return(buffer);
         }
 
-        // ── Step 7: 清理 ──────────────────────────────────────────────
         await CleanupConnectionAsync(connectionId);
         await CleanupTransactionAsync(connectionId, transactionId);
         _logger.LogInformation("BlobStream WS closed: {ConnectionId}", connectionId);
     }
 
     /// <summary>
-    /// 从 WebSocket 接收一条完整消息（处理分帧）。
-    /// 不使用 ref 参数（async 方法不支持 ref），使用 MemoryStream 内部管理。
+    /// Receive a complete message from WebSocket, handling frame reassembly.
     /// </summary>
+    /// <returns>Complete message bytes, or <c>null</c> if the peer initiated a close.</returns>
     private static async Task<byte[]?> ReceiveFullMessageAsync(
         WebSocket webSocket, byte[] initialBuffer, CancellationToken ct)
     {
@@ -243,7 +224,7 @@ internal sealed class BlobStreamConnectionHandler
         WebSocketReceiveResult result;
         do
         {
-            // 确保缓冲区足够
+            // Ensure buffer is sufficient
             if (ms.Position + buffer.Length > MaxMessageSize)
                 throw new BlobStreamProtocolException(BlobStreamErrorCode.InvalidBody,
                     $"Message exceeds maximum size of {MaxMessageSize} bytes");
@@ -264,7 +245,7 @@ internal sealed class BlobStreamConnectionHandler
 
             await ms.WriteAsync(buffer, 0, result.Count, ct);
 
-            // 如果还有更多数据，扩容缓冲区
+            // If there is more data, expand buffer
             if (!result.EndOfMessage && ms.Length + buffer.Length > MaxMessageSize)
             {
                 throw new BlobStreamProtocolException(BlobStreamErrorCode.InvalidBody,
@@ -276,7 +257,7 @@ internal sealed class BlobStreamConnectionHandler
         return ms.ToArray();
     }
 
-    // ─── 请求分发 ─────────────────────────────────────────────────────────
+    #region Request dispatch
 
     private async Task<byte[]> ProcessRequestAsync(
         byte[] message, string transactionId, string connectionId, CancellationToken ct)
@@ -297,7 +278,9 @@ internal sealed class BlobStreamConnectionHandler
         };
     }
 
-    // ─── Open ─────────────────────────────────────────────────────────────
+    #endregion
+
+    #region Open
 
     private async Task<byte[]> HandleOpenAsync(
         byte[] message, string transactionId, string connectionId, CancellationToken ct)
@@ -341,7 +324,9 @@ internal sealed class BlobStreamConnectionHandler
         return BlobStreamMessage.BuildOpenResponse(handleId);
     }
 
-    // ─── Close ────────────────────────────────────────────────────────────
+    #endregion
+
+    #region Close
 
     private async Task<byte[]> HandleCloseAsync(byte[] message, string transactionId, CancellationToken ct)
     {
@@ -357,7 +342,7 @@ internal sealed class BlobStreamConnectionHandler
         await entry.Gate.WaitAsync(ct);
         try
         {
-            // Commit 后事务已结束，lo_close 由 PG 连接释放自动处理
+            // After commit the transaction is complete; lo_close is handled by PG connection release
             var tx = _coordinator.FindTransaction(transactionId);
             if (tx?.TransactionInformation.Status == TxStatus.Active)
             {
@@ -370,7 +355,6 @@ internal sealed class BlobStreamConnectionHandler
             ex.ErrorCode == BlobStreamErrorCode.TransactionNotActive ||
             ex.ErrorCode == BlobStreamErrorCode.TransactionNotFound)
         {
-            // 事务已结束——close 操作本身仍成功
             _logger.LogDebug("Close: handle={HandleId}, key={Key} (tx already ended)", handleId, entry.Key);
         }
         finally
@@ -383,7 +367,9 @@ internal sealed class BlobStreamConnectionHandler
         return BlobStreamMessage.BuildAckResponse(OpCode.Close);
     }
 
-    // ─── Read ─────────────────────────────────────────────────────────────
+    #endregion
+
+    #region Read
 
     private async Task<byte[]> HandleReadAsync(byte[] message, string transactionId, CancellationToken ct)
     {
@@ -410,7 +396,9 @@ internal sealed class BlobStreamConnectionHandler
         }
     }
 
-    // ─── Write ────────────────────────────────────────────────────────────
+    #endregion
+
+    #region Write
 
     private async Task<byte[]> HandleWriteAsync(byte[] message, string transactionId, CancellationToken ct)
     {
@@ -433,7 +421,9 @@ internal sealed class BlobStreamConnectionHandler
         }
     }
 
-    // ─── Seek ─────────────────────────────────────────────────────────────
+    #endregion
+
+    #region Seek
 
     private async Task<byte[]> HandleSeekAsync(byte[] message, string transactionId, CancellationToken ct)
     {
@@ -456,7 +446,9 @@ internal sealed class BlobStreamConnectionHandler
         }
     }
 
-    // ─── Truncate ─────────────────────────────────────────────────────────
+    #endregion
+
+    #region Truncate
 
     private async Task<byte[]> HandleTruncateAsync(byte[] message, string transactionId, CancellationToken ct)
     {
@@ -479,14 +471,14 @@ internal sealed class BlobStreamConnectionHandler
         }
     }
 
-    // ─── Commit ──────────────────────────────────────────────────────────
+    #endregion
+
+    #region Commit
 
     /// <summary>
-    /// 提交事务（一次性最终语义）。
-    /// 将当前所有写入持久化并结束分布式事务。
-    /// 成功后不可再进行任何数据操作，只能 Close 或关闭 WebSocket。
-    /// 不可重复调用——再次 Commit 会收到错误。
+    /// Commit the transaction (final semantics — cannot be called more than once).
     /// </summary>
+    /// <exception cref="BlobStreamProtocolException">Commit failed with <see cref="BlobStreamErrorCode.IoError"/>.</exception>
     private async Task<byte[]> HandleCommitAsync(string transactionId, CancellationToken ct)
     {
         _logger.LogInformation("Commit: committing transaction {TxId}", transactionId);
@@ -506,7 +498,9 @@ internal sealed class BlobStreamConnectionHandler
         }
     }
 
-    // ─── Driver 执行 ─────────────────────────────────────────────────────
+    #endregion
+
+    #region Driver execution
 
     private async Task<TResult> ExecuteOnDriverAsync<TResult>(
         Func<IBlobRandomAccessCapability, TxTransaction, Task<TResult>> operation,
@@ -543,7 +537,9 @@ internal sealed class BlobStreamConnectionHandler
         return (driver, tx);
     }
 
-    // ─── Handle 验证 ─────────────────────────────────────────────────────
+    #endregion
+
+    #region Handle validation
 
     private HandleEntry GetValidatedEntry(long handleId, string expectedTransactionId)
     {
@@ -579,7 +575,9 @@ internal sealed class BlobStreamConnectionHandler
         return entry;
     }
 
-    // ─── 清理 ─────────────────────────────────────────────────────────────
+    #endregion
+
+    #region Cleanup
 
     private async Task CleanupConnectionAsync(string connectionId)
     {
@@ -636,6 +634,8 @@ internal sealed class BlobStreamConnectionHandler
         {
             await webSocket.CloseAsync(status, reason, CancellationToken.None);
         }
-        catch { /* 忽略关闭时的异常 */ }
+        catch { }
     }
+
+    #endregion
 }

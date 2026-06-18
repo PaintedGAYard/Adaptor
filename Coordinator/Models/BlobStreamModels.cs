@@ -1,23 +1,17 @@
 namespace Adaptor.Coordinator.Models;
 
-/// <summary>
-/// BLOB 随机访问打开结果
-/// </summary>
+/// <param name="LoFd">File descriptor returned by <c>OpenAsync</c> — use in subsequent read/write/seek calls.</param>
+/// <param name="BlobSize">Size of the existing blob; 0 for newly created.</param>
+/// <param name="ErrorMessage">Null on success; non-null on failure.</param>
 public sealed record BlobOpenResult(
-    /// <summary>PostgreSQL Large Object 文件描述符</summary>
     int LoFd,
-    /// <summary>已有 BLOB 的大小（新建时为 0）</summary>
     long BlobSize,
-    /// <summary>错误消息，成功时为 null</summary>
     string? ErrorMessage = null);
 
-/// <summary>
-/// BLOB 随机访问读取结果
-/// </summary>
+/// <param name="Data">The bytes read.</param>
+/// <param name="BytesRead">Number of bytes returned; 0 indicates end-of-blob.</param>
+/// <param name="ErrorMessage">Null on success; non-null on failure.</param>
 public sealed record BlobReadResult(
-    /// <summary>读取到的数据</summary>
     byte[] Data,
-    /// <summary>实际读取的字节数（0 表示已到末尾）</summary>
     int BytesRead,
-    /// <summary>错误消息，成功时为 null</summary>
     string? ErrorMessage = null);

@@ -4,22 +4,22 @@ using System.Text;
 namespace Adaptor.Service.BlobStream.Protocol;
 
 /// <summary>
-/// BlobStream 协议的二进制消息读取器/写入器。
+/// Binary message reader/writer for the BlobStream protocol.
 ///
-/// 消息格式:
+/// Message format:
 /// ┌──────┬────────┬──────────┬──────────────────────────┐
 /// │ 1B   │ 4B     │ 4B       │ N-Bytes                  │
 /// │ Ver  │ OpCode │ BodyLen  │ Body (opcode-specific)   │
 /// │ =0x01│ (uint) │ (uint BE)│                          │
 /// └──────┴────────┴──────────┴──────────────────────────┘
-/// 所有多字节整数均为大端序。
+/// All multi-byte integers are big-endian.
 /// </summary>
 internal static class BlobStreamMessage
 {
-    // ─── 读取器 ─────────────────────────────────────────────────────────
+    #region Reader
 
     /// <summary>
-    /// 从完整消息缓冲区解析头部信息。
+    /// Parse the protocol header from a full message buffer.
     /// </summary>
     public static (uint OpCode, uint BodyLength) ParseHeader(ReadOnlySpan<byte> buffer)
     {
@@ -38,10 +38,12 @@ internal static class BlobStreamMessage
         return (opCode, bodyLen);
     }
 
-    // ─── Handshake ───────────────────────────────────────────────────────
+    #endregion
+
+    #region Handshake
 
     /// <summary>
-    /// 构建握手响应（WebSocket 连接建立后首条消息）。
+    /// Build a handshake response (first message after WebSocket connect).
     /// Body: [4B txIdLen][UTF8 txId][8B expiresAtUnixMs]
     /// </summary>
     public static byte[] BuildHandshakeResponse(string txId, DateTime expiresAt)
@@ -58,12 +60,14 @@ internal static class BlobStreamMessage
         return BuildResponse(OpCode.Handshake, body);
     }
 
-    // ─── Open ────────────────────────────────────────────────────────────
+    #endregion
+
+    #region Open
 
     /// <summary>
-    /// 解析 Open 请求体。
-    /// Body 格式: [4B keyLen][UTF8 key][1B mode]
-    /// （tx_id 已从协议中移除——WebSocket 事务与连接 1:1 绑定）
+    /// Parse an Open request body.
+    /// Body format: [4B keyLen][UTF8 key][1B mode]
+    /// tx_id is omitted from the protocol since WebSocket transactions are 1:1 bound to connections.
     /// </summary>
     public static (string Key, byte Mode) ParseOpenBody(ReadOnlySpan<byte> body)
     {
@@ -79,14 +83,18 @@ internal static class BlobStreamMessage
         return (key, mode);
     }
 
-    // ─── Close ───────────────────────────────────────────────────────────
+    #endregion
+
+    #region Close
 
     public static long ParseHandleBody(ReadOnlySpan<byte> body)
     {
         return (long)BinaryPrimitives.ReadUInt64BigEndian(body);
     }
 
-    // ─── Read ────────────────────────────────────────────────────────────
+    #endregion
+
+    #region Read
 
     public static (long Handle, int Count) ParseReadBody(ReadOnlySpan<byte> body)
     {
@@ -95,7 +103,9 @@ internal static class BlobStreamMessage
         return (handle, count);
     }
 
-    // ─── Write ───────────────────────────────────────────────────────────
+    #endregion
+
+    #region Write
 
     public static (long Handle, byte[] Data) ParseWriteBody(ReadOnlySpan<byte> body)
     {
@@ -105,7 +115,9 @@ internal static class BlobStreamMessage
         return (handle, data);
     }
 
-    // ─── Seek ────────────────────────────────────────────────────────────
+    #endregion
+
+    #region Seek
 
     public static (long Handle, long Offset, SeekOrigin Origin) ParseSeekBody(ReadOnlySpan<byte> body)
     {
@@ -123,7 +135,9 @@ internal static class BlobStreamMessage
         return (handle, offset, origin);
     }
 
-    // ─── Truncate ────────────────────────────────────────────────────────
+    #endregion
+
+    #region Truncate
 
     public static (long Handle, long NewLength) ParseTruncateBody(ReadOnlySpan<byte> body)
     {
@@ -132,10 +146,12 @@ internal static class BlobStreamMessage
         return (handle, newLength);
     }
 
-    // ─── 写入器 ─────────────────────────────────────────────────────────
+    #endregion
+
+    #region Writer
 
     /// <summary>
-    /// 构造响应消息字节数组。
+    /// Build a response message byte array.
     /// </summary>
     public static byte[] BuildResponse(uint opCode, byte[] body)
     {
@@ -150,7 +166,7 @@ internal static class BlobStreamMessage
         return result;
     }
 
-    /// <summary>构造 Open 响应 (handle)</summary>
+    /// <summary>Build an Open response containing the handle ID.</summary>
     public static byte[] BuildOpenResponse(long handle)
     {
         var body = new byte[8];
@@ -158,13 +174,13 @@ internal static class BlobStreamMessage
         return BuildResponse(OpCode.Open, body);
     }
 
-    /// <summary>构造 Close/Truncate/Commit 响应 (1B status = 0)</summary>
+    /// <summary>Build an acknowledgement response (Close/Truncate/Commit).</summary>
     public static byte[] BuildAckResponse(uint opCode)
     {
         return BuildResponse(opCode, [0]);
     }
 
-    /// <summary>构造 Read 响应 (data)</summary>
+    /// <summary>Build a Read response containing the data.</summary>
     public static byte[] BuildReadResponse(byte[] data)
     {
         var body = new byte[4 + data.Length];
@@ -173,7 +189,7 @@ internal static class BlobStreamMessage
         return BuildResponse(OpCode.Read, body);
     }
 
-    /// <summary>构造 Write 响应 (bytesWritten)</summary>
+    /// <summary>Build a Write response containing the number of bytes written.</summary>
     public static byte[] BuildWriteResponse(int bytesWritten)
     {
         var body = new byte[4];
@@ -181,7 +197,7 @@ internal static class BlobStreamMessage
         return BuildResponse(OpCode.Write, body);
     }
 
-    /// <summary>构造 Seek 响应 (newPosition)</summary>
+    /// <summary>Build a Seek response containing the new position.</summary>
     public static byte[] BuildSeekResponse(long newPosition)
     {
         var body = new byte[8];
@@ -189,7 +205,7 @@ internal static class BlobStreamMessage
         return BuildResponse(OpCode.Seek, body);
     }
 
-    /// <summary>构造错误响应</summary>
+    /// <summary>Build an error response.</summary>
     public static byte[] BuildErrorResponse(BlobStreamErrorCode errorCode, string message)
     {
         var msgBytes = Encoding.UTF8.GetBytes(message);
@@ -200,7 +216,9 @@ internal static class BlobStreamMessage
         return BuildResponse(OpCode.Error, body);
     }
 
-    /// <summary>构造错误响应的快捷方法</summary>
+    /// <summary>Build an error response from a protocol exception.</summary>
     public static byte[] BuildErrorResponse(BlobStreamProtocolException ex)
         => BuildErrorResponse(ex.ErrorCode, ex.Message);
+
+    #endregion
 }

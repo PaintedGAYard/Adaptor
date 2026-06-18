@@ -7,14 +7,17 @@ using Adaptor.Coordinator.Services;
 
 namespace Adaptor.Coordinator;
 
-/// <summary>
-/// 用于将 Coordinator 服务注册到 DI 容器的扩展方法
-/// </summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// 注册 Adaptor 协调器核心服务 + SK Plugin
+    /// Register coordinator core services and SK plugins.
     /// </summary>
+    /// <remarks>
+    /// Registers <see cref="TransactionPlugin"/>, <see cref="RelationalPlugin"/>, and <see cref="VectorSearchPlugin"/>.
+    /// </remarks>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configureOptions">Optional; pass <c>null</c> to use defaults.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddAdaptorCoordinator(
         this IServiceCollection services,
         Action<CoordinatorOptions>? configureOptions = null)
@@ -27,7 +30,6 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<SessionManager>();
         services.TryAddSingleton<TransactionCoordinator>();
 
-        // 注册 SK Plugin
         services.TryAddSingleton<TransactionPlugin>();
         services.TryAddSingleton<RelationalPlugin>();
         services.TryAddSingleton<VectorSearchPlugin>();
@@ -35,21 +37,18 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>
-    /// 将已注册的 Adaptor Plugin 加载到 SK Kernel 中
-    /// </summary>
     public static IServiceCollection AddAdaptorPluginsToKernel(
         this IServiceCollection services)
     {
-        // 使用 SK KernelBuilder 的标准插件注册方式
-        // Consumer 需要在构建 Kernel 后通过 kernel.Plugins.AddFromObject 加载
-        // 或使用 AddKernel 后的 PostConfigure 模式
         return services;
     }
 
     /// <summary>
-    /// 注册一个 Driver 到 DI 容器（无参构造）
+    /// Register a driver (parameterless constructor).
     /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <typeparam name="TDriver">Driver type implementing <see cref="IResourceManager"/>.</typeparam>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddAdaptorDriver<TDriver>(
         this IServiceCollection services)
         where TDriver : class, IResourceManager
@@ -58,9 +57,7 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>
-    /// 注册一个 Driver 到 DI 容器（工厂模式）
-    /// </summary>
+    /// <param name="factory">Factory delegate for creating the driver instance.</param>
     public static IServiceCollection AddAdaptorDriver<TDriver>(
         this IServiceCollection services,
         Func<IServiceProvider, TDriver> factory)

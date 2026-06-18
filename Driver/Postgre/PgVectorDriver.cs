@@ -8,13 +8,14 @@ using Npgsql;
 namespace Adaptor.Driver.Postgre;
 
 /// <summary>
-/// pgvector Vector Driver — 提供向量 Upsert/Search 能力，基于 PostgreSQL
-/// pgvector 扩展实现。与 <see cref="PostgreSqlDriver"/> 共享同库模式，
-/// 通过 <see cref="ITransactionalResourceManager.Enlist"/> 参与分布式事务。
+/// pgvector Vector Driver providing upsert/search capabilities via the
+/// PostgreSQL pgvector extension. Shares the same database schema with
+/// <see cref="PostgreSqlDriver"/> and participates in distributed
+/// transactions via <see cref="ITransactionalResourceManager.Enlist"/>.
 /// </summary>
 /// <remarks>
-/// 所需 PostgreSQL 扩展：<c>vector</c>（pgvector）。
-/// 将在首次 Upsert 时自动创建表 <c>adaptor_vector_store</c>。
+/// Requires the PostgreSQL <c>vector</c> extension (pgvector).
+/// The <c>adaptor_vector_store</c> table is auto-created on first search.
 /// </remarks>
 public sealed class PgVectorDriver :
     IResourceManager,
@@ -43,7 +44,7 @@ public sealed class PgVectorDriver :
         _logger = logger;
     }
 
-    // ─── ITransactionalResourceManager ──────────────────────────────────────
+    #region ITransactionalResourceManager
 
     public void Enlist(Transaction transaction)
     {
@@ -74,7 +75,9 @@ public sealed class PgVectorDriver :
         _logger?.LogDebug("PgVectorDriver enlisted in transaction {TxId}", txId);
     }
 
-    // ─── IRelationalVectorSearchCapability ─────────────────────────────────
+    #endregion
+
+    #region IRelationalVectorSearchCapability
 
     public async Task<VectorSearchResult> SearchAsync(RelationalVectorSearchRequest request, Transaction transaction, CancellationToken ct = default)
     {
@@ -117,7 +120,7 @@ public sealed class PgVectorDriver :
             var safeColumn = QuotePgIdentifier(columnName);
 
             // Build WHERE: append user-provided filter clause if present.
-            // WhereClause 应使用 @param 引用参数，禁止拼接字面值。
+            // WhereClause must use @param references; never concatenate literal values.
             var whereClause = string.IsNullOrWhiteSpace(request.WhereClause)
                 ? ""
                 : $" AND ({request.WhereClause})";
@@ -174,7 +177,9 @@ public sealed class PgVectorDriver :
         }
     }
 
-    // ─── IHealthCheckCapability ─────────────────────────────────────────────
+    #endregion
+
+    #region IHealthCheckCapability
 
     public async Task<bool> HealthCheckAsync(CancellationToken ct = default)
     {
@@ -194,7 +199,9 @@ public sealed class PgVectorDriver :
         }
     }
 
-    // ─── Internal helpers ───────────────────────────────────────────────────
+    #endregion
+
+    #region Internal helpers
 
     private ConnectionEntry GetEntry(Transaction transaction)
     {
@@ -208,11 +215,8 @@ public sealed class PgVectorDriver :
             "Enlist() must be called before data operations.");
     }
 
-    /// <summary>
-    /// Auto-create the vector store and dimension tracking tables if they do not exist.
-    /// The pgvector extension is expected to be installed; otherwise
-    /// the <c>vector</c>/<c>sparsevec</c> types will not be recognised.
-    /// </summary>
+    /// <summary>Auto-create the vector store and dimension tracking tables if they do not exist.</summary>
+    /// <remarks>Requires the pgvector extension; otherwise <c>vector</c>/<c>sparsevec</c> types will not be recognised.</remarks>
     private async Task EnsureTableAsync(NpgsqlConnection connection, NpgsqlTransaction transaction, CancellationToken ct)
     {
         await using var cmd = connection.CreateCommand();
@@ -245,10 +249,7 @@ public sealed class PgVectorDriver :
             DefaultTableName, DimensionTableName);
     }
 
-    /// <summary>
-    /// Validate that the input vector dimension matches the collection's expected dimension.
-    /// If no dimension is recorded yet, record it.
-    /// </summary>
+    /// <summary>Validate or record the expected vector dimension for a collection.</summary>
     private async Task ValidateDimension(
         NpgsqlConnection connection, NpgsqlTransaction transaction,
         string collection, int inputDim, CancellationToken ct)
@@ -380,9 +381,6 @@ public sealed class PgVectorDriver :
         return new SparseVector(indices, values);
     }
 
-    /// <summary>
-    /// Deserialize a JSON string to a dictionary.
-    /// </summary>
     private static IReadOnlyDictionary<string, object?>? DeserializeMetadata(string json)
     {
         if (string.IsNullOrEmpty(json))
@@ -410,19 +408,15 @@ public sealed class PgVectorDriver :
     }
 
     /// <summary>
-    /// Quote a PostgreSQL identifier (table name, column name) with double quotes,
-    /// escaping any embedded double quotes by doubling them.
-    /// This prevents SQL injection when identifier names come from external input.
+    /// Quote a PostgreSQL identifier with double quotes, preventing SQL injection.
     /// </summary>
+    /// <remarks>Escapes embedded double quotes by doubling them.</remarks>
     private static string QuotePgIdentifier(string identifier)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(identifier);
         return "\"" + identifier.Replace("\"", "\"\"") + "\"";
     }
 
-    /// <summary>
-    /// Called by <see cref="VectorEnlistmentHandler"/> when a transaction completes.
-    /// </summary>
     internal void RemoveEntry(string txId)
     {
         if (_connections.TryRemove(txId, out var entry))
@@ -437,15 +431,14 @@ public sealed class PgVectorDriver :
         }
     }
 
-    /// <summary>
-    /// Get or create a per-transaction concurrency lock.
-    /// </summary>
     private SemaphoreSlim GetOrCreateTxLock(string txId)
     {
         return _txLocks.GetOrAdd(txId, _ => new SemaphoreSlim(1, 1));
     }
 
-    // ─── IDisposable ────────────────────────────────────────────────────────
+    #endregion
+
+    #region IDisposable
 
     public void Dispose()
     {
@@ -465,7 +458,9 @@ public sealed class PgVectorDriver :
         _txLocks.Clear();
     }
 
-    // ─── Nested types ───────────────────────────────────────────────────────
+    #endregion
+
+    #region Nested types
 
     private sealed record ConnectionEntry : IDisposable
     {
@@ -563,4 +558,6 @@ public sealed class PgVectorDriver :
             enlistment.Done();
         }
     }
+
+    #endregion
 }

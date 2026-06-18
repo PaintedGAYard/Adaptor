@@ -1,26 +1,21 @@
 namespace Adaptor.Coordinator.Abstractions;
 
-/// <summary>
-/// Driver 事务能力的运行时枚举
-/// </summary>
 [Flags]
 public enum TransactionCapabilities
 {
     None = 0,
-    /// <summary>支持 IEnlistmentNotification（标准两阶段提交）</summary>
+    /// <summary>Supports standard two-phase commit via IEnlistmentNotification</summary>
     TwoPhaseCommit = 1 << 0,
-    /// <summary>支持可提升单阶段提交 PSPE</summary>
+    /// <summary>Supports promotable single-phase enlistment (PSPE)</summary>
     Promotable = 1 << 1,
-    /// <summary>支持补偿事务（Commit 失败后可回滚）</summary>
+    /// <summary>Supports compensating transactions (rollback after failed commit)</summary>
     Compensating = 1 << 2,
 }
 
-/// <summary>
-/// <see cref="IResourceManager"/> 的事务能力扩展方法
-/// </summary>
 public static class ResourceManagerExtensions
 {
-    /// <summary>运行时查询 Driver 的事务能力</summary>
+    /// <param name="rm">The resource manager to inspect.</param>
+    /// <returns>Combined flags; uses reflection to detect PSPE support dynamically.</returns>
     public static TransactionCapabilities GetTransactionCapabilities(this IResourceManager rm)
     {
         var caps = TransactionCapabilities.None;

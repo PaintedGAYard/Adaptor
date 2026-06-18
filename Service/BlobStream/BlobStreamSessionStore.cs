@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 namespace Adaptor.Service.BlobStream;
 
 /// <summary>
-/// BlobStream 会话参数，由 gRPC <c>BeginSession</c> 协商确定。
+/// BlobStream session parameters negotiated by gRPC <c>BeginSession</c>.
 /// </summary>
 public sealed record BlobStreamSessionParams(
     TimeSpan NegotiatedTimeout,
@@ -11,7 +11,7 @@ public sealed record BlobStreamSessionParams(
     IReadOnlyDictionary<string, string>? Metadata);
 
 /// <summary>
-/// 会话条目（内部状态）。
+/// Internal session entry tracking a BlobStream session.
 /// </summary>
 public sealed class BlobStreamSessionEntry : IDisposable
 {
@@ -20,13 +20,12 @@ public sealed class BlobStreamSessionEntry : IDisposable
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime ExpiresAt { get; init; }
 
-    /// <summary>WebSocket 连接后设置，用于主动关闭 WS</summary>
+    /// <summary>Set after WebSocket connects; signals gRPC EndSession to close WS.</summary>
     public CancellationTokenSource? WsCancellation { get; set; }
 
-    /// <summary>WebSocket 连接后设置，记录关联的连接 ID</summary>
     public string? ConnectionId { get; set; }
 
-    /// <summary>是否已通过 WebSocket 建立连接</summary>
+    /// <summary>Whether a WebSocket connection has been established.</summary>
     public bool IsConnected => ConnectionId != null;
 
     public void Dispose()
@@ -37,20 +36,14 @@ public sealed class BlobStreamSessionEntry : IDisposable
 }
 
 /// <summary>
-/// BlobStream 会话存储器。
-///
-/// 管理 session_token → 会话参数的映射，支持:
-/// 1. gRPC BeginSession 创建会话
-/// 2. WebSocket 连接时凭 token 获取参数
-/// 3. gRPC EndSession 失效 token 并关闭关联 WS
-/// 4. 后台 GC 清理过期会话
+/// BlobStream session store managing session_token to session parameter mappings.
+/// Supports: gRPC BeginSession (create), WebSocket connect (validate),
+/// gRPC EndSession (invalidate + close WS), and background GC for expired sessions.
 /// </summary>
 public sealed class BlobStreamSessionStore : IDisposable
 {
-    /// <summary>会话最大空闲时间（BeginSession 后未连 WS）</summary>
     private static readonly TimeSpan MaxSessionAge = TimeSpan.FromMinutes(5);
 
-    /// <summary>GC 清理间隔</summary>
     private static readonly TimeSpan CleanupInterval = TimeSpan.FromSeconds(30);
 
     private readonly ConcurrentDictionary<string, BlobStreamSessionEntry> _sessions = new();
@@ -64,7 +57,7 @@ public sealed class BlobStreamSessionStore : IDisposable
     }
 
     /// <summary>
-    /// 创建新会话。
+    /// Create a new session and return its entry.
     /// </summary>
     public BlobStreamSessionEntry Create(TimeSpan negotiatedTimeout, int negotiatedChunkSize,
         IReadOnlyDictionary<string, string>? metadata)
@@ -82,8 +75,8 @@ public sealed class BlobStreamSessionStore : IDisposable
     }
 
     /// <summary>
-    /// 验证并获取会话参数（WebSocket 连接时调用）。
-    /// 如果 token 不存在或已过期，返回 null。
+    /// Validate and retrieve session parameters (called on WebSocket connect).
+    /// Returns null if the token does not exist or has expired.
     /// </summary>
     public BlobStreamSessionEntry? Validate(string token)
     {
@@ -94,7 +87,6 @@ public sealed class BlobStreamSessionStore : IDisposable
                 return entry;
             }
 
-            // 已过期，清理
             _sessions.TryRemove(token, out _);
             entry.Dispose();
         }
@@ -102,7 +94,7 @@ public sealed class BlobStreamSessionStore : IDisposable
     }
 
     /// <summary>
-    /// 获取会话（不验证过期）。
+    /// Get session by token without expiry check.
     /// </summary>
     public BlobStreamSessionEntry? Get(string token)
     {
@@ -111,14 +103,14 @@ public sealed class BlobStreamSessionStore : IDisposable
     }
 
     /// <summary>
-    /// 失效 token 并关闭关联的 WebSocket 连接。
-    /// 由 gRPC EndSession 调用。
+    /// Invalidate a token and close its associated WebSocket connection.
+    /// Called by gRPC EndSession.
     /// </summary>
     public bool Invalidate(string token)
     {
         if (_sessions.TryRemove(token, out var entry))
         {
-            entry.Dispose(); // 触发 WsCancellation.Cancel()
+            entry.Dispose(); // Triggers WsCancellation.Cancel()
             return true;
         }
         return false;

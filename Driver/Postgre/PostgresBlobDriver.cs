@@ -8,15 +8,16 @@ using Npgsql;
 namespace Adaptor.Driver.Postgre;
 
 /// <summary>
-/// PostgreSQL BLOB Driver — 提供 BLOB 上传/下载能力，基于 PostgreSQL
-/// Large Object (LO) API 实现。与 <see cref="PostgreSqlDriver"/> 和
-/// <see cref="PgVectorDriver"/> 共享同库模式，
-/// 通过 <see cref="ITransactionalResourceManager.Enlist"/> 参与分布式事务。
+/// PostgreSQL BLOB driver providing upload/download capabilities via the
+/// PostgreSQL Large Object API. Shares the same database schema with
+/// <see cref="PostgreSqlDriver"/> and <see cref="PgVectorDriver"/>,
+/// and participates in distributed transactions via
+/// <see cref="ITransactionalResourceManager.Enlist"/>.
 /// </summary>
 /// <remarks>
-/// 使用 PostgreSQL 内置的 Large Object 机制（<c>lo_creat</c>/<c>lo_write</c>/<c>lo_read</c>/<c>lo_unlink</c>）。
-/// 所有 LO 操作在事务内完成，支持事务回滚。首次上传时会自动创建
-/// <c>adaptor_blob_store</c> 映射表。
+/// Uses PostgreSQL built-in Large Object mechanism (<c>lo_creat</c>/<c>lo_write</c>/<c>lo_read</c>/<c>lo_unlink</c>).
+/// All LO operations are transactional and support rollback.
+/// The <c>adaptor_blob_store</c> mapping table is auto-created on first upload.
 /// </remarks>
 public sealed class PostgresBlobDriver :
     IResourceManager,
@@ -45,7 +46,7 @@ public sealed class PostgresBlobDriver :
         _logger = logger;
     }
 
-    // ─── ITransactionalResourceManager ──────────────────────────────────────
+    #region ITransactionalResourceManager
 
     public void Enlist(Transaction transaction)
     {
@@ -76,7 +77,9 @@ public sealed class PostgresBlobDriver :
         _logger?.LogDebug("PostgresBlobDriver enlisted in transaction {TxId}", txId);
     }
 
-    // ─── IBlobUploadCapability ──────────────────────────────────────────────
+    #endregion
+
+    #region IBlobUploadCapability
 
     public async Task<BlobUploadResult> UploadAsync(BlobUploadRequest request, Transaction transaction, CancellationToken ct = default)
     {
@@ -130,7 +133,9 @@ public sealed class PostgresBlobDriver :
         }
     }
 
-    // ─── IBlobDownloadCapability ────────────────────────────────────────────
+    #endregion
+
+    #region IBlobDownloadCapability
 
     public async Task<BlobDownloadResult> DownloadAsync(BlobDownloadRequest request, Transaction transaction, CancellationToken ct = default)
     {
@@ -197,7 +202,9 @@ public sealed class PostgresBlobDriver :
         }
     }
 
-    // ─── IBlobRandomAccessCapability ────────────────────────────────────────
+    #endregion
+
+    #region IBlobRandomAccessCapability
 
     public async Task<BlobOpenResult> OpenAsync(string key, BlobAccessMode mode, Transaction transaction, CancellationToken ct = default)
     {
@@ -482,7 +489,9 @@ public sealed class PostgresBlobDriver :
         }
     }
 
-    // ─── IHealthCheckCapability ─────────────────────────────────────────────
+    #endregion
+
+    #region IHealthCheckCapability
 
     public async Task<bool> HealthCheckAsync(CancellationToken ct = default)
     {
@@ -502,12 +511,13 @@ public sealed class PostgresBlobDriver :
         }
     }
 
-    // ─── Public utility: delete a BLOB ──────────────────────────────────────
+    #endregion
+
+    #region Public utility: delete a BLOB
 
     /// <summary>
-    /// Delete a BLOB by key. Unlinks the underlying Large Object and removes
-    /// the mapping record. This method is NOT part of the capability interfaces
-    /// in the current abstractions; call it via direct driver usage.
+    /// Delete a BLOB by key.
+    /// <b>Not</b> part of the capability interfaces — call via direct driver reference.
     /// </summary>
     public async Task<BlobUploadResult> DeleteAsync(string key, Transaction transaction, CancellationToken ct = default)
     {
@@ -558,7 +568,9 @@ public sealed class PostgresBlobDriver :
         }
     }
 
-    // ─── Internal helpers ───────────────────────────────────────────────────
+    #endregion
+
+    #region Internal helpers
 
     private ConnectionEntry GetEntry(Transaction transaction)
     {
@@ -572,9 +584,7 @@ public sealed class PostgresBlobDriver :
             "Enlist() must be called before data operations.");
     }
 
-    /// <summary>
-    /// Auto-create the BLOB mapping table if it does not exist.
-    /// </summary>
+    /// <summary>Auto-create the <c>adaptor_blob_store</c> table if it does not exist.</summary>
     private async Task EnsureTableAsync(NpgsqlConnection connection, NpgsqlTransaction transaction, CancellationToken ct)
     {
         await using var cmd = connection.CreateCommand();
@@ -594,10 +604,8 @@ public sealed class PostgresBlobDriver :
         _logger?.LogDebug("PostgresBlobDriver ensured table {Table} exists", DefaultTableName);
     }
 
-    /// <summary>
-    /// Read the full content of a Large Object using <c>lo_read</c>.
-    /// Reads in 32 MiB chunks to avoid oversized single queries.
-    /// </summary>
+    /// <summary>Read the full content of a Large Object.</summary>
+    /// <remarks>Reads in 32 MiB chunks to avoid oversized single queries.</remarks>
     private static async Task<byte[]> ReadLargeObjectAsync(
         NpgsqlConnection connection,
         NpgsqlTransaction transaction,
@@ -651,10 +659,6 @@ public sealed class PostgresBlobDriver :
         return ms.ToArray();
     }
 
-    /// <summary>
-    /// Serialize metadata dictionary to a JSON string.
-    /// Used as a parameter value with ::jsonb cast.
-    /// </summary>
     private static string MetadataToJsonString(IReadOnlyDictionary<string, string>? metadata)
     {
         if (metadata == null || metadata.Count == 0)
@@ -670,9 +674,6 @@ public sealed class PostgresBlobDriver :
         return $"{{{string.Join(",", parts)}}}";
     }
 
-    /// <summary>
-    /// Called by <see cref="BlobEnlistmentHandler"/> when a transaction completes.
-    /// </summary>
     internal void RemoveEntry(string txId)
     {
         if (_connections.TryRemove(txId, out var entry))
@@ -682,7 +683,9 @@ public sealed class PostgresBlobDriver :
         }
     }
 
-    // ─── IDisposable ────────────────────────────────────────────────────────
+    #endregion
+
+    #region IDisposable
 
     public void Dispose()
     {
@@ -696,7 +699,9 @@ public sealed class PostgresBlobDriver :
         _connections.Clear();
     }
 
-    // ─── Nested types ───────────────────────────────────────────────────────
+    #endregion
+
+    #region Nested types
 
     private sealed record ConnectionEntry : IDisposable
     {
@@ -794,4 +799,6 @@ public sealed class PostgresBlobDriver :
             enlistment.Done();
         }
     }
+
+    #endregion
 }

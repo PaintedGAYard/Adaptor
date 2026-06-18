@@ -4,7 +4,7 @@ using Adaptor.Coordinator.Models;
 namespace Adaptor.Coordinator.Abstractions;
 
 /// <summary>
-/// 关系数据库查询能力（SELECT 等返回结果集的命令）
+/// Capability to execute SQL queries that return result sets (SELECT).
 /// </summary>
 public interface IRelationalQueryCapability
 {

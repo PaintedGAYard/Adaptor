@@ -4,26 +4,19 @@ using Microsoft.Extensions.Logging;
 namespace Adaptor.Service.BlobStream;
 
 /// <summary>
-/// Handle 管理器 — 维护 handle ID 到 <see cref="HandleEntry"/> 的映射。
-///
-/// 职责:
-/// 1. 分配全局唯一的 handle ID（Interlocked.Increment，起始于随机值）
-/// 2. 维护 ConcurrentDictionary 映射
-/// 3. 定时清理过期 handle（事务已结束 / 空闲超时）
-/// 4. 限制每连接最大 handle 数
+/// Manages the mapping from handle IDs to <see cref="HandleEntry"/> instances.
+/// Responsibilities: allocate unique handle IDs, maintain the mapping,
+/// periodically clean up expired handles, and enforce per-connection handle limits.
 /// </summary>
 internal sealed class HandleManager : IDisposable
 {
-    /// <summary>每连接最大 handle 数</summary>
     private const int MaxHandlesPerConnection = 64;
 
-    /// <summary>Handle 空闲超时（超过此时间未活动则自动关闭）</summary>
     private static readonly TimeSpan HandleIdleTimeout = TimeSpan.FromMinutes(5);
 
-    /// <summary>GC 清理间隔</summary>
     private static readonly TimeSpan CleanupInterval = TimeSpan.FromSeconds(30);
 
-    private long _nextHandle; // 从随机值起始
+    private long _nextHandle;
     private readonly ConcurrentDictionary<long, HandleEntry> _handles = new();
     private readonly ILogger<HandleManager> _logger;
     private readonly Timer _cleanupTimer;
@@ -32,24 +25,20 @@ internal sealed class HandleManager : IDisposable
     public HandleManager(ILogger<HandleManager> logger)
     {
         _logger = logger;
-        // 随机起始值，降低碰撞概率
         _nextHandle = (long)(Random.Shared.NextInt64(1_000_000, 10_000_000) << 32);
         _cleanupTimer = new Timer(
             CleanupExpiredHandles, null,
             CleanupInterval, CleanupInterval);
     }
 
-    /// <summary>当前活跃 handle 数</summary>
     public int ActiveHandleCount => _handles.Count;
 
     /// <summary>
-    /// 注册一个新的 handle entry。
+    /// Register a new handle and return its ID.
     /// </summary>
-    /// <returns>分配的 handle ID</returns>
-    /// <exception cref="InvalidOperationException">超过每连接最大 handle 数</exception>
+    /// <exception cref="InvalidOperationException">Per-connection limit (<c>64</c>) exceeded</exception>
     public long Register(string connectionId, int loFd, string key, string transactionId)
     {
-        // 检查连接级别的 handle 上限
         var connectionCount = _handles.Values.Count(h => h.ConnectionId == connectionId);
         if (connectionCount >= MaxHandlesPerConnection)
         {
@@ -69,7 +58,6 @@ internal sealed class HandleManager : IDisposable
 
         if (!_handles.TryAdd(handleId, entry))
         {
-            // 理论上不会发生，Interlocked.Increment 保证唯一
             throw new InvalidOperationException($"Handle ID collision: {handleId}");
         }
 
@@ -80,7 +68,7 @@ internal sealed class HandleManager : IDisposable
     }
 
     /// <summary>
-    /// 通过 handle ID 查找 entry，并更新活动时间。
+    /// Look up a handle by ID and update its last activity time.
     /// </summary>
     public bool TryGet(long handleId, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out HandleEntry? entry)
     {
@@ -93,7 +81,7 @@ internal sealed class HandleManager : IDisposable
     }
 
     /// <summary>
-    /// 移除并释放 handle entry。
+    /// Remove and dispose a handle entry.
     /// </summary>
     public bool Remove(long handleId, out HandleEntry? entry)
     {
@@ -106,7 +94,7 @@ internal sealed class HandleManager : IDisposable
     }
 
     /// <summary>
-    /// 移除指定事务的所有 handle（事务提交/回滚时调用）。
+    /// Remove all handles associated with a transaction (called on commit or rollback).
     /// </summary>
     public IReadOnlyList<HandleEntry> InvalidateHandlesForTransaction(string transactionId)
     {
@@ -130,8 +118,7 @@ internal sealed class HandleManager : IDisposable
     }
 
     /// <summary>
-    /// 移除指定连接的所有 handle。
-    /// 用于 WebSocket 断开时的资源清理。
+    /// Remove all handles for a connection (WebSocket disconnect cleanup).
     /// </summary>
     public IReadOnlyList<HandleEntry> RemoveAllForConnection(string connectionId)
     {
@@ -155,9 +142,7 @@ internal sealed class HandleManager : IDisposable
     }
 
     /// <summary>
-    /// 定时清理过期 handle。
-    /// 过期条件: 最后活动时间超过 HandleIdleTimeout，
-    /// 或关联事务已不是 Active 状态。
+    /// Periodically clean up handles that have been idle beyond the timeout.
     /// </summary>
     private void CleanupExpiredHandles(object? state)
     {
