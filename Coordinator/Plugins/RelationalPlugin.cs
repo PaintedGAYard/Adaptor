@@ -51,4 +51,32 @@ public sealed class RelationalPlugin
                 new RelationalQueryRequest(command, parameters?.AsReadOnly()), tx, ct),
             ct);
     }
+
+    /// <summary>
+    /// Represents a batch item: a SQL command with optional parameters.
+    /// </summary>
+    public sealed record BatchItem(string Command, IReadOnlyList<RelationalParameter>? Parameters = null);
+
+    [KernelFunction("execute_batch")]
+    [Description("Execute multiple SQL commands (INSERT / UPDATE / DELETE / DDL) in batch within a transaction")]
+    public async Task<int> ExecuteBatchAsync(
+        [Description("Active transaction ID")] string transactionId,
+        [Description("Array of batch items, each with Command and optional Parameters")] BatchItem[] commands,
+        CancellationToken ct = default)
+    {
+        var totalAffected = 0;
+
+        foreach (var cmd in commands)
+        {
+            var result = await _coordinator.ExecuteOnCapabilityAsync<IRelationalExecuteCapability, RelationalExecuteResult>(
+                transactionId,
+                (driver, tx) => driver.ExecuteAsync(
+                    new RelationalExecuteRequest(cmd.Command, cmd.Parameters), tx, ct),
+                ct);
+
+            totalAffected += result.AffectedRows;
+        }
+
+        return totalAffected;
+    }
 }

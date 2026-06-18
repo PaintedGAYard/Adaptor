@@ -307,7 +307,9 @@ public sealed class RelationalServiceImpl : DBRelational.DBRelationalBase
                 txId,
                 async (driver, transaction) =>
                 {
-                    var internalRequest = new Coordinator.Models.RelationalExecuteRequest(cmd);
+                    var internalRequest = new Coordinator.Models.RelationalExecuteRequest(
+                        cmd.Command,
+                        ConvertParameters(cmd.Parameters));
                     return await driver.ExecuteAsync(internalRequest, transaction, context.CancellationToken);
                 },
                 context.CancellationToken);

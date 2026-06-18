@@ -112,17 +112,22 @@ public sealed class PgVectorDriver :
 
             var castType = request.DenseVector != null ? "vector" : "sparsevec";
 
-            // Build WHERE: append user-provided filter clause if present
+            // Quote identifiers to prevent SQL injection via table/column names
+            var safeTable = QuotePgIdentifier(request.Table);
+            var safeColumn = QuotePgIdentifier(columnName);
+
+            // Build WHERE: append user-provided filter clause if present.
+            // WhereClause 应使用 @param 引用参数，禁止拼接字面值。
             var whereClause = string.IsNullOrWhiteSpace(request.WhereClause)
                 ? ""
                 : $" AND ({request.WhereClause})";
 
             cmd.CommandText = $"""
                 SELECT id, metadata,
-                       ({columnName} <=> @vector::{castType}) AS distance
-                FROM {request.Table}
+                       ({safeColumn} <=> @vector::{castType}) AS distance
+                FROM {safeTable}
                 WHERE 1=1{whereClause}
-                ORDER BY {columnName} <=> @vector::{castType}
+                ORDER BY {safeColumn} <=> @vector::{castType}
                 LIMIT @top_k
                 """;
             cmd.Parameters.AddWithValue("vector", vectorStr);
@@ -402,6 +407,17 @@ public sealed class PgVectorDriver :
             System.Text.Json.JsonValueKind.False => false,
             _ => element.GetRawText()
         };
+    }
+
+    /// <summary>
+    /// Quote a PostgreSQL identifier (table name, column name) with double quotes,
+    /// escaping any embedded double quotes by doubling them.
+    /// This prevents SQL injection when identifier names come from external input.
+    /// </summary>
+    private static string QuotePgIdentifier(string identifier)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(identifier);
+        return "\"" + identifier.Replace("\"", "\"\"") + "\"";
     }
 
     /// <summary>

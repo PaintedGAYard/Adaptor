@@ -143,9 +143,14 @@ message RelationalQueryResponse {
   string error_message = 3;
 }
 
+message BatchCommand {
+  string command = 1;
+  repeated RelationalParameter parameters = 2;
+}
+
 message RelationalExecuteBatchRequest {
   TransactionContext transaction_context = 1;
-  repeated string commands = 2;
+  repeated BatchCommand commands = 2;
 }
 
 message RelationalExecuteBatchResponse {
