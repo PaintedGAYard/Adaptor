@@ -25,10 +25,12 @@ public sealed class PgVectorDriver :
     IDisposable
 {
     private const string DefaultTableName = "adaptor_vector_store";
+    private const string DimensionTableName = "adaptor_vector_dimensions";
 
     private readonly string _connectionString;
     private readonly ILogger<PgVectorDriver>? _logger;
     private readonly ConcurrentDictionary<string, ConnectionEntry> _connections = new();
+    private readonly ConcurrentDictionary<string, SemaphoreSlim> _txLocks = new();
     private bool _disposed;
 
     public string Name => "pgvector";
@@ -81,30 +83,72 @@ public sealed class PgVectorDriver :
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(transaction);
 
-        var entry = GetEntry(transaction);
-        await EnsureTableAsync(entry.Connection, entry.LocalTransaction, ct).ConfigureAwait(false);
-
+        var txId = transaction.TransactionInformation.LocalIdentifier;
+        var gate = GetOrCreateTxLock(txId);
+        await gate.WaitAsync(ct).ConfigureAwait(false);
         try
         {
-            // Generate a deterministic ID if not provided
+            var entry = GetEntry(transaction);
+            await EnsureTableAsync(entry.Connection, entry.LocalTransaction, ct).ConfigureAwait(false);
+
             var id = !string.IsNullOrEmpty(request.Id)
                 ? request.Id
                 : Guid.NewGuid().ToString("N");
 
-            var vectorLiteral = VectorToLiteral(request.Vector);
-            var metadataJson = MetadataToJson(request.Metadata);
+            if (request.DenseVector == null && request.SparseVector == null)
+                throw new ArgumentException(
+                    "At least one of DenseVector or SparseVector must be provided. " +
+                    "Use a separate UPDATE endpoint for metadata-only changes.",
+                    nameof(request));
+
+            // Build UPSERT with SET clauses for whichever columns are provided.
+            // DenseVector 和 SparseVector 可独立设置（储存时可同时传入两者以支持混合检索）。
+            var setClauses = new List<string>();
+            var insertColumns = new List<string> { "collection", "id" };
+            var insertValues = new List<string> { "@collection", "@id" };
+
+            if (request.DenseVector != null)
+            {
+                if (request.Dimension.HasValue)
+                    await ValidateDimension(entry.Connection, entry.LocalTransaction, request.Collection, request.Dimension.Value, ct);
+
+                insertColumns.Add("embedding");
+                insertValues.Add("@dense::vector");
+                setClauses.Add("embedding = @dense::vector");
+            }
+
+            if (request.SparseVector != null)
+            {
+                insertColumns.Add("sparse_embedding");
+                insertValues.Add("@sparse::sparsevec");
+                setClauses.Add("sparse_embedding = @sparse::sparsevec");
+            }
+
+            insertColumns.Add("metadata");
+            insertValues.Add("@metadata::jsonb");
+            setClauses.Add("metadata = @metadata::jsonb");
+
+            var insertCols = string.Join(", ", insertColumns);
+            var insertVals = string.Join(", ", insertValues);
+            var updates = string.Join(",\n                    ", setClauses);
 
             await using var cmd = entry.Connection.CreateCommand();
-            cmd.CommandText = $"""
-                INSERT INTO {DefaultTableName} (collection, id, embedding, metadata)
-                VALUES (@collection, @id, {vectorLiteral}::vector, {metadataJson}::jsonb)
-                ON CONFLICT (collection, id) DO UPDATE
-                SET embedding = {vectorLiteral}::vector,
-                    metadata = {metadataJson}::jsonb
-                """;
             cmd.Transaction = entry.LocalTransaction;
+            cmd.CommandText = $"""
+                INSERT INTO {DefaultTableName} ({insertCols})
+                VALUES ({insertVals})
+                ON CONFLICT (collection, id) DO UPDATE SET
+                    {updates}
+                """;
+
             cmd.Parameters.AddWithValue("collection", request.Collection);
             cmd.Parameters.AddWithValue("id", id);
+            cmd.Parameters.AddWithValue("metadata", MetadataToJsonString(request.Metadata));
+
+            if (request.DenseVector != null)
+                cmd.Parameters.AddWithValue("dense", DenseVectorToString(request.DenseVector));
+            if (request.SparseVector != null)
+                cmd.Parameters.AddWithValue("sparse", SparseVectorToString(request.SparseVector));
 
             await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
 
@@ -117,6 +161,10 @@ public sealed class PgVectorDriver :
             _logger?.LogError(ex, "PgVectorDriver UpsertAsync failed");
             return new VectorUpsertResult(request.Id ?? string.Empty, false, ex.Message);
         }
+        finally
+        {
+            gate.Release();
+        }
     }
 
     // ─── IVectorSearchCapability ────────────────────────────────────────────
@@ -127,25 +175,50 @@ public sealed class PgVectorDriver :
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(transaction);
 
-        var entry = GetEntry(transaction);
-        await EnsureTableAsync(entry.Connection, entry.LocalTransaction, ct).ConfigureAwait(false);
+        if (request.DenseVector == null && request.SparseVector == null)
+            throw new ArgumentException("Either DenseVector or SparseVector must be provided.", nameof(request));
 
+        var txId = transaction.TransactionInformation.LocalIdentifier;
+        var gate = GetOrCreateTxLock(txId);
+        await gate.WaitAsync(ct).ConfigureAwait(false);
         try
         {
-            var queryLiteral = VectorToLiteral(request.Vector);
+            var entry = GetEntry(transaction);
+            await EnsureTableAsync(entry.Connection, entry.LocalTransaction, ct).ConfigureAwait(false);
+
+            if (request.DenseVector != null && request.Dimension.HasValue)
+                await ValidateDimension(entry.Connection, entry.LocalTransaction, request.Collection, request.Dimension.Value, ct);
 
             await using var cmd = entry.Connection.CreateCommand();
-            // Use cosine distance (<=>) by default; configurable via metadata if needed
+            cmd.Transaction = entry.LocalTransaction;
+
+            string vectorStr;
+            string columnName;
+
+            if (request.DenseVector != null)
+            {
+                vectorStr = DenseVectorToString(request.DenseVector);
+                columnName = "embedding";
+            }
+            else
+            {
+                vectorStr = SparseVectorToString(request.SparseVector!);
+                columnName = "sparse_embedding";
+            }
+
+            var castType = request.DenseVector != null ? "vector" : "sparsevec";
+
+            // Use cosine distance (<=>) by default
             cmd.CommandText = $"""
                 SELECT id, metadata,
-                       (embedding <=> {queryLiteral}::vector) AS distance
+                       ({columnName} <=> @vector::{castType}) AS distance
                 FROM {DefaultTableName}
                 WHERE collection = @collection
-                ORDER BY embedding <=> {queryLiteral}::vector
+                ORDER BY {columnName} <=> @vector::{castType}
                 LIMIT @top_k
                 """;
-            cmd.Transaction = entry.LocalTransaction;
             cmd.Parameters.AddWithValue("collection", request.Collection);
+            cmd.Parameters.AddWithValue("vector", vectorStr);
             cmd.Parameters.AddWithValue("top_k", request.TopK);
 
             var start = DateTime.UtcNow;
@@ -175,6 +248,10 @@ public sealed class PgVectorDriver :
         {
             _logger?.LogError(ex, "PgVectorDriver SearchAsync failed");
             return new VectorSearchResult(Array.Empty<VectorSearchHit>(), TimeSpan.Zero, ex.Message);
+        }
+        finally
+        {
+            gate.Release();
         }
     }
 
@@ -213,45 +290,115 @@ public sealed class PgVectorDriver :
     }
 
     /// <summary>
-    /// Auto-create the vector store table if it does not exist.
+    /// Auto-create the vector store and dimension tracking tables if they do not exist.
     /// The pgvector extension is expected to be installed; otherwise
-    /// the <c>vector</c> type will not be recognised.
+    /// the <c>vector</c>/<c>sparsevec</c> types will not be recognised.
     /// </summary>
     private async Task EnsureTableAsync(NpgsqlConnection connection, NpgsqlTransaction transaction, CancellationToken ct)
     {
         await using var cmd = connection.CreateCommand();
+        cmd.Transaction = transaction;
+
         cmd.CommandText = $"""
             CREATE TABLE IF NOT EXISTS {DefaultTableName} (
                 collection TEXT NOT NULL,
                 id TEXT NOT NULL,
                 embedding vector,
+                sparse_embedding sparsevec,
                 metadata JSONB,
                 created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
                 PRIMARY KEY (collection, id)
             )
             """;
-        cmd.Transaction = transaction;
         await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
 
-        _logger?.LogDebug("PgVectorDriver ensured table {Table} exists", DefaultTableName);
+        // Dimension tracking table — records the expected vector dimension per collection
+        cmd.CommandText = $"""
+            CREATE TABLE IF NOT EXISTS {DimensionTableName} (
+                collection TEXT PRIMARY KEY,
+                dimension INT NOT NULL CHECK (dimension > 0),
+                created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+            )
+            """;
+        await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
+
+        _logger?.LogDebug("PgVectorDriver ensured tables {Table} and {DimTable} exist",
+            DefaultTableName, DimensionTableName);
     }
 
     /// <summary>
-    /// Convert a float[] to a pgvector literal string: '[0.1,0.2,0.3]'
+    /// Validate that the input vector dimension matches the collection's expected dimension.
+    /// If no dimension is recorded yet, record it.
     /// </summary>
-    private static string VectorToLiteral(float[] vector)
+    private async Task ValidateDimension(
+        NpgsqlConnection connection, NpgsqlTransaction transaction,
+        string collection, int inputDim, CancellationToken ct)
     {
-        return $"'[{string.Join(",", vector.Select(v => v.ToString("G", System.Globalization.CultureInfo.InvariantCulture)))}]'";
+        await using var cmd = connection.CreateCommand();
+        cmd.Transaction = transaction;
+
+        // Try to read existing dimension
+        cmd.CommandText = $"SELECT dimension FROM {DimensionTableName} WHERE collection = @collection";
+        cmd.Parameters.AddWithValue("collection", collection);
+
+        var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+
+        if (result == null)
+        {
+            // First upsert for this collection — record dimension
+            cmd.Parameters.Clear();
+            cmd.CommandText = $"""
+                INSERT INTO {DimensionTableName} (collection, dimension)
+                VALUES (@collection, @dim)
+                ON CONFLICT (collection) DO NOTHING
+                """;
+            cmd.Parameters.AddWithValue("collection", collection);
+            cmd.Parameters.AddWithValue("dim", inputDim);
+            await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
+        }
+        else
+        {
+            var expected = Convert.ToInt32(result);
+            if (inputDim != expected)
+            {
+                throw new InvalidOperationException(
+                    $"Vector dimension mismatch for collection '{collection}': " +
+                    $"expected {expected}, got {inputDim}.");
+            }
+        }
     }
 
     /// <summary>
-    /// Serialize metadata dictionary to a JSON literal string for PostgreSQL.
-    /// Returns 'NULL' if metadata is null.
+    /// Convert a float[] to a pgvector-compatible string: '[0.1,0.2,0.3]'
+    /// Used as a parameter value with ::vector cast.
     /// </summary>
-    private static string MetadataToJson(IReadOnlyDictionary<string, object?>? metadata)
+    private static string DenseVectorToString(float[] vector)
+    {
+        return $"[{string.Join(",", vector.Select(v => v.ToString("G", System.Globalization.CultureInfo.InvariantCulture)))}]";
+    }
+
+    /// <summary>
+    /// Convert a SparseVector to a pgvector sparsevec-compatible string: '{idx1:val1,idx2:val2}'
+    /// Used as a parameter value with ::sparsevec cast.
+    /// </summary>
+    private static string SparseVectorToString(SparseVector vector)
+    {
+        if (vector.Indices.Length != vector.Values.Length)
+            throw new ArgumentException("Indices and Values must have the same length.");
+
+        var parts = vector.Indices.Zip(vector.Values, (idx, val) =>
+            $"{idx}:{val.ToString("G", System.Globalization.CultureInfo.InvariantCulture)}");
+        return $"{{{string.Join(",", parts)}}}";
+    }
+
+    /// <summary>
+    /// Serialize metadata dictionary to a JSON string.
+    /// Used as a parameter value with ::jsonb cast.
+    /// </summary>
+    private static string MetadataToJsonString(IReadOnlyDictionary<string, object?>? metadata)
     {
         if (metadata == null || metadata.Count == 0)
-            return "'{}'";
+            return "{}";
 
         var parts = metadata.Select(kvp =>
         {
@@ -312,6 +459,19 @@ public sealed class PgVectorDriver :
             _logger?.LogDebug("PgVectorDriver removing transaction {TxId}", txId);
             entry.Dispose();
         }
+
+        if (_txLocks.TryRemove(txId, out var gate))
+        {
+            gate.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Get or create a per-transaction concurrency lock.
+    /// </summary>
+    private SemaphoreSlim GetOrCreateTxLock(string txId)
+    {
+        return _txLocks.GetOrAdd(txId, _ => new SemaphoreSlim(1, 1));
     }
 
     // ─── IDisposable ────────────────────────────────────────────────────────
@@ -326,6 +486,12 @@ public sealed class PgVectorDriver :
             entry.Dispose();
         }
         _connections.Clear();
+
+        foreach (var (_, gate) in _txLocks)
+        {
+            gate.Dispose();
+        }
+        _txLocks.Clear();
     }
 
     // ─── Nested types ───────────────────────────────────────────────────────

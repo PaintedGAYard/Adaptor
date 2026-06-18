@@ -379,11 +379,17 @@ public sealed class VectorServiceImpl : DBVector.DBVectorBase
             txId,
                 async (driver, transaction) =>
                 {
+                    var sparseVector = request.SparseVector == null ? null
+                        : new Coordinator.Models.SparseVector(
+                            request.SparseVector.Indices.ToArray(),
+                            request.SparseVector.Values.ToArray());
                     var internalRequest = new Coordinator.Models.VectorUpsertRequest(
                         request.Collection,
-                        request.Vector.ToArray(),
-                        string.IsNullOrEmpty(request.Id) ? null : request.Id,
-                        ConvertMetadata(request.Metadata));
+                        DenseVector: request.DenseVector?.ToArray(),
+                        SparseVector: sparseVector,
+                        Id: string.IsNullOrEmpty(request.Id) ? null : request.Id,
+                        Metadata: ConvertMetadata(request.Metadata),
+                        Dimension: request.Dimension > 0 ? request.Dimension : null);
 
                     return await driver.UpsertAsync(internalRequest, transaction, context.CancellationToken);
                 },
@@ -406,11 +412,17 @@ public sealed class VectorServiceImpl : DBVector.DBVectorBase
             txId,
                 async (driver, transaction) =>
                 {
+                    var sparseVector = request.SparseVector == null ? null
+                        : new Coordinator.Models.SparseVector(
+                            request.SparseVector.Indices.ToArray(),
+                            request.SparseVector.Values.ToArray());
                     var internalRequest = new Coordinator.Models.VectorSearchRequest(
                         request.Collection,
-                        request.Vector.ToArray(),
-                        request.TopK > 0 ? request.TopK : 10,
-                        null); // Filter not fully mapped yet
+                        DenseVector: request.DenseVector?.ToArray(),
+                        SparseVector: sparseVector,
+                        TopK: request.TopK > 0 ? request.TopK : 10,
+                        Filter: null, // Filter not fully mapped yet
+                        Dimension: request.Dimension > 0 ? request.Dimension : null);
 
                     return await driver.SearchAsync(internalRequest, transaction, context.CancellationToken);
                 },

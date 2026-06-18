@@ -187,12 +187,19 @@ message Row {
 // DBVector 服务消息
 // ═══════════════════════════════════════════════════════════════════════════
 
+message SparseVector {
+  repeated int32 indices = 1;
+  repeated float values = 2;
+}
+
 message VectorUpsertRequest {
   TransactionContext transaction_context = 1;
   string collection = 2;
-  repeated float vector = 3;
+  repeated float dense_vector = 3;       // 原 vector 字段，重命名
   string id = 4;
   map<string, google.protobuf.Value> metadata = 5;
+  SparseVector sparse_vector = 6;       // 与 dense_vector 二选一
+  int32 dimension = 7;                  // 可选，维度校验
 }
 
 message VectorUpsertResponse {
@@ -204,9 +211,11 @@ message VectorUpsertResponse {
 message VectorSearchRequest {
   TransactionContext transaction_context = 1;
   string collection = 2;
-  repeated float vector = 3;
+  repeated float dense_vector = 3;       // 原 vector 字段，重命名
   int32 top_k = 4;
   map<string, string> filter = 5;
+  SparseVector sparse_vector = 6;       // 与 dense_vector 二选一
+  int32 dimension = 7;                  // 可选，维度校验
 }
 
 message VectorSearchResponse {

@@ -410,7 +410,7 @@ Coordinator 不维护中间状态（Preparing / Committing / RollingBack 等）�
            IN_DOUBT 为极罕见的终态，仅当与 MSDTC
            通信失败且无法恢复时进入。
 ```
-```
+
 
 ---
 

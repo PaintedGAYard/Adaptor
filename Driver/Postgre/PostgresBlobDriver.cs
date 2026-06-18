@@ -104,15 +104,16 @@ public sealed class PostgresBlobDriver :
 
             // Step 3: Insert the mapping record
             await using var cmdInsert = entry.Connection.CreateCommand();
-            var metadataJson = MetadataToJson(request.Metadata);
+            var metadataStr = MetadataToJsonString(request.Metadata);
             cmdInsert.CommandText = $"""
                 INSERT INTO {DefaultTableName} (key, oid, content_type, metadata, size)
-                VALUES (@key, @oid, @content_type, {metadataJson}::jsonb, @size)
+                VALUES (@key, @oid, @content_type, @metadata::jsonb, @size)
                 """;
             cmdInsert.Transaction = entry.LocalTransaction;
             cmdInsert.Parameters.AddWithValue("key", request.Key);
             cmdInsert.Parameters.AddWithValue("oid", oid);
             cmdInsert.Parameters.AddWithValue("content_type", (object?)request.ContentType ?? DBNull.Value);
+            cmdInsert.Parameters.AddWithValue("metadata", metadataStr);
             cmdInsert.Parameters.AddWithValue("size", request.Data.LongLength);
             await cmdInsert.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
 
@@ -365,13 +366,13 @@ public sealed class PostgresBlobDriver :
     }
 
     /// <summary>
-    /// Serialize metadata dictionary to a JSON literal string for PostgreSQL.
-    /// Returns 'NULL' if metadata is null.
+    /// Serialize metadata dictionary to a JSON string.
+    /// Used as a parameter value with ::jsonb cast.
     /// </summary>
-    private static string MetadataToJson(IReadOnlyDictionary<string, string>? metadata)
+    private static string MetadataToJsonString(IReadOnlyDictionary<string, string>? metadata)
     {
         if (metadata == null || metadata.Count == 0)
-            return "'{}'";
+            return "{}";
 
         var parts = metadata.Select(kvp =>
         {
