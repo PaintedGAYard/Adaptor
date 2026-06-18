@@ -28,8 +28,8 @@ var app = builder.Build();
 
 // ─── Middleware pipeline ────────────────────────────────────────────────────
 app.MapGrpcService<TransactionServiceImpl>();
-app.MapGrpcService<SqlServiceImpl>();
-app.MapGrpcService<VectorServiceImpl>();
+app.MapGrpcService<RelationalServiceImpl>();
+app.MapGrpcService<RelationalVectorServiceImpl>();
 app.MapGrpcService<BlobServiceImpl>();
 
 app.MapGet("/", () => "Adaptor gRPC Service — Distributed Transaction Coordinator for heterogeneous storage. " +

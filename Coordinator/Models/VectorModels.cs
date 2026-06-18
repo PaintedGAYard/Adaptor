@@ -10,59 +10,19 @@ public sealed record SparseVector(
     float[] Values);
 
 /// <summary>
-/// 向量 Upsert 请求。
-/// DenseVector 和 SparseVector 可独立设置（储存时可同时传入两者以支持混合检索），
-/// 但至少必须设置其中之一。检索时 VectorSearchRequest 只会使用其中一种。
+/// 关系数据库向量搜索请求。
+/// 使用原生 SQL WHERE 片段（通过 @param 引用 Parameters）来支持过滤，
+/// 复用关系数据库参数化契约，无 SQL 注入风险。
+/// DenseVector 和 SparseVector 二选一。
 /// </summary>
-public sealed record VectorUpsertRequest(
-    string Collection,
-    float[]? DenseVector = null,
-    SparseVector? SparseVector = null,
-    string? Id = null,
-    IReadOnlyDictionary<string, object?>? Metadata = null,
-    int? Dimension = null)
-{
-    public static VectorUpsertRequest FromDense(
-        string collection, float[] dense, string? id = null,
-        IReadOnlyDictionary<string, object?>? metadata = null, int? dimension = null)
-        => new(collection, dense, null, id, metadata, dimension);
-
-    public static VectorUpsertRequest FromSparse(
-        string collection, SparseVector sparse, string? id = null,
-        IReadOnlyDictionary<string, object?>? metadata = null, int? dimension = null)
-        => new(collection, null, sparse, id, metadata, dimension);
-
-    public static VectorUpsertRequest FromBoth(
-        string collection, float[] dense, SparseVector sparse, string? id = null,
-        IReadOnlyDictionary<string, object?>? metadata = null, int? dimension = null)
-        => new(collection, dense, sparse, id, metadata, dimension);
-}
-
-/// <summary>向量 Upsert 结果</summary>
-public sealed record VectorUpsertResult(
-    string Id,
-    bool Success,
-    string? ErrorMessage = null);
-
-/// <summary>向量搜索请求</summary>
-public sealed record VectorSearchRequest(
-    string Collection,
+public sealed record RelationalVectorSearchRequest(
+    string Table,
+    string VectorColumn,
     float[]? DenseVector = null,
     SparseVector? SparseVector = null,
     int TopK = 10,
-    IReadOnlyDictionary<string, object?>? Filter = null,
-    int? Dimension = null)
-{
-    public static VectorSearchRequest FromDense(
-        string collection, float[] dense, int topK = 10,
-        IReadOnlyDictionary<string, object?>? filter = null, int? dimension = null)
-        => new(collection, dense, null, topK, filter, dimension);
-
-    public static VectorSearchRequest FromSparse(
-        string collection, SparseVector sparse, int topK = 10,
-        IReadOnlyDictionary<string, object?>? filter = null, int? dimension = null)
-        => new(collection, null, sparse, topK, filter, dimension);
-}
+    string? WhereClause = null,
+    IReadOnlyList<RelationalParameter>? Parameters = null);
 
 /// <summary>搜索结果命中项</summary>
 public sealed record VectorSearchHit(

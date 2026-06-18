@@ -15,8 +15,8 @@ namespace Adaptor.Driver.Postgre;
 public sealed class PostgreSqlDriver :
     IResourceManager,
     ITransactionalResourceManager,
-    ISqlExecuteCapability,
-    ISqlQueryCapability,
+    IRelationalExecuteCapability,
+    IRelationalQueryCapability,
     IHealthCheckCapability,
     IDisposable
 {
@@ -72,9 +72,9 @@ public sealed class PostgreSqlDriver :
         _logger?.LogDebug("PostgreSqlDriver enlisted in transaction {TxId}", txId);
     }
 
-    // ─── ISqlExecuteCapability ──────────────────────────────────────────────
+    // ─── IRelationalExecuteCapability ────────────────────────────────────────
 
-    public async Task<SqlExecuteResult> ExecuteAsync(SqlExecuteRequest request, Transaction transaction, CancellationToken ct = default)
+    public async Task<RelationalExecuteResult> ExecuteAsync(RelationalExecuteRequest request, Transaction transaction, CancellationToken ct = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(transaction);
@@ -103,13 +103,13 @@ public sealed class PostgreSqlDriver :
             _logger?.LogDebug("SQL EXECUTE [{TxId}] affected {Count} rows in {Duration:F2}ms",
                 txId, affected, duration.TotalMilliseconds);
 
-            return new SqlExecuteResult(affected, duration);
+            return new RelationalExecuteResult(affected, duration);
         }
         catch (Exception ex)
         {
             var duration = DateTime.UtcNow - start;
             _logger?.LogError(ex, "PostgreSqlDriver ExecuteAsync failed for transaction {TxId}", txId);
-            return new SqlExecuteResult(0, duration, ex.Message);
+            return new RelationalExecuteResult(0, duration, ex.Message);
         }
         finally
         {
@@ -117,9 +117,9 @@ public sealed class PostgreSqlDriver :
         }
     }
 
-    // ─── ISqlQueryCapability ────────────────────────────────────────────────
+    // ─── IRelationalQueryCapability ──────────────────────────────────────────
 
-    public async Task<SqlQueryResult> QueryAsync(SqlQueryRequest request, Transaction transaction, CancellationToken ct = default)
+    public async Task<RelationalQueryResult> QueryAsync(RelationalQueryRequest request, Transaction transaction, CancellationToken ct = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(transaction);
@@ -161,13 +161,13 @@ public sealed class PostgreSqlDriver :
             _logger?.LogDebug("SQL QUERY  [{TxId}] returned {Count} rows in {Duration:F2}ms",
                 txId, rows.Count, duration.TotalMilliseconds);
 
-            return new SqlQueryResult(rows, duration);
+            return new RelationalQueryResult(rows, duration);
         }
         catch (Exception ex)
         {
             var duration = DateTime.UtcNow - start;
             _logger?.LogError(ex, "PostgreSqlDriver QueryAsync failed for transaction {TxId}", txId);
-            return new SqlQueryResult(Array.Empty<IDictionary<string, object?>>(), duration, ex.Message);
+            return new RelationalQueryResult(Array.Empty<IDictionary<string, object?>>(), duration, ex.Message);
         }
         finally
         {
@@ -209,7 +209,7 @@ public sealed class PostgreSqlDriver :
             "Enlist() must be called before data operations.");
     }
 
-    private static void AddParameters(DbCommand cmd, IReadOnlyList<SqlParameter> parameters)
+    private static void AddParameters(DbCommand cmd, IReadOnlyList<RelationalParameter> parameters)
     {
         foreach (var param in parameters)
         {

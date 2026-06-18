@@ -239,7 +239,7 @@ public sealed class TransactionCoordinator : IDisposable
 
     /// <summary>
     /// 使用指定能力接口在事务上下文中执行数据操作。
-    /// <typeparamref name="TCapability"/> 是能力接口（如 <see cref="ISqlExecuteCapability"/>），
+    /// <typeparamref name="TCapability"/> 是能力接口（如 <see cref="IRelationalExecuteCapability"/>），
     /// 不需要继承 <see cref="IResourceManager"/>；内部自动查找同时实现两者的 Driver。
     /// 并发保护由 Driver 层自行负责。
     /// </summary>

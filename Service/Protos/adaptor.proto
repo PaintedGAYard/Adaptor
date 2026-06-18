@@ -13,42 +13,28 @@ import "google/protobuf/struct.proto";
 // ═══════════════════════════════════════════════════════════════════════════
 
 service Transaction {
-  // 开始一个新事务
   rpc BeginTransaction(BeginTransactionRequest) returns (BeginTransactionResponse);
-  // 提交事务（两阶段提交）
   rpc CommitTransaction(CommitTransactionRequest) returns (CommitTransactionResponse);
-  // 回滚事务
   rpc RollbackTransaction(RollbackTransactionRequest) returns (RollbackTransactionResponse);
-  // 查询事务状态（映射自 System.Transactions.TransactionStatus）
   rpc GetTransactionStatus(GetTransactionStatusRequest) returns (GetTransactionStatusResponse);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// DBSQL 服务 — SQL 操作
+// DBRelational 服务 — 关系数据库通用操作
 // ═══════════════════════════════════════════════════════════════════════════
 
-service DBSQL {
-  // 执行 SQL 命令（INSERT / UPDATE / DELETE / DDL）
-  rpc SqlExecute(SqlExecuteRequest) returns (SqlExecuteResponse);
-  // 执行 SQL 查询（SELECT）
-  rpc SqlQuery(SqlQueryRequest) returns (SqlQueryResponse);
-  // 批量执行 SQL 命令
-  rpc SqlExecuteBatch(SqlExecuteBatchRequest) returns (SqlExecuteBatchResponse);
+service DBRelational {
+  rpc Execute(RelationalExecuteRequest) returns (RelationalExecuteResponse);
+  rpc Query(RelationalQueryRequest) returns (RelationalQueryResponse);
+  rpc ExecuteBatch(RelationalExecuteBatchRequest) returns (RelationalExecuteBatchResponse);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// DBVector 服务 — 向量操作
+// DBRelationalVector 服务 — 关系数据库向量扩展搜索
 // ═══════════════════════════════════════════════════════════════════════════
 
-service DBVector {
-  // 插入或更新向量
-  rpc VectorUpsert(VectorUpsertRequest) returns (VectorUpsertResponse);
-  // 向量相似度搜索
-  rpc VectorSearch(VectorSearchRequest) returns (VectorSearchResponse);
-  // 删除向量
-  rpc VectorDelete(VectorDeleteRequest) returns (VectorDeleteResponse);
-  // 列出所有集合
-  rpc VectorListCollections(VectorListCollectionsRequest) returns (VectorListCollectionsResponse);
+service DBRelationalVector {
+  rpc Search(RelationalVectorSearchRequest) returns (VectorSearchResponse);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -56,13 +42,9 @@ service DBVector {
 // ═══════════════════════════════════════════════════════════════════════════
 
 service DBBLOB {
-  // 上传 BLOB
   rpc BlobUpload(BlobUploadRequest) returns (BlobUploadResponse);
-  // 下载 BLOB
   rpc BlobDownload(BlobDownloadRequest) returns (BlobDownloadResponse);
-  // 删除 BLOB
   rpc BlobDelete(BlobDeleteRequest) returns (BlobDeleteResponse);
-  // 列出 BLOB
   rpc BlobList(BlobListRequest) returns (BlobListResponse);
 }
 
@@ -70,19 +52,18 @@ service DBBLOB {
 // 公共类型
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// <summary>
-/// 事务上下文 — 所有数据操作 RPC 必须包含此消息
-/// </summary>
 message TransactionContext {
   string transaction_id = 1;
 }
 
-/// <summary>
-/// SQL 参数
-/// </summary>
-message SqlParameter {
+message RelationalParameter {
   string name = 1;
   google.protobuf.Value value = 2;
+}
+
+message SparseVector {
+  repeated int32 indices = 1;
+  repeated float values = 2;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -90,8 +71,8 @@ message SqlParameter {
 // ═══════════════════════════════════════════════════════════════════════════
 
 message BeginTransactionRequest {
-  google.protobuf.Duration timeout = 1;     // 可选，事务超时时间
-  map<string, string> metadata = 2;         // 可选，自定义元数据
+  google.protobuf.Duration timeout = 1;
+  map<string, string> metadata = 2;
 }
 
 message BeginTransactionResponse {
@@ -127,9 +108,6 @@ message GetTransactionStatusResponse {
   google.protobuf.Timestamp expires_at = 2;
 }
 
-/// <summary>
-/// 各 Driver 的提交结果记录
-/// </summary>
 message DriverCommitResult {
   string driver_name = 1;
   bool success = 2;
@@ -138,84 +116,61 @@ message DriverCommitResult {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// DBSQL 服务消息
+// DBRelational 服务消息
 // ═══════════════════════════════════════════════════════════════════════════
 
-message SqlExecuteRequest {
+message RelationalExecuteRequest {
   TransactionContext transaction_context = 1;
   string command = 2;
-  repeated SqlParameter parameters = 3;
+  repeated RelationalParameter parameters = 3;
 }
 
-message SqlExecuteResponse {
+message RelationalExecuteResponse {
   int32 affected_rows = 1;
   double duration_ms = 2;
   string error_message = 3;
 }
 
-message SqlQueryRequest {
+message RelationalQueryRequest {
   TransactionContext transaction_context = 1;
   string command = 2;
-  repeated SqlParameter parameters = 3;
+  repeated RelationalParameter parameters = 3;
 }
 
-message SqlQueryResponse {
+message RelationalQueryResponse {
   repeated Row rows = 1;
   double duration_ms = 2;
   string error_message = 3;
 }
 
-message SqlExecuteBatchRequest {
+message RelationalExecuteBatchRequest {
   TransactionContext transaction_context = 1;
   repeated string commands = 2;
 }
 
-message SqlExecuteBatchResponse {
+message RelationalExecuteBatchResponse {
   int32 total_affected_rows = 1;
   double duration_ms = 2;
   string error_message = 3;
 }
 
-/// <summary>
-/// 通用行数据结构
-/// </summary>
 message Row {
   map<string, google.protobuf.Value> columns = 1;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// DBVector 服务消息
+// DBRelationalVector 服务消息
 // ═══════════════════════════════════════════════════════════════════════════
 
-message SparseVector {
-  repeated int32 indices = 1;
-  repeated float values = 2;
-}
-
-message VectorUpsertRequest {
+message RelationalVectorSearchRequest {
   TransactionContext transaction_context = 1;
-  string collection = 2;
-  repeated float dense_vector = 3;       // 原 vector 字段，重命名
-  string id = 4;
-  map<string, google.protobuf.Value> metadata = 5;
-  SparseVector sparse_vector = 6;       // 与 dense_vector 二选一
-  int32 dimension = 7;                  // 可选，维度校验
-}
-
-message VectorUpsertResponse {
-  string id = 1;
-  bool success = 2;
-  string error_message = 3;
-}
-
-message VectorSearchRequest {
-  TransactionContext transaction_context = 1;
-  string collection = 2;
-  repeated float dense_vector = 3;       // 原 vector 字段，重命名
-  int32 top_k = 4;
-  map<string, string> filter = 5;
-  SparseVector sparse_vector = 6;       // 与 dense_vector 二选一
-  int32 dimension = 7;                  // 可选，维度校验
+  string table = 2;
+  string vector_column = 3;
+  repeated float dense_vector = 4;
+  SparseVector sparse_vector = 5;
+  int32 top_k = 6;
+  string where_clause = 7;
+  repeated RelationalParameter parameters = 8;
 }
 
 message VectorSearchResponse {
@@ -228,26 +183,6 @@ message VectorSearchHit {
   string id = 1;
   float score = 2;
   map<string, google.protobuf.Value> metadata = 3;
-}
-
-message VectorDeleteRequest {
-  TransactionContext transaction_context = 1;
-  string collection = 2;
-  string id = 3;
-}
-
-message VectorDeleteResponse {
-  bool success = 1;
-  string error_message = 2;
-}
-
-message VectorListCollectionsRequest {
-  TransactionContext transaction_context = 1;
-}
-
-message VectorListCollectionsResponse {
-  repeated string collections = 1;
-  string error_message = 2;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -306,10 +241,10 @@ message BlobListResponse {
 
 enum CommitStatus {
   COMMIT_STATUS_UNSPECIFIED = 0;
-  COMMIT_STATUS_COMMITTED = 1;     // 全部成功
-  COMMIT_STATUS_PARTIAL = 2;       // 部分成功（重试耗尽后）
-  COMMIT_STATUS_ROLLED_BACK = 3;   // 已回滚
-  COMMIT_STATUS_TIMEOUT = 4;       // 超时
+  COMMIT_STATUS_COMMITTED = 1;
+  COMMIT_STATUS_PARTIAL = 2;
+  COMMIT_STATUS_ROLLED_BACK = 3;
+  COMMIT_STATUS_TIMEOUT = 4;
 }
 
 enum TransactionState {

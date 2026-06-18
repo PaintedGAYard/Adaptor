@@ -19,8 +19,7 @@ namespace Adaptor.Driver.Postgre;
 public sealed class PgVectorDriver :
     IResourceManager,
     ITransactionalResourceManager,
-    IVectorUpsertCapability,
-    IVectorSearchCapability,
+    IRelationalVectorSearchCapability,
     IHealthCheckCapability,
     IDisposable
 {
@@ -75,101 +74,9 @@ public sealed class PgVectorDriver :
         _logger?.LogDebug("PgVectorDriver enlisted in transaction {TxId}", txId);
     }
 
-    // ─── IVectorUpsertCapability ────────────────────────────────────────────
+    // ─── IRelationalVectorSearchCapability ─────────────────────────────────
 
-    public async Task<VectorUpsertResult> UpsertAsync(VectorUpsertRequest request, Transaction transaction, CancellationToken ct = default)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        ArgumentNullException.ThrowIfNull(request);
-        ArgumentNullException.ThrowIfNull(transaction);
-
-        var txId = transaction.TransactionInformation.LocalIdentifier;
-        var gate = GetOrCreateTxLock(txId);
-        await gate.WaitAsync(ct).ConfigureAwait(false);
-        try
-        {
-            var entry = GetEntry(transaction);
-            await EnsureTableAsync(entry.Connection, entry.LocalTransaction, ct).ConfigureAwait(false);
-
-            var id = !string.IsNullOrEmpty(request.Id)
-                ? request.Id
-                : Guid.NewGuid().ToString("N");
-
-            if (request.DenseVector == null && request.SparseVector == null)
-                throw new ArgumentException(
-                    "At least one of DenseVector or SparseVector must be provided. " +
-                    "Use a separate UPDATE endpoint for metadata-only changes.",
-                    nameof(request));
-
-            // Build UPSERT with SET clauses for whichever columns are provided.
-            // DenseVector 和 SparseVector 可独立设置（储存时可同时传入两者以支持混合检索）。
-            var setClauses = new List<string>();
-            var insertColumns = new List<string> { "collection", "id" };
-            var insertValues = new List<string> { "@collection", "@id" };
-
-            if (request.DenseVector != null)
-            {
-                if (request.Dimension.HasValue)
-                    await ValidateDimension(entry.Connection, entry.LocalTransaction, request.Collection, request.Dimension.Value, ct);
-
-                insertColumns.Add("embedding");
-                insertValues.Add("@dense::vector");
-                setClauses.Add("embedding = @dense::vector");
-            }
-
-            if (request.SparseVector != null)
-            {
-                insertColumns.Add("sparse_embedding");
-                insertValues.Add("@sparse::sparsevec");
-                setClauses.Add("sparse_embedding = @sparse::sparsevec");
-            }
-
-            insertColumns.Add("metadata");
-            insertValues.Add("@metadata::jsonb");
-            setClauses.Add("metadata = @metadata::jsonb");
-
-            var insertCols = string.Join(", ", insertColumns);
-            var insertVals = string.Join(", ", insertValues);
-            var updates = string.Join(",\n                    ", setClauses);
-
-            await using var cmd = entry.Connection.CreateCommand();
-            cmd.Transaction = entry.LocalTransaction;
-            cmd.CommandText = $"""
-                INSERT INTO {DefaultTableName} ({insertCols})
-                VALUES ({insertVals})
-                ON CONFLICT (collection, id) DO UPDATE SET
-                    {updates}
-                """;
-
-            cmd.Parameters.AddWithValue("collection", request.Collection);
-            cmd.Parameters.AddWithValue("id", id);
-            cmd.Parameters.AddWithValue("metadata", MetadataToJsonString(request.Metadata));
-
-            if (request.DenseVector != null)
-                cmd.Parameters.AddWithValue("dense", DenseVectorToString(request.DenseVector));
-            if (request.SparseVector != null)
-                cmd.Parameters.AddWithValue("sparse", SparseVectorToString(request.SparseVector));
-
-            await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
-
-            _logger?.LogDebug("PgVectorDriver upserted vector id={Id} in collection={Collection}", id, request.Collection);
-
-            return new VectorUpsertResult(id, true);
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "PgVectorDriver UpsertAsync failed");
-            return new VectorUpsertResult(request.Id ?? string.Empty, false, ex.Message);
-        }
-        finally
-        {
-            gate.Release();
-        }
-    }
-
-    // ─── IVectorSearchCapability ────────────────────────────────────────────
-
-    public async Task<VectorSearchResult> SearchAsync(VectorSearchRequest request, Transaction transaction, CancellationToken ct = default)
+    public async Task<VectorSearchResult> SearchAsync(RelationalVectorSearchRequest request, Transaction transaction, CancellationToken ct = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(request);
@@ -186,9 +93,6 @@ public sealed class PgVectorDriver :
             var entry = GetEntry(transaction);
             await EnsureTableAsync(entry.Connection, entry.LocalTransaction, ct).ConfigureAwait(false);
 
-            if (request.DenseVector != null && request.Dimension.HasValue)
-                await ValidateDimension(entry.Connection, entry.LocalTransaction, request.Collection, request.Dimension.Value, ct);
-
             await using var cmd = entry.Connection.CreateCommand();
             cmd.Transaction = entry.LocalTransaction;
 
@@ -198,28 +102,39 @@ public sealed class PgVectorDriver :
             if (request.DenseVector != null)
             {
                 vectorStr = DenseVectorToString(request.DenseVector);
-                columnName = "embedding";
+                columnName = request.VectorColumn;
             }
             else
             {
                 vectorStr = SparseVectorToString(request.SparseVector!);
-                columnName = "sparse_embedding";
+                columnName = request.VectorColumn;
             }
 
             var castType = request.DenseVector != null ? "vector" : "sparsevec";
 
-            // Use cosine distance (<=>) by default
+            // Build WHERE: append user-provided filter clause if present
+            var whereClause = string.IsNullOrWhiteSpace(request.WhereClause)
+                ? ""
+                : $" AND ({request.WhereClause})";
+
             cmd.CommandText = $"""
                 SELECT id, metadata,
                        ({columnName} <=> @vector::{castType}) AS distance
-                FROM {DefaultTableName}
-                WHERE collection = @collection
+                FROM {request.Table}
+                WHERE 1=1{whereClause}
                 ORDER BY {columnName} <=> @vector::{castType}
                 LIMIT @top_k
                 """;
-            cmd.Parameters.AddWithValue("collection", request.Collection);
             cmd.Parameters.AddWithValue("vector", vectorStr);
             cmd.Parameters.AddWithValue("top_k", request.TopK);
+
+            if (request.Parameters != null)
+            {
+                foreach (var p in request.Parameters)
+                {
+                    cmd.Parameters.AddWithValue(p.Name, p.Value ?? DBNull.Value);
+                }
+            }
 
             var start = DateTime.UtcNow;
             var hits = new List<VectorSearchHit>();
@@ -231,7 +146,6 @@ public sealed class PgVectorDriver :
                 var metadata = reader.IsDBNull(1) ? null : DeserializeMetadata(reader.GetString(1));
                 var distance = reader.GetDouble(2);
 
-                // pgvector cosine distance is in [0, 2]; convert to similarity score [0, 1]
                 var score = (float)(1.0 - distance / 2.0);
 
                 hits.Add(new VectorSearchHit(id, score, metadata));
@@ -239,8 +153,8 @@ public sealed class PgVectorDriver :
 
             var duration = DateTime.UtcNow - start;
 
-            _logger?.LogDebug("PgVectorDriver searched collection={Collection} returned {Count} hits in {Duration:F2}ms",
-                request.Collection, hits.Count, duration.TotalMilliseconds);
+            _logger?.LogDebug("PgVectorDriver searched table={Table} returned {Count} hits in {Duration:F2}ms",
+                request.Table, hits.Count, duration.TotalMilliseconds);
 
             return new VectorSearchResult(hits, duration);
         }
@@ -418,6 +332,47 @@ public sealed class PgVectorDriver :
         });
 
         return $"{{{string.Join(",", parts)}}}";
+    }
+
+    /// <summary>
+    /// Deserialize a pgvector vector literal '[0.1,0.2,0.3]' to a float[].
+    /// </summary>
+    private static float[]? DeserializeDenseVector(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return null;
+        // Format: [0.1,0.2,0.3]
+        var trimmed = value.Trim('[', ']');
+        if (trimmed.Length == 0) return Array.Empty<float>();
+        return trimmed.Split(',')
+            .Select(s => float.TryParse(s, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var f) ? f : 0f)
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Deserialize a pgvector sparsevec literal '{idx1:val1,idx2:val2}' to a SparseVector.
+    /// </summary>
+    private static SparseVector? DeserializeSparseVector(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return null;
+        // Format: {idx1:val1,idx2:val2}
+        var trimmed = value.Trim('{', '}');
+        if (trimmed.Length == 0) return new SparseVector([], []);
+        var pairs = trimmed.Split(',');
+        var indices = new int[pairs.Length];
+        var values = new float[pairs.Length];
+        for (var i = 0; i < pairs.Length; i++)
+        {
+            var parts = pairs[i].Split(':');
+            if (parts.Length == 2)
+            {
+                int.TryParse(parts[0], System.Globalization.NumberStyles.Integer,
+                    System.Globalization.CultureInfo.InvariantCulture, out indices[i]);
+                float.TryParse(parts[1], System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture, out values[i]);
+            }
+        }
+        return new SparseVector(indices, values);
     }
 
     /// <summary>

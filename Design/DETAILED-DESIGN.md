@@ -99,8 +99,8 @@ Adaptor 是一个基于 .NET 10 的独立中间件服务，面向**缺乏 DTC �
 │  ├──────────────┤├──────────────┤├──────────────────────┤   │
 │  │ IResourceManager              │ IResourceManager          │
 │  │ + ITransactionalResource      │ + ITransactionalResource  │
-│  │ + ISqlExecuteCapability       │ + IBlobUploadCapability   │
-│  │ + ISqlQueryCapability         │ + IBlobDownloadCapability │
+│  │ + IRelationalExecuteCapability│ + IBlobUploadCapability   │
+│  │ + IRelationalQueryCapability  │ + IBlobDownloadCapability │
 │  │ + IHealthCheckCapability      │ + IHealthCheckCapability  │
 │  └──────┬───────┴──────┬───────┴──────────┬───────────┘   │
 │         │              │                  │                │
@@ -189,19 +189,17 @@ service Transaction {
   rpc GetTransactionStatus(GetTransactionStatusRequest) returns (GetTransactionStatusResponse);
 }
 
-service DBSQL {
-  // ─── SQL 操作 ───
-  rpc SqlExecute(SqlExecuteRequest) returns (SqlExecuteResponse);
-  rpc SqlQuery(SqlQueryRequest) returns (SqlQueryResponse);
-  rpc SqlExecuteBatch(SqlExecuteBatchRequest) returns (SqlExecuteBatchResponse);
+service DBRelational {
+  // ─── 关系数据库通用操作 ───
+  rpc Execute(RelationalExecuteRequest) returns (RelationalExecuteResponse);
+  rpc Query(RelationalQueryRequest) returns (RelationalQueryResponse);
+  rpc ExecuteBatch(RelationalExecuteBatchRequest) returns (RelationalExecuteBatchResponse);
 }
 
-service DBVector {
-  // ─── Vector 操作 ───
-  rpc VectorUpsert(VectorUpsertRequest) returns (VectorUpsertResponse);
-  rpc VectorSearch(VectorSearchRequest) returns (VectorSearchResponse);
-  rpc VectorDelete(VectorDeleteRequest) returns (VectorDeleteResponse);
-  rpc VectorListCollections(VectorListCollectionsRequest) returns (VectorListCollectionsResponse);
+service DBRelationalVector {
+  // ─── 关系数据库向量扩展搜索 ───
+  // CRUD 通过 DBRelational 的原生 SQL 完成，本服务仅提供向量距离模糊搜索
+  rpc Search(RelationalVectorSearchRequest) returns (VectorSearchResponse);
 }
 
 service DBBLOB {
@@ -226,13 +224,13 @@ message TransactionContext {
 }
 ```
 
-### 3.4 事务生命周期 RPC
+### 3.4 核心 RPC 定义
 
 ```protobuf
-// ─── Begin ───
+// ─── Transaction 生命周期 ───
 message BeginTransactionRequest {
-  google.protobuf.Duration timeout = 1;  // 可选，事务超时时间
-  map<string, string> metadata = 2;      // 可选，自定义元数据
+  google.protobuf.Duration timeout = 1;
+  map<string, string> metadata = 2;
 }
 
 message BeginTransactionResponse {
@@ -240,50 +238,32 @@ message BeginTransactionResponse {
   google.protobuf.Timestamp expires_at = 2;
 }
 
-// ─── Commit ───
-message CommitTransactionRequest {
-  string transaction_id = 1;
-}
+message CommitTransactionRequest { string transaction_id = 1; }
 
 message CommitTransactionResponse {
   CommitStatus status = 1;
-  repeated DriverCommitResult driver_results = 2;  // 各 Driver 的提交结果
+  repeated DriverCommitResult driver_results = 2;
   string error_message = 3;
 }
 
-enum CommitStatus {
-  COMMIT_STATUS_UNSPECIFIED = 0;
-  COMMIT_STATUS_COMMITTED = 1;       // 全部成功
-  COMMIT_STATUS_PARTIAL = 2;         // 部分成功（重试耗尽后）
-  COMMIT_STATUS_ROLLED_BACK = 3;     // 已回滚
-  COMMIT_STATUS_TIMEOUT = 4;         // 超时
-}
-
-message DriverCommitResult {
-  string driver_name = 1;
-  bool success = 2;
-  int32 retry_count = 3;
-  string error_message = 4;
-}
-
-// ─── Rollback ───
-message RollbackTransactionRequest {
-  string transaction_id = 1;
-}
-
+message RollbackTransactionRequest { string transaction_id = 1; }
 message RollbackTransactionResponse {
   bool success = 1;
   string error_message = 2;
 }
 
-// ─── 状态查询 ───
-message GetTransactionStatusRequest {
-  string transaction_id = 1;
-}
-
+message GetTransactionStatusRequest { string transaction_id = 1; }
 message GetTransactionStatusResponse {
   TransactionState state = 1;
-  google.protobuf.Timestamp expires_at = 2;  // 一次性计算，不维护
+  google.protobuf.Timestamp expires_at = 2;
+}
+
+enum CommitStatus {
+  COMMIT_STATUS_UNSPECIFIED = 0;
+  COMMIT_STATUS_COMMITTED = 1;
+  COMMIT_STATUS_PARTIAL = 2;
+  COMMIT_STATUS_ROLLED_BACK = 3;
+  COMMIT_STATUS_TIMEOUT = 4;
 }
 
 enum TransactionState {
@@ -292,6 +272,66 @@ enum TransactionState {
   TRANSACTION_STATE_COMMITTED = 2;
   TRANSACTION_STATE_ROLLED_BACK = 3;
   TRANSACTION_STATE_IN_DOUBT = 4;
+}
+
+// ─── DBRelational（关系数据库通用操作）───
+// 消费端通过原生 SQL 完成所有 CRUD，包括向量表的写入与删除
+message RelationalParameter {
+  string name = 1;
+  google.protobuf.Value value = 2;
+}
+
+message RelationalExecuteRequest {
+  TransactionContext transaction_context = 1;
+  string command = 2;
+  repeated RelationalParameter parameters = 3;
+}
+
+message RelationalExecuteResponse {
+  int32 affected_rows = 1;
+  double duration_ms = 2;
+  string error_message = 3;
+}
+
+message RelationalQueryRequest {
+  TransactionContext transaction_context = 1;
+  string command = 2;
+  repeated RelationalParameter parameters = 3;
+}
+
+message RelationalQueryResponse {
+  repeated Row rows = 1;
+  double duration_ms = 2;
+  string error_message = 3;
+}
+
+// ─── DBRelationalVector（关系数据库向量扩展搜索）───
+message SparseVector {
+  repeated int32 indices = 1;
+  repeated float values = 2;
+}
+
+message RelationalVectorSearchRequest {
+  TransactionContext transaction_context = 1;
+  string table = 2;               // 表名
+  string vector_column = 3;       // 向量列名
+  repeated float dense_vector = 4;
+  SparseVector sparse_vector = 5;
+  int32 top_k = 6;
+  string where_clause = 7;         // 原生 SQL WHERE 片段，值通过 parameters 绑定
+  repeated RelationalParameter parameters = 8;
+}
+
+message VectorSearchResponse {
+  repeated VectorSearchHit hits = 1;
+  double duration_ms = 2;
+  string error_message = 3;
+}
+
+message VectorSearchHit {
+  string id = 1;
+  float score = 2;
+  map<string, google.protobuf.Value> metadata = 3;
 }
 
 ```
@@ -486,30 +526,26 @@ public interface ITransactionalResourceManager : IResourceManager
 能力接口（按存储类型和应用场景分离）：
 
 ```csharp
-// ─── SQL 能力 ───
-public interface ISqlExecuteCapability
+// ─── 关系数据库通用能力 ───
+public interface IRelationalExecuteCapability
 {
-    Task<SqlExecuteResult> ExecuteAsync(
-        SqlExecuteRequest request, CancellationToken ct);
+    Task<RelationalExecuteResult> ExecuteAsync(
+        RelationalExecuteRequest request, Transaction transaction, CancellationToken ct = default);
 }
 
-public interface ISqlQueryCapability
+public interface IRelationalQueryCapability
 {
-    Task<SqlQueryResult> QueryAsync(
-        SqlQueryRequest request, CancellationToken ct);
+    Task<RelationalQueryResult> QueryAsync(
+        RelationalQueryRequest request, Transaction transaction, CancellationToken ct = default);
 }
 
-// ─── Vector 能力 ───
-public interface IVectorUpsertCapability
-{
-    Task<VectorUpsertResult> UpsertAsync(
-        VectorUpsertRequest request, CancellationToken ct);
-}
-
-public interface IVectorSearchCapability
+// ─── 关系数据库向量扩展搜索能力 ───
+// CRUD（Upsert/Read/Delete/Batch）通过 IRelationalExecuteCapability 的原生 SQL 完成。
+// 本接口仅提供向量距离模糊搜索。
+public interface IRelationalVectorSearchCapability
 {
     Task<VectorSearchResult> SearchAsync(
-        VectorSearchRequest request, CancellationToken ct);
+        RelationalVectorSearchRequest request, Transaction transaction, CancellationToken ct = default);
 }
 
 // ─── BLOB 能力 ───
@@ -541,8 +577,8 @@ Driver 不继承、不实现任何"大一统"接口，而是按需选择能力�
 public sealed class PostgreSqlDriver :
     IResourceManager,
     ITransactionalResourceManager,  // 参与分布式事务
-    ISqlExecuteCapability,
-    ISqlQueryCapability,
+    IRelationalExecuteCapability,
+    IRelationalQueryCapability,
     IHealthCheckCapability
 {
     public string Name => "PostgreSQL";
@@ -564,14 +600,14 @@ public sealed class PostgreSqlDriver :
     void IEnlistmentNotification.Rollback(Enlistment e) { /* 回滚 */ e.Done(); }
     void IEnlistmentNotification.InDoubt(Enlistment e) { /* 记录 */ e.Done(); }
 
-    // ISqlQueryCapability
-    public Task<SqlQueryResult> QueryAsync(SqlQueryRequest request, CancellationToken ct)
+    // IRelationalQueryCapability
+    public Task<RelationalQueryResult> QueryAsync(RelationalQueryRequest request, CancellationToken ct)
     {
         // 实际的 SQL 查询逻辑
     }
 
-    // ISqlExecuteCapability
-    public Task<SqlExecuteResult> ExecuteAsync(SqlExecuteRequest request, CancellationToken ct) { /* ... */ }
+    // IRelationalExecuteCapability
+    public Task<RelationalExecuteResult> ExecuteAsync(RelationalExecuteRequest request, CancellationToken ct) { /* ... */ }
 
     // IHealthCheckCapability
     public Task<bool> HealthCheckAsync(CancellationToken ct) { /* ... */ }
@@ -594,66 +630,65 @@ public sealed class S3BlobDriver :
 
 ### 5.5 Semantic Kernel 集成
 
-Adaptor 基于 `Microsoft.SemanticKernel` 技术栈构建，利用其 Plugin/Connector 模型作为 Driver 的承载框架：
+Adaptor 基于 `Microsoft.SemanticKernel` 技术栈构建，提供三个 SK Plugin 作为统一入口：
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│  Adaptor Middleware                                       │
-│                                                            │
-│  ┌──────────────────── Kernel ─────────────────────────┐  │
-│  │                                                      │  │
-│  │  Plugins:                                            │  │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐          │  │
-│  │  │PostgreSQL│  │pgvector  │  │S3 BLOB   │  ← KernelPlugin │
-│  │  │Plugin    │  │Plugin    │  │Plugin    │          │  │
-│  │  │          │  │          │  │          │          │  │
-│  │  │• Query   │  │• Search  │  │• Upload  │  ← KernelFunction│
-│  │  │• Execute │  │• Upsert  │  │• Download│          │  │
-│  │  └──────────┘  └──────────┘  └──────────┘          │  │
-│  │                                                      │  │
-│  │  Services (DI):                                      │  │
-│  │  ┌──────────────────────────────────────────────┐   │  │
-│  │  │ TransactionCoordinator                        │   │  │
-│  │  │ SessionManager                                │   │  │
-│  │  └──────────────────────────────────────────────┘   │  │
-│  └──────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────┘
+                    ┌──────────────────────────────────────┐
+                    │        SK Consumer                     │
+                    │  kernel.InvokeAsync("Search", args)    │
+                    └──────────┬───────────────────────────┘
+                               │ SK Function Calling
+                    ┌──────────▼───────────────────────────┐
+                    │     Adaptor SK Plugin Layer            │
+                    │                                       │
+                    │  ┌─────────────────────────────┐      │
+                    │  │  TransactionPlugin           │      │
+                    │  │  [BeginTransaction / Commit  │      │
+                    │  │   / Rollback]                │      │
+                    │  └─────────────────────────────┘      │
+                    │                                       │
+                    │  ┌─────────────────────────────┐      │
+                    │  │  RelationalPlugin             │      │
+                    │  │  [Execute / Query]            │      │
+                    │  └─────────────────────────────┘      │
+                    │                                       │
+                    │  ┌─────────────────────────────┐      │
+                    │  │  VectorSearchPlugin          │      │
+                    │  │  [Search]                    │      │
+                    │  └─────────────────────────────┘      │
+                    └──────────┬───────────────────────────┘
+                               │ 直接调用
+                    ┌──────────▼───────────────────────────┐
+                    │     Coordinator + Driver 核心         │
+                    │  (TransactionCoordinator,             │
+                    │   IRelationalVectorSearchCapability)  │
+                    └──────────────────────────────────────┘
 ```
+
+Plugin 层是薄转发层，不包含业务逻辑，仅将 Coordinator 能力包装为 SK `KernelFunction`。
+gRPC 端点也可通过转发到 Plugin 实现，两者共享同一逻辑路径。
 
 ```csharp
-// 1. Driver 作为 IResourceManager 注册到 Kernel 的 DI 容器
-IKernelBuilder builder = Kernel.CreateBuilder();
+// 使用 Adaptor SK Plugin
+var kernel = builder.Build();
 
-builder.Services.AddSingleton<IResourceManager>(sp =>
-    new PostgreSqlDriver("Host=..."));
-builder.Services.AddSingleton<IResourceManager>(sp =>
-    new PgVectorDriver("Host=..."));
-builder.Services.AddSingleton<IResourceManager>(sp =>
-    new PostgresBlobDriver("Host=..."));
-
-Kernel kernel = builder.Build();
-
-// 2. 每个 IResourceManager 被包装为 KernelPlugin，
-//    其能力接口方法自动暴露为 KernelFunction
-foreach (var rm in kernel.Services.GetServices<IResourceManager>())
+// 通过 Plugin 名称调用
+var result = await kernel.InvokeAsync("vector_search", new KernelArguments
 {
-    kernel.Plugins.AddFromObject(rm, rm.Name);
-}
-
-// 3. TransactionCoordinator 通过 Kernel 发现和调度 Driver
-public sealed class TransactionCoordinator
-{
-    private readonly Kernel _kernel;
-
-    public async Task<SqlQueryResult> QueryAsync(
-        string transactionId,
-        SqlQueryRequest request,
+    ["transactionId"] = txId,
+    ["table"] = "doc_embeddings",
+    ["vectorColumn"] = "embedding",
+    ["denseVector"] = myEmbedding,
+    ["topK"] = 10,
+});
+```
+        RelationalQueryRequest request,
         CancellationToken ct)
     {
-        // 查找提供 ISqlQueryCapability 的 Driver
+        // 查找提供 IRelationalQueryCapability 的 Driver
         var sqlDriver = _kernel.Services
             .GetServices<IResourceManager>()
-            .OfType<ISqlQueryCapability>()
+            .OfType<IRelationalQueryCapability>()
             .FirstOrDefault()
             ?? throw new InvalidOperationException(
                 "No SQL query driver registered");
@@ -671,12 +706,11 @@ public sealed class TransactionCoordinator
 
 | SK 概念 | Adaptor 映射 |
 |---------|-------------|
-| `Kernel` | 中间件内部编排核心 |
-| `KernelPlugin` | Driver 的包装单元 |
-| `KernelFunction` | Driver 能力接口方法（预留 AI/自动化扩展点） |
-| `KernelBuilder` / `IServiceCollection` | 中间件启动时组装 Driver |
-| `IMemoryStore` (SK 内置) | 与 `IVectorSearchCapability` 可相互适配 |
-| Plugin 自动发现 | 中间件通过 DI 容器自动发现已注册的 Driver |
+| `Kernel` | 消费端编排核心，通过 `InvokeAsync` 调用 Adaptor 能力 |
+| `KernelPlugin` | Adaptor 提供的三个 Plugin（`TransactionPlugin`、`RelationalPlugin`、`VectorSearchPlugin`） |
+| `KernelFunction` | Plugin 中标注 `[KernelFunction]` 的公开方法 |
+| `KernelArguments` | 消费端传递参数的标准方式 |
+| Plugin 注册 | Plugin 通过 DI 注册，消费者通过 `kernel.Plugins.AddFromObject` 加载 |
 
 ### 5.6 Driver 事务能力声明
 
@@ -716,12 +750,12 @@ public static class ResourceManagerExtensions
 ```
 PostgreSqlDriver     : IResourceManager
                      + ITransactionalResourceManager  (PSPE 优化)
-                     + ISqlExecuteCapability + ISqlQueryCapability
+                     + IRelationalExecuteCapability + IRelationalQueryCapability
                      + IHealthCheckCapability
 
 PgVectorDriver       : IResourceManager
                      + ITransactionalResourceManager  (共享连接, PSPE)
-                     + IVectorUpsertCapability + IVectorSearchCapability
+                     + IRelationalVectorSearchCapability
                      + IHealthCheckCapability
 
 PostgresBlobDriver   : IResourceManager
@@ -732,16 +766,19 @@ PostgresBlobDriver   : IResourceManager
 
 三者共享同一个 `NpgsqlConnection`，PSPE 使整个事务在 PG 本地完成，无需提升为分布式。
 
+> 注：pgvector 的 CRUD（Upsert/Read/Delete/Batch）通过 `IRelationalExecuteCapability` 的原生 SQL 完成，
+> `IRelationalVectorSearchCapability` 仅提供向量距离搜索。
+
 #### 例 2: MySQL + SQLite-Vector + AWS S3（完全异构）
 
 ```
 MySqlDriver          : IResourceManager
                      + ITransactionalResourceManager  (2PC)
-                     + ISqlExecuteCapability + ISqlQueryCapability
+                     + IRelationalExecuteCapability + IRelationalQueryCapability
 
 SqliteVectorDriver   : IResourceManager
                      + ITransactionalResourceManager  (2PC)
-                     + IVectorUpsertCapability + IVectorSearchCapability
+                     + IRelationalVectorSearchCapability
 
 S3BlobDriver         : IResourceManager
                      + ITransactionalResourceManager  (应用层补偿)
@@ -907,32 +944,34 @@ Adaptor/
 │   └── SessionManager.cs       # 会话管理
 │
 ├── Abstractions/
-│   ├── IResourceManager.cs         # 基础 RM 标记接口
-│   ├── ITransactionalResourceManager.cs  # 事务性 RM（含 Enlist）
-│   ├── ISqlExecuteCapability.cs    # SQL 执行能力
-│   ├── ISqlQueryCapability.cs      # SQL 查询能力
-│   ├── IVectorUpsertCapability.cs  # 向量写入能力
-│   ├── IVectorSearchCapability.cs  # 向量搜索能力
-│   ├── IBlobUploadCapability.cs    # BLOB 上传能力
-│   ├── IBlobDownloadCapability.cs  # BLOB 下载能力
-│   └── IHealthCheckCapability.cs   # 健康检查能力
+│   ├── IResourceManager.cs              # 基础 RM 标记接口
+│   ├── ITransactionalResourceManager.cs # 事务性 RM（含 Enlist）
+│   ├── IRelationalExecuteCapability.cs  # 关系数据库执行能力
+│   ├── IRelationalQueryCapability.cs    # 关系数据库查询能力
+│   ├── IRelationalVectorSearchCapability.cs  # 关系数据库向量搜索能力
+│   ├── IBlobUploadCapability.cs         # BLOB 上传能力
+│   ├── IBlobDownloadCapability.cs       # BLOB 下载能力
+│   └── IHealthCheckCapability.cs        # 健康检查能力
 │
 ├── Drivers/
-│   ├── Sql/
-│   │   ├── PostgreSqlDriver.cs     # PostgreSQL + pgvector (SQL 部分)
-│   │   └── MySqlDriver.cs
-│   ├── Vector/
-│   │   ├── PgVectorDriver.cs       # pgvector (Vector 部分)
-│   │   └── SqliteVectorDriver.cs
-│   └── Blob/
-│       ├── PostgresBlobDriver.cs   # BYTEA + Large Object
-│       └── S3BlobDriver.cs         # AWS S3 + 应用层补偿
+│   ├── Postgre/
+│   │   ├── PostgreSqlDriver.cs          # PostgreSQL 关系数据库 Driver（SQL）
+│   │   ├── PgVectorDriver.cs            # pgvector 向量搜索 Driver
+│   │   └── PostgresBlobDriver.cs        # BYTEA + Large Object BLOB Driver
+│   └── (未来非关系 Driver 放在独立目录)
 │
 ├── Models/
-│   └── DriverCommitResult.cs   # 提交结果记录（含 CommitStatus 枚举）
+│   ├── RelationalModels.cs              # 关系数据库模型（RelationalParameter, RelationalExecuteRequest 等）
+│   ├── VectorModels.cs                  # 向量模型（SparseVector, RelationalVectorSearchRequest, VectorSearchResult）
+│   └── DriverCommitResult.cs            # 提交结果记录（含 CommitStatus 枚举）
 │
 ├── Configuration/
 │   └── AdaptorOptions.cs       # 配置模型
+│
+├── Plugins/
+│   ├── TransactionPlugin.cs    # SK Plugin — 事务生命周期
+│   ├── RelationalPlugin.cs     # SK Plugin — 关系数据库操作
+│   └── VectorSearchPlugin.cs   # SK Plugin — 向量搜索
 │
 └── Utilities/
     └── (暂空，后续按需添加)
@@ -948,10 +987,9 @@ Adaptor.sln
 │   │   ├── Abstractions/
 │   │   │   ├── IResourceManager.cs
 │   │   │   ├── ITransactionalResourceManager.cs
-│   │   │   ├── ISqlExecuteCapability.cs
-│   │   │   ├── ISqlQueryCapability.cs
-│   │   │   ├── IVectorUpsertCapability.cs
-│   │   │   ├── IVectorSearchCapability.cs
+│   │   │   ├── IRelationalExecuteCapability.cs
+│   │   │   ├── IRelationalQueryCapability.cs
+│   │   │   ├── IRelationalVectorSearchCapability.cs
 │   │   │   ├── IBlobUploadCapability.cs
 │   │   │   ├── IBlobDownloadCapability.cs
 │   │   │   └── IHealthCheckCapability.cs

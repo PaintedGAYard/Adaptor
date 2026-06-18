@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Adaptor.Coordinator.Abstractions;
 using Adaptor.Coordinator.Configuration;
+using Adaptor.Coordinator.Plugins;
 using Adaptor.Coordinator.Services;
 
 namespace Adaptor.Coordinator;
@@ -12,32 +13,43 @@ namespace Adaptor.Coordinator;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// 注册 Adaptor 协调器核心服务
+    /// 注册 Adaptor 协调器核心服务 + SK Plugin
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configureOptions">配置选项委托</param>
-    /// <returns>服务集合（支持链式调用）</returns>
     public static IServiceCollection AddAdaptorCoordinator(
         this IServiceCollection services,
         Action<CoordinatorOptions>? configureOptions = null)
     {
-        // 配置选项
         if (configureOptions != null)
         {
             services.Configure(configureOptions);
         }
 
-        // 注册会话管理器（单例）和事务协调器（单例）
         services.TryAddSingleton<SessionManager>();
         services.TryAddSingleton<TransactionCoordinator>();
 
+        // 注册 SK Plugin
+        services.TryAddSingleton<TransactionPlugin>();
+        services.TryAddSingleton<RelationalPlugin>();
+        services.TryAddSingleton<VectorSearchPlugin>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// 将已注册的 Adaptor Plugin 加载到 SK Kernel 中
+    /// </summary>
+    public static IServiceCollection AddAdaptorPluginsToKernel(
+        this IServiceCollection services)
+    {
+        // 使用 SK KernelBuilder 的标准插件注册方式
+        // Consumer 需要在构建 Kernel 后通过 kernel.Plugins.AddFromObject 加载
+        // 或使用 AddKernel 后的 PostConfigure 模式
         return services;
     }
 
     /// <summary>
     /// 注册一个 Driver 到 DI 容器（无参构造）
     /// </summary>
-    /// <typeparam name="TDriver">Driver 类型（必须实现 <see cref="IResourceManager"/>）</typeparam>
     public static IServiceCollection AddAdaptorDriver<TDriver>(
         this IServiceCollection services)
         where TDriver : class, IResourceManager
@@ -49,8 +61,6 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// 注册一个 Driver 到 DI 容器（工厂模式）
     /// </summary>
-    /// <typeparam name="TDriver">Driver 类型（必须实现 <see cref="IResourceManager"/>）</typeparam>
-    /// <param name="factory">创建 Driver 实例的工厂委托</param>
     public static IServiceCollection AddAdaptorDriver<TDriver>(
         this IServiceCollection services,
         Func<IServiceProvider, TDriver> factory)

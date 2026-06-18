@@ -220,36 +220,36 @@ public sealed class TransactionServiceImpl : Transaction.TransactionBase
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// <summary>
-/// gRPC DBSQL service 实现。
-/// 提供 SqlExecute / SqlQuery / SqlExecuteBatch 能力。
+/// gRPC DBRelational service 实现。
+/// 提供 Execute / Query / ExecuteBatch 能力。
 /// </summary>
-public sealed class SqlServiceImpl : DBSQL.DBSQLBase
+public sealed class RelationalServiceImpl : DBRelational.DBRelationalBase
 {
     private readonly AdaptorServiceContext _ctx;
 
-    public SqlServiceImpl(AdaptorServiceContext ctx)
+    public RelationalServiceImpl(AdaptorServiceContext ctx)
     {
         _ctx = ctx;
     }
 
-    public override async Task<SqlExecuteResponse> SqlExecute(
-        SqlExecuteRequest request, ServerCallContext context)
+    public override async Task<RelationalExecuteResponse> Execute(
+        RelationalExecuteRequest request, ServerCallContext context)
     {
         var txId = request.TransactionContext?.TransactionId ?? string.Empty;
 
-            var result = await _ctx.Coordinator.ExecuteOnCapabilityAsync<ISqlExecuteCapability, SqlExecuteResult>(
+        var result = await _ctx.Coordinator.ExecuteOnCapabilityAsync<IRelationalExecuteCapability, RelationalExecuteResult>(
             txId,
-                async (driver, transaction) =>
-                {
-                    var internalRequest = new Coordinator.Models.SqlExecuteRequest(
-                        request.Command,
-                        ConvertParameters(request.Parameters));
+            async (driver, transaction) =>
+            {
+                var internalRequest = new Coordinator.Models.RelationalExecuteRequest(
+                    request.Command,
+                    ConvertParameters(request.Parameters));
 
-                    return await driver.ExecuteAsync(internalRequest, transaction, context.CancellationToken);
-                },
-                context.CancellationToken);
+                return await driver.ExecuteAsync(internalRequest, transaction, context.CancellationToken);
+            },
+            context.CancellationToken);
 
-        return new SqlExecuteResponse
+        return new RelationalExecuteResponse
         {
             AffectedRows = result.AffectedRows,
             DurationMs = result.Duration.TotalMilliseconds,
@@ -257,24 +257,24 @@ public sealed class SqlServiceImpl : DBSQL.DBSQLBase
         };
     }
 
-    public override async Task<global::Adaptor.Service.SqlQueryResponse> SqlQuery(
-        global::Adaptor.Service.SqlQueryRequest request, ServerCallContext context)
+    public override async Task<RelationalQueryResponse> Query(
+        RelationalQueryRequest request, ServerCallContext context)
     {
         var txId = request.TransactionContext?.TransactionId ?? string.Empty;
 
-            var result = await _ctx.Coordinator.ExecuteOnCapabilityAsync<ISqlQueryCapability, SqlQueryResult>(
+        var result = await _ctx.Coordinator.ExecuteOnCapabilityAsync<IRelationalQueryCapability, RelationalQueryResult>(
             txId,
-                async (driver, transaction) =>
-                {
-                    var internalRequest = new Coordinator.Models.SqlQueryRequest(
-                        request.Command,
-                        ConvertParameters(request.Parameters));
+            async (driver, transaction) =>
+            {
+                var internalRequest = new Coordinator.Models.RelationalQueryRequest(
+                    request.Command,
+                    ConvertParameters(request.Parameters));
 
-                    return await driver.QueryAsync(internalRequest, transaction, context.CancellationToken);
-                },
-                context.CancellationToken);
+                return await driver.QueryAsync(internalRequest, transaction, context.CancellationToken);
+            },
+            context.CancellationToken);
 
-        var response = new global::Adaptor.Service.SqlQueryResponse
+        var response = new RelationalQueryResponse
         {
             DurationMs = result.Duration.TotalMilliseconds,
             ErrorMessage = result.ErrorMessage ?? string.Empty,
@@ -293,8 +293,8 @@ public sealed class SqlServiceImpl : DBSQL.DBSQLBase
         return response;
     }
 
-    public override async Task<SqlExecuteBatchResponse> SqlExecuteBatch(
-        SqlExecuteBatchRequest request, ServerCallContext context)
+    public override async Task<RelationalExecuteBatchResponse> ExecuteBatch(
+        RelationalExecuteBatchRequest request, ServerCallContext context)
     {
         var txId = request.TransactionContext?.TransactionId ?? string.Empty;
 
@@ -303,11 +303,11 @@ public sealed class SqlServiceImpl : DBSQL.DBSQLBase
 
         foreach (var cmd in request.Commands)
         {
-            var result = await _ctx.Coordinator.ExecuteOnCapabilityAsync<ISqlExecuteCapability, SqlExecuteResult>(
+            var result = await _ctx.Coordinator.ExecuteOnCapabilityAsync<IRelationalExecuteCapability, RelationalExecuteResult>(
                 txId,
                 async (driver, transaction) =>
                 {
-                    var internalRequest = new Coordinator.Models.SqlExecuteRequest(cmd);
+                    var internalRequest = new Coordinator.Models.RelationalExecuteRequest(cmd);
                     return await driver.ExecuteAsync(internalRequest, transaction, context.CancellationToken);
                 },
                 context.CancellationToken);
@@ -317,21 +317,21 @@ public sealed class SqlServiceImpl : DBSQL.DBSQLBase
 
         var duration = DateTime.UtcNow - start;
 
-        return new SqlExecuteBatchResponse
+        return new RelationalExecuteBatchResponse
         {
             TotalAffectedRows = totalAffected,
             DurationMs = duration.TotalMilliseconds,
         };
     }
 
-    private static IReadOnlyList<Coordinator.Models.SqlParameter> ConvertParameters(
-        IReadOnlyList<SqlParameter>? protoParams)
+    private static IReadOnlyList<Coordinator.Models.RelationalParameter> ConvertParameters(
+        IReadOnlyList<RelationalParameter>? protoParams)
     {
         if (protoParams == null || protoParams.Count == 0)
-            return Array.Empty<Coordinator.Models.SqlParameter>();
+            return Array.Empty<Coordinator.Models.RelationalParameter>();
 
         return protoParams
-            .Select(p => new Coordinator.Models.SqlParameter(
+            .Select(p => new Coordinator.Models.RelationalParameter(
                 p.Name,
                 ProtoValueToObject(p.Value)))
             .ToList();
@@ -354,79 +354,50 @@ public sealed class SqlServiceImpl : DBSQL.DBSQLBase
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// DBVector 服务
+// DBRelationalVector 服务
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// <summary>
-/// gRPC DBVector service 实现。
-/// 提供 VectorUpsert / VectorSearch / VectorDelete / VectorListCollections 能力。
+/// gRPC DBRelationalVector service 实现。
+/// 仅提供向量相似度搜索，CRUD 通过 DBRelational 执行原生 SQL。
 /// </summary>
-public sealed class VectorServiceImpl : DBVector.DBVectorBase
+public sealed class RelationalVectorServiceImpl : DBRelationalVector.DBRelationalVectorBase
 {
     private readonly AdaptorServiceContext _ctx;
 
-    public VectorServiceImpl(AdaptorServiceContext ctx)
+    public RelationalVectorServiceImpl(AdaptorServiceContext ctx)
     {
         _ctx = ctx;
     }
 
-    public override async Task<VectorUpsertResponse> VectorUpsert(
-        VectorUpsertRequest request, ServerCallContext context)
+    public override async Task<VectorSearchResponse> Search(
+        RelationalVectorSearchRequest request, ServerCallContext context)
     {
         var txId = request.TransactionContext?.TransactionId ?? string.Empty;
 
-            var result = await _ctx.Coordinator.ExecuteOnCapabilityAsync<IVectorUpsertCapability, VectorUpsertResult>(
+        var result = await _ctx.Coordinator.ExecuteOnCapabilityAsync<IRelationalVectorSearchCapability, VectorSearchResult>(
             txId,
-                async (driver, transaction) =>
-                {
-                    var sparseVector = request.SparseVector == null ? null
-                        : new Coordinator.Models.SparseVector(
-                            request.SparseVector.Indices.ToArray(),
-                            request.SparseVector.Values.ToArray());
-                    var internalRequest = new Coordinator.Models.VectorUpsertRequest(
-                        request.Collection,
-                        DenseVector: request.DenseVector?.ToArray(),
-                        SparseVector: sparseVector,
-                        Id: string.IsNullOrEmpty(request.Id) ? null : request.Id,
-                        Metadata: ConvertMetadata(request.Metadata),
-                        Dimension: request.Dimension > 0 ? request.Dimension : null);
+            async (driver, transaction) =>
+            {
+                var sparseVector = request.SparseVector == null ? null
+                    : new Coordinator.Models.SparseVector(
+                        request.SparseVector.Indices.ToArray(),
+                        request.SparseVector.Values.ToArray());
+                var internalRequest = new Coordinator.Models.RelationalVectorSearchRequest(
+                    Table: request.Table,
+                    VectorColumn: request.VectorColumn,
+                    DenseVector: request.DenseVector?.ToArray(),
+                    SparseVector: sparseVector,
+                    TopK: request.TopK > 0 ? request.TopK : 10,
+                    WhereClause: string.IsNullOrEmpty(request.WhereClause) ? null : request.WhereClause,
+                    Parameters: request.Parameters?.Count > 0
+                        ? request.Parameters.Select(p => new Coordinator.Models.RelationalParameter(
+                            p.Name, ProtoValueToObject(p.Value))).ToList().AsReadOnly()
+                        : null);
 
-                    return await driver.UpsertAsync(internalRequest, transaction, context.CancellationToken);
-                },
-                context.CancellationToken);
-
-        return new VectorUpsertResponse
-        {
-            Id = result.Id,
-            Success = result.Success,
-            ErrorMessage = result.ErrorMessage ?? string.Empty,
-        };
-    }
-
-    public override async Task<VectorSearchResponse> VectorSearch(
-        VectorSearchRequest request, ServerCallContext context)
-    {
-        var txId = request.TransactionContext?.TransactionId ?? string.Empty;
-
-            var result = await _ctx.Coordinator.ExecuteOnCapabilityAsync<IVectorSearchCapability, VectorSearchResult>(
-            txId,
-                async (driver, transaction) =>
-                {
-                    var sparseVector = request.SparseVector == null ? null
-                        : new Coordinator.Models.SparseVector(
-                            request.SparseVector.Indices.ToArray(),
-                            request.SparseVector.Values.ToArray());
-                    var internalRequest = new Coordinator.Models.VectorSearchRequest(
-                        request.Collection,
-                        DenseVector: request.DenseVector?.ToArray(),
-                        SparseVector: sparseVector,
-                        TopK: request.TopK > 0 ? request.TopK : 10,
-                        Filter: null, // Filter not fully mapped yet
-                        Dimension: request.Dimension > 0 ? request.Dimension : null);
-
-                    return await driver.SearchAsync(internalRequest, transaction, context.CancellationToken);
-                },
-                context.CancellationToken);
+                return await driver.SearchAsync(internalRequest, transaction, context.CancellationToken);
+            },
+            context.CancellationToken);
 
         var response = new VectorSearchResponse
         {
@@ -445,87 +416,13 @@ public sealed class VectorServiceImpl : DBVector.DBVectorBase
             if (hit.Metadata != null)
             {
                 foreach (var kvp in hit.Metadata)
-                {
                     protoHit.Metadata[kvp.Key] = AdaptorServiceContext.ObjectToValue(kvp.Value);
-                }
             }
 
             response.Hits.Add(protoHit);
         }
 
         return response;
-    }
-
-    public override async Task<VectorDeleteResponse> VectorDelete(
-        VectorDeleteRequest request, ServerCallContext context)
-    {
-        var txId = request.TransactionContext?.TransactionId ?? string.Empty;
-
-        // 通过 ISqlExecuteCapability 执行原生 SQL 删除（pgvector 表操作）
-        try
-        {
-            var sql = $"DELETE FROM adaptor_vector_store WHERE collection = @collection AND id = @id";
-
-            await _ctx.Coordinator.ExecuteOnCapabilityAsync<ISqlExecuteCapability, SqlExecuteResult>(
-                txId,
-                async (driver, transaction) =>
-                {
-                    var internalRequest = new Coordinator.Models.SqlExecuteRequest(
-                        sql,
-                        new List<Coordinator.Models.SqlParameter>
-                        {
-                            new("collection", request.Collection),
-                            new("id", request.Id),
-                        });
-
-                    return await driver.ExecuteAsync(internalRequest, transaction, context.CancellationToken);
-                },
-                context.CancellationToken);
-
-            return new VectorDeleteResponse { Success = true };
-        }
-        catch (Exception ex)
-        {
-            _ctx.Logger.LogError(ex, "VectorDelete failed for collection={Collection} id={Id}",
-                request.Collection, request.Id);
-            return new VectorDeleteResponse { Success = false, ErrorMessage = ex.Message };
-        }
-    }
-
-    public override async Task<VectorListCollectionsResponse> VectorListCollections(
-        VectorListCollectionsRequest request, ServerCallContext context)
-    {
-        var txId = request.TransactionContext?.TransactionId ?? string.Empty;
-
-        try
-        {
-            var sql = "SELECT DISTINCT collection FROM adaptor_vector_store ORDER BY collection";
-
-            var result = await _ctx.Coordinator.ExecuteOnCapabilityAsync<ISqlQueryCapability, SqlQueryResult>(
-                txId,
-                async (driver, transaction) =>
-                {
-                    var internalRequest = new Coordinator.Models.SqlQueryRequest(sql);
-                    return await driver.QueryAsync(internalRequest, transaction, context.CancellationToken);
-                },
-                context.CancellationToken);
-
-            var response = new VectorListCollectionsResponse();
-            foreach (var row in result.Rows)
-            {
-                if (row.TryGetValue("collection", out var name) && name is string s)
-                {
-                    response.Collections.Add(s);
-                }
-            }
-
-            return response;
-        }
-        catch (Exception ex)
-        {
-            _ctx.Logger.LogError(ex, "VectorListCollections failed");
-            return new VectorListCollectionsResponse { ErrorMessage = ex.Message };
-        }
     }
 
     private static IReadOnlyDictionary<string, object?>? ConvertMetadata(
@@ -634,13 +531,13 @@ public sealed class BlobServiceImpl : DBBLOB.DBBLOBBase
             // 由于 PostgreSQL Large Object 的 lo_unlink 需要特殊处理，
             // 这里走 ISqlExecuteCapability 执行删除映射记录和 lo_unlink。
             var sql = $"DELETE FROM adaptor_blob_store WHERE key = @key";
-            await _ctx.Coordinator.ExecuteOnCapabilityAsync<ISqlExecuteCapability, SqlExecuteResult>(
+            await _ctx.Coordinator.ExecuteOnCapabilityAsync<IRelationalExecuteCapability, RelationalExecuteResult>(
                 txId,
                 async (driver, transaction) =>
                 {
-                    var internalRequest = new Coordinator.Models.SqlExecuteRequest(
+                    var internalRequest = new Coordinator.Models.RelationalExecuteRequest(
                         sql,
-                        new List<Coordinator.Models.SqlParameter>
+                        new List<Coordinator.Models.RelationalParameter>
                         {
                             new("key", request.Key),
                         });
@@ -671,16 +568,16 @@ public sealed class BlobServiceImpl : DBBLOB.DBBLOBBase
 
             var parameters = string.IsNullOrEmpty(request.Prefix)
                 ? null
-                : new List<Coordinator.Models.SqlParameter>
+                : new List<Coordinator.Models.RelationalParameter>
                 {
                     new("prefix", request.Prefix + "%"),
                 };
 
-            var result = await _ctx.Coordinator.ExecuteOnCapabilityAsync<ISqlQueryCapability, SqlQueryResult>(
+            var result = await _ctx.Coordinator.ExecuteOnCapabilityAsync<IRelationalQueryCapability, RelationalQueryResult>(
                 txId,
                 async (driver, transaction) =>
                 {
-                    var internalRequest = new Coordinator.Models.SqlQueryRequest(sql, parameters);
+                    var internalRequest = new Coordinator.Models.RelationalQueryRequest(sql, parameters);
                     return await driver.QueryAsync(internalRequest, transaction, context.CancellationToken);
                 },
                 context.CancellationToken);
