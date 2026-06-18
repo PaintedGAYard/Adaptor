@@ -93,7 +93,9 @@ public sealed class PgVectorDriver :
         await gate.WaitAsync(ct).ConfigureAwait(false);
         try
         {
+            // Contract validation — fails fast (InvalidOperationException) if not enlisted
             var entry = GetEntry(transaction);
+
             await EnsureTableAsync(entry.Connection, entry.LocalTransaction, ct).ConfigureAwait(false);
 
             await using var cmd = entry.Connection.CreateCommand();
@@ -145,31 +147,34 @@ public sealed class PgVectorDriver :
             }
 
             var start = DateTime.UtcNow;
-            var hits = new List<VectorSearchHit>();
-
-            await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
-            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            try
             {
-                var id = reader.GetString(0);
-                var metadata = reader.IsDBNull(1) ? null : DeserializeMetadata(reader.GetString(1));
-                var distance = reader.GetDouble(2);
+                var hits = new List<VectorSearchHit>();
 
-                var score = (float)(1.0 - distance / 2.0);
+                await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+                while (await reader.ReadAsync(ct).ConfigureAwait(false))
+                {
+                    var id = reader.GetString(0);
+                    var metadata = reader.IsDBNull(1) ? null : DeserializeMetadata(reader.GetString(1));
+                    var distance = reader.GetDouble(2);
 
-                hits.Add(new VectorSearchHit(id, score, metadata));
+                    var score = (float)(1.0 - distance / 2.0);
+
+                    hits.Add(new VectorSearchHit(id, score, metadata));
+                }
+
+                var duration = DateTime.UtcNow - start;
+
+                _logger?.LogDebug("PgVectorDriver searched table={Table} returned {Count} hits in {Duration:F2}ms",
+                    request.Table, hits.Count, duration.TotalMilliseconds);
+
+                return new VectorSearchResult(hits, duration);
             }
-
-            var duration = DateTime.UtcNow - start;
-
-            _logger?.LogDebug("PgVectorDriver searched table={Table} returned {Count} hits in {Duration:F2}ms",
-                request.Table, hits.Count, duration.TotalMilliseconds);
-
-            return new VectorSearchResult(hits, duration);
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "PgVectorDriver SearchAsync failed");
-            return new VectorSearchResult(Array.Empty<VectorSearchHit>(), TimeSpan.Zero, ex.Message);
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "PgVectorDriver SearchAsync failed");
+                return new VectorSearchResult(Array.Empty<VectorSearchHit>(), TimeSpan.Zero, ex.Message);
+            }
         }
         finally
         {

@@ -84,34 +84,37 @@ public sealed class PostgreSqlDriver :
         var txId = transaction.TransactionInformation.LocalIdentifier;
         var gate = GetOrCreateTxLock(txId);
         await gate.WaitAsync(ct).ConfigureAwait(false);
-
-        var start = DateTime.UtcNow;
         try
         {
+            // Contract validation — fails fast (InvalidOperationException) if not enlisted
             var entry = GetEntry(transaction);
 
-            await using var cmd = entry.Connection.CreateCommand();
-            cmd.CommandText = request.Command;
-            cmd.Transaction = entry.LocalTransaction;
-
-            if (request.Parameters is { Count: > 0 })
+            var start = DateTime.UtcNow;
+            try
             {
-                AddParameters(cmd, request.Parameters);
+                await using var cmd = entry.Connection.CreateCommand();
+                cmd.CommandText = request.Command;
+                cmd.Transaction = entry.LocalTransaction;
+
+                if (request.Parameters is { Count: > 0 })
+                {
+                    AddParameters(cmd, request.Parameters);
+                }
+
+                var affected = await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
+                var duration = DateTime.UtcNow - start;
+
+                _logger?.LogDebug("SQL EXECUTE [{TxId}] affected {Count} rows in {Duration:F2}ms",
+                    txId, affected, duration.TotalMilliseconds);
+
+                return new RelationalExecuteResult(affected, duration);
             }
-
-            var affected = await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
-            var duration = DateTime.UtcNow - start;
-
-            _logger?.LogDebug("SQL EXECUTE [{TxId}] affected {Count} rows in {Duration:F2}ms",
-                txId, affected, duration.TotalMilliseconds);
-
-            return new RelationalExecuteResult(affected, duration);
-        }
-        catch (Exception ex)
-        {
-            var duration = DateTime.UtcNow - start;
-            _logger?.LogError(ex, "PostgreSqlDriver ExecuteAsync failed for transaction {TxId}", txId);
-            return new RelationalExecuteResult(0, duration, ex.Message);
+            catch (Exception ex)
+            {
+                var duration = DateTime.UtcNow - start;
+                _logger?.LogError(ex, "PostgreSqlDriver ExecuteAsync failed for transaction {TxId}", txId);
+                return new RelationalExecuteResult(0, duration, ex.Message);
+            }
         }
         finally
         {
@@ -131,47 +134,50 @@ public sealed class PostgreSqlDriver :
         var txId = transaction.TransactionInformation.LocalIdentifier;
         var gate = GetOrCreateTxLock(txId);
         await gate.WaitAsync(ct).ConfigureAwait(false);
-
-        var start = DateTime.UtcNow;
         try
         {
+            // Contract validation — fails fast (InvalidOperationException) if not enlisted
             var entry = GetEntry(transaction);
 
-            await using var cmd = entry.Connection.CreateCommand();
-            cmd.CommandText = request.Command;
-            cmd.Transaction = entry.LocalTransaction;
-
-            if (request.Parameters is { Count: > 0 })
+            var start = DateTime.UtcNow;
+            try
             {
-                AddParameters(cmd, request.Parameters);
-            }
+                await using var cmd = entry.Connection.CreateCommand();
+                cmd.CommandText = request.Command;
+                cmd.Transaction = entry.LocalTransaction;
 
-            var rows = new List<Dictionary<string, object?>>();
-
-            await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
-            while (await reader.ReadAsync(ct).ConfigureAwait(false))
-            {
-                var row = new Dictionary<string, object?>(reader.FieldCount);
-                for (var i = 0; i < reader.FieldCount; i++)
+                if (request.Parameters is { Count: > 0 })
                 {
-                    var value = reader.GetValue(i);
-                    row[reader.GetName(i)] = value == DBNull.Value ? null : value;
+                    AddParameters(cmd, request.Parameters);
                 }
-                rows.Add(row);
+
+                var rows = new List<Dictionary<string, object?>>();
+
+                await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+                while (await reader.ReadAsync(ct).ConfigureAwait(false))
+                {
+                    var row = new Dictionary<string, object?>(reader.FieldCount);
+                    for (var i = 0; i < reader.FieldCount; i++)
+                    {
+                        var value = reader.GetValue(i);
+                        row[reader.GetName(i)] = value == DBNull.Value ? null : value;
+                    }
+                    rows.Add(row);
+                }
+
+                var duration = DateTime.UtcNow - start;
+
+                _logger?.LogDebug("SQL QUERY  [{TxId}] returned {Count} rows in {Duration:F2}ms",
+                    txId, rows.Count, duration.TotalMilliseconds);
+
+                return new RelationalQueryResult(rows, duration);
             }
-
-            var duration = DateTime.UtcNow - start;
-
-            _logger?.LogDebug("SQL QUERY  [{TxId}] returned {Count} rows in {Duration:F2}ms",
-                txId, rows.Count, duration.TotalMilliseconds);
-
-            return new RelationalQueryResult(rows, duration);
-        }
-        catch (Exception ex)
-        {
-            var duration = DateTime.UtcNow - start;
-            _logger?.LogError(ex, "PostgreSqlDriver QueryAsync failed for transaction {TxId}", txId);
-            return new RelationalQueryResult(Array.Empty<IDictionary<string, object?>>(), duration, ex.Message);
+            catch (Exception ex)
+            {
+                var duration = DateTime.UtcNow - start;
+                _logger?.LogError(ex, "PostgreSqlDriver QueryAsync failed for transaction {TxId}", txId);
+                return new RelationalQueryResult(Array.Empty<IDictionary<string, object?>>(), duration, ex.Message);
+            }
         }
         finally
         {
