@@ -20,4 +20,8 @@
     <ProjectReference Include="..\Coordinator\Adaptor.Coordinator.csproj" />
     <ProjectReference Include="..\Driver\Postgre\Adaptor.Driver.Postgre.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Adaptor.Test.BlobStream" />
+  </ItemGroup>
 </Project>

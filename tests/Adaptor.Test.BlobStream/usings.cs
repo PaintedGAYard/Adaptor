@@ -1,0 +1,12 @@
+global using Xunit;
+global using NSubstitute;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Options;
+global using System.Transactions;
+global using Adaptor.Coordinator;
+global using Adaptor.Coordinator.Abstractions;
+global using Adaptor.Coordinator.Configuration;
+global using Adaptor.Coordinator.Models;
+global using Adaptor.Coordinator.Services;
+global using Adaptor.Service.BlobStream;
+global using Adaptor.Service.BlobStream.Protocol;
