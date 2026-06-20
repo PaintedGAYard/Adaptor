@@ -1,10 +1,10 @@
 # Coding style guideline
 
-Given that this is an **LLM** tool project, for conciseness, logical **clarity**, and maintainability:
+For conciseness, logical **clarity**, and maintainability:
 
 1. Code **documentation** should only include the following content:
     1. Interface contract
-       - All Python functions must be documented with full type annotations, along with their parameters, return values, common exceptions, and notable side-effects.
+       - All functions must be documented with full type annotations, along with their parameters, return values, common exceptions, and notable side-effects.
        - Only the interface contract is strictly necessary for all code **constructs**. Try your best **not to include** other items.
     2. Summary of Purpose
        - Should only be used for complex code constructs such as classes and modules in the vast majority of cases.
@@ -58,18 +58,35 @@ In this case, follow the requirement of said dependencies.
    2. Always produce a Chinese and/or an English translation document based on the working document as needed. For example, if a working document is fully English, produce a Chinese translation. For another example, if a working document is written in mixed language, produce both translations.
    3. In the comparison between the working document and the translation, the working document shall prevail.
 
+# Work Log Guideline
 
-# Work Notes Taking Guideline
+## TODO
 
-Work notes are **real-time progress logs** written during or immediately after a
+A flat, single-level checklist updated as work progresses. Check off items
+(`- [x]`) when completed. Add new items as they arise. The TODO file lives
+in the job folder alongside other work logs.
+
+```
+TODO.md
+- [x] Task A
+- [ ] Task B
+- [ ] Task C
+```
+
+The TODO is a **living document** — review and check items after each entry
+in the work note, not just at the end of the session.
+
+## Work Notes
+
+Work notes are **real-time progress logs** written during a
 work session. They serve as a granular, timestamped record of actions taken,
 decisions made, and findings encountered — supplementing the planning document
 (`Testing Plan.md`), task tracker (`TODO.md`), and retrospective report
 (`Work Summary.md`) that live alongside them in the same job folder.
 
-## Note format
+### Note format
 
-### File naming
+#### File naming
 
 ```
 YYYY-MM-DD.HHmm-HHmm.Short-Description.md
@@ -77,19 +94,20 @@ YYYY-MM-DD.HHmm-HHmm.Short-Description.md
 
 One file = one continuous work session. A workday may contain 1–5 sessions.
 
-### Frontmatter
+#### Frontmatter
 
 Every note file must begin with a YAML frontmatter block:
 
 ```yaml
 ---
-session_start: 2026-06-20T09:30:00+08:00
-session_end: 2026-06-20T18:30:00+08:00
-tags: [testing, bugfix, driver, postgresql]
+session_start: 2026-06-20T09:30:00+00:00
+session_end: 2026-06-20T18:30:00+00:00
+tags: [tag1, tag2, tag3]
 revisit:
-  - "BLOB random-access path needs local offset tracking"
+  - "Component X requires further testing"
+  - "YYY.cs line 123 - better async handling"
 files:
-  - src/Driver/Postgre/PgVectorDriver.cs
+  - src/**/*.ext
 ---
 ```
 
@@ -102,7 +120,7 @@ Frontmatter fields:
 | `revisit` | No | Accumulating list of items to revisit in a future cycle |
 | `files` | No | Source files touched during this session |
 
-### Body structure
+#### Body structure
 
 The body is organized into **entries** — each entry is a self-contained unit
 modeled after a small GitHub issue. An entry may describe a task, a bug fix,
@@ -118,7 +136,7 @@ Background and motivation for this session. 1–2 paragraphs.
 ## Entries
 
 ### Short descriptive title
-> time: [dd HH:MM] · status: resolved | deferred | blocked | in-progress | discarded | ... · tags: bugfix, driver, pgvector
+> time: [dd HH:MM] · status: resolved | deferred | blocked | in-progress | discarded | ... · tags: bugfix, driver, pgvector, ...
 
 Free-form body. Cross-reference source files, design documents, companion
 files (`Testing Plan.md`, `TODO.md`, `Work Summary.md`), or other entries.
@@ -135,7 +153,7 @@ Quantifiable changes produced during this session.
 Immediate follow-up tasks. Bullet list.
 ```
 
-## Entry metadata rules
+### Entry metadata rules
 
 Each entry must start with a `>` line containing `time`, `status`, and `tags`,
 separated by `·` (U+00B7).
@@ -150,7 +168,13 @@ separated by `·` (U+00B7).
 
 Tags are lowercase, hyphen-separated. Reuse existing tags when possible.
 
-## Relationship with other files
+### Timetamp Rule
+
+- **Always** use UTC+0 for any timestamp format that does not include timezone information.
+- **Always** use script to print timestamp. **Never** write it or generate it.
+- You may use `----` as placeholder for timestamps that can not be decided at the moment. e.g. "Work ended". And replace it with the proper timestamp afterwards.
+
+### Relationship with other files
 
 | File | When | Role |
 |------|------|------|
@@ -164,7 +188,7 @@ above. It is an auxiliary record that provides context the other files cannot:
 timestamps, step-by-step actions, intermediate findings, and the raw timeline
 of decisions.
 
-## Style rules
+### Style rules
 
 1. Write entries as work progresses, not after the fact.
 2. Keep entries short and focused. If an entry exceeds ~200 lines, consider
@@ -178,7 +202,7 @@ of decisions.
    tech-debt accumulator.
 
 
-# Work Summary Guideline
+## Work Summary
 
 A "Work Summary" must be structured as a proper engineering report. At a minimum, it must contain the following major sections:
 
@@ -190,7 +214,7 @@ A "Work Summary" must be structured as a proper engineering report. At a minimum
 6. Unfinished work
 
 
-## Section descriptions
+### Section descriptions
 
 **Table of contents**  
 Provide a nested numbered list that indexes all sections and subsections in the report. Do not use numbering in the section titles themselves.
@@ -212,7 +236,7 @@ Based on the outputs and discoveries listed above, clearly enumerate what tasks 
 **Summary**  
 Write a 1–2 paragraph condensation of the entire report **after you finish writing everthing else**. Place this summary immediately after the table of contents and before the Background section.
 
-## Formatting notes
+### Formatting notes
 
 1. You may introduce subsections within any major section to improve organization and readability.
 2. You may choose alternative titles for the major sections, provided the content framework described above remains intact.

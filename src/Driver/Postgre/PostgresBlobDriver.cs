@@ -31,8 +31,9 @@ public sealed class PostgresBlobDriver :
     private const string DefaultTableName = "adaptor_blob_store";
 
     private readonly string _connectionString;
+    private readonly NpgsqlConnectionManager _connectionManager;
     private readonly ILogger<PostgresBlobDriver>? _logger;
-    private readonly ConcurrentDictionary<string, ConnectionEntry> _connections = new();
+    private readonly ConcurrentDictionary<int, RandomAccessState> _randomAccessStates = new();
     private bool _disposed;
 
     public string Name => "PostgreSQL BLOB";
@@ -43,6 +44,7 @@ public sealed class PostgresBlobDriver :
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
         _connectionString = connectionString;
+        _connectionManager = new NpgsqlConnectionManager(connectionString, Name, logger);
         _logger = logger;
     }
 
@@ -51,30 +53,7 @@ public sealed class PostgresBlobDriver :
     public void Enlist(Transaction transaction)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-
-        var txId = transaction.TransactionInformation.LocalIdentifier;
-
-        if (_connections.ContainsKey(txId))
-        {
-            _logger?.LogDebug("PostgresBlobDriver already enlisted in transaction {TxId}", txId);
-            return;
-        }
-
-        var connection = new NpgsqlConnection(_connectionString);
-        connection.Open();
-        var localTransaction = connection.BeginTransaction(System.Data.IsolationLevel.ReadCommitted);
-
-        var entry = new ConnectionEntry(connection, localTransaction, transaction);
-        if (!_connections.TryAdd(txId, entry))
-        {
-            localTransaction.Dispose();
-            connection.Dispose();
-            return;
-        }
-
-        transaction.EnlistVolatile(new BlobEnlistmentHandler(this, txId), EnlistmentOptions.None);
-
-        _logger?.LogDebug("PostgresBlobDriver enlisted in transaction {TxId}", txId);
+        _connectionManager.Enlist(transaction);
     }
 
     #endregion
@@ -297,15 +276,16 @@ public sealed class PostgresBlobDriver :
                     await cmdInsert.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
                 }
 
-                // Return OID directly — no lo_open needed (server-side API).
+                // Register the random-access state with position tracking
+                var state = new RandomAccessState(oid, 0);
+                _randomAccessStates[oid] = state;
+
                 _logger?.LogDebug("PostgresBlobDriver Open(Create) key={Key} oid={Oid}", key, oid);
                 return new BlobOpenResult(oid, 0);
             }
             else
             {
                 // ── Open existing blob ──
-                // Use the server-side lo_get/lo_put API (PG17 recommended) which
-                // works directly with OIDs — no file descriptor needed.
                 await using var cmdQuery = entry.Connection.CreateCommand();
                 cmdQuery.CommandText = $"SELECT oid, size FROM {DefaultTableName} WHERE key = @key";
                 cmdQuery.Transaction = entry.LocalTransaction;
@@ -322,6 +302,10 @@ public sealed class PostgresBlobDriver :
                     oid = Convert.ToInt32(reader.GetValue(0));
                     blobSize = reader.GetInt64(1);
                 }
+
+                // Register the random-access state with position tracking
+                var state = new RandomAccessState(oid, 0);
+                _randomAccessStates[oid] = state;
 
                 _logger?.LogDebug("PostgresBlobDriver Open key={Key} oid={Oid} mode={Mode} size={Size}",
                     key, oid, mode, blobSize);
@@ -340,9 +324,16 @@ public sealed class PostgresBlobDriver :
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(transaction);
 
-        // No-op: the server-side lo_get/lo_put API does not use file descriptors,
-        // so there is nothing to close. The loFd here is the OID.
-        _logger?.LogDebug("PostgresBlobDriver Close(oid={Oid}) — no-op (server-side API)", loFd);
+        if (_randomAccessStates.TryRemove(loFd, out var state))
+        {
+            state.IsClosed = true;
+            _logger?.LogDebug("PostgresBlobDriver Close(oid={Oid}) — released", loFd);
+        }
+        else
+        {
+            _logger?.LogDebug("PostgresBlobDriver Close(oid={Oid}) — already closed or unknown", loFd);
+        }
+
         return Task.CompletedTask;
     }
 
@@ -351,23 +342,31 @@ public sealed class PostgresBlobDriver :
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(transaction);
 
+        if (!_randomAccessStates.TryGetValue(loFd, out var state) || state.IsClosed)
+        {
+            return new BlobReadResult(Array.Empty<byte>(), 0, $"Handle {loFd} is not open or has been closed.");
+        }
+
         var entry = GetEntry(transaction);
 
         try
         {
-            // loFd is the OID (returned by OpenAsync as a convenience).
-            // Use lo_get(oid, offset, length) for simple random-access reading
-            // without needing lo_open/loread/lo_close.
+            // Use the tracked position to read from the correct offset
             await using var cmd = entry.Connection.CreateCommand();
-            cmd.CommandText = "SELECT lo_get(@oid, 0, @count)";
+            cmd.CommandText = "SELECT lo_get(@oid, @offset, @count)";
             cmd.Transaction = entry.LocalTransaction;
             cmd.Parameters.AddWithValue("oid", loFd);
+            cmd.Parameters.AddWithValue("offset", state.Position);
             cmd.Parameters.AddWithValue("count", count);
 
             var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
             var data = result as byte[] ?? Array.Empty<byte>();
 
-            _logger?.LogDebug("PostgresBlobDriver Read oid={Oid} count={Count} got={BytesRead}", loFd, count, data.Length);
+            // Advance the tracked position
+            state.Position += data.Length;
+
+            _logger?.LogDebug("PostgresBlobDriver Read oid={Oid} offset={Offset} count={Count} got={BytesRead}",
+                loFd, state.Position - data.Length, count, data.Length);
             return new BlobReadResult(data, data.Length);
         }
         catch (Exception ex)
@@ -383,21 +382,30 @@ public sealed class PostgresBlobDriver :
         ArgumentNullException.ThrowIfNull(transaction);
         ArgumentNullException.ThrowIfNull(data);
 
+        if (!_randomAccessStates.TryGetValue(loFd, out var state) || state.IsClosed)
+        {
+            throw new InvalidOperationException($"Handle {loFd} is not open or has been closed.");
+        }
+
         var entry = GetEntry(transaction);
 
         try
         {
-            // Use lo_put(oid, offset, data) — the recommended server-side API.
-            // loFd here is the OID; write at offset 0 (overwrite from beginning).
+            // Write at the tracked position using lo_put(oid, offset, data)
             await using var cmd = entry.Connection.CreateCommand();
-            cmd.CommandText = "SELECT lo_put(@oid, 0, @data)";
+            cmd.CommandText = "SELECT lo_put(@oid, @offset, @data)";
             cmd.Transaction = entry.LocalTransaction;
             cmd.Parameters.AddWithValue("oid", loFd);
+            cmd.Parameters.AddWithValue("offset", state.Position);
             cmd.Parameters.AddWithValue("data", data);
 
             await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
 
-            _logger?.LogDebug("PostgresBlobDriver Write oid={Oid} size={Size}", loFd, data.Length);
+            // Advance the tracked position
+            state.Position += data.Length;
+
+            _logger?.LogDebug("PostgresBlobDriver Write oid={Oid} offset={Offset} size={Size}",
+                loFd, state.Position - data.Length, data.Length);
             return data.Length;
         }
         catch (Exception ex)
@@ -407,34 +415,132 @@ public sealed class PostgresBlobDriver :
         }
     }
 
-    public Task<long> SeekAsync(int loFd, long offset, SeekOrigin origin, Transaction transaction, CancellationToken ct = default)
+    public async Task<long> SeekAsync(int loFd, long offset, SeekOrigin origin, Transaction transaction, CancellationToken ct = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(transaction);
 
-        // The lo_get/lo_put API does not maintain a seek position.
-        // lo_get(oid, offset, length) takes an explicit offset parameter,
-        // so seeking is handled by the caller. Return the offset as-is.
-        var resolved = origin switch
+        if (!_randomAccessStates.TryGetValue(loFd, out var state) || state.IsClosed)
         {
-            SeekOrigin.Begin => offset,
-            SeekOrigin.Current => offset,
-            SeekOrigin.End => offset,
-            _ => offset,
-        };
-        _logger?.LogDebug("PostgresBlobDriver Seek oid={Oid} resolved={Offset}", loFd, resolved);
-        return Task.FromResult(resolved);
+            throw new InvalidOperationException($"Handle {loFd} is not open or has been closed.");
+        }
+
+        var entry = GetEntry(transaction);
+
+        long newPosition;
+
+        switch (origin)
+        {
+            case SeekOrigin.Begin:
+                newPosition = Math.Max(0, offset);
+                break;
+
+            case SeekOrigin.Current:
+                newPosition = Math.Max(0, state.Position + offset);
+                break;
+
+            case SeekOrigin.End:
+                // Seek from end: need the blob size.
+                // Open the LO, seek to end to get size, then close.
+                long blobSize;
+                int fd;
+                await using (var cmdOpen = entry.Connection.CreateCommand())
+                {
+                    cmdOpen.CommandText = "SELECT lo_open(@oid, @mode)";
+                    cmdOpen.Transaction = entry.LocalTransaction;
+                    cmdOpen.Parameters.AddWithValue("oid", loFd);
+                    cmdOpen.Parameters.AddWithValue("mode", 0x40000); // INV_READ
+                    fd = Convert.ToInt32(await cmdOpen.ExecuteScalarAsync(ct).ConfigureAwait(false));
+                }
+
+                try
+                {
+                    await using var cmdSeek = entry.Connection.CreateCommand();
+                    cmdSeek.CommandText = "SELECT lo_lseek64(@fd, 0, 2)";
+                    cmdSeek.Transaction = entry.LocalTransaction;
+                    cmdSeek.Parameters.AddWithValue("fd", fd);
+                    var result = await cmdSeek.ExecuteScalarAsync(ct).ConfigureAwait(false);
+                    blobSize = result != null ? Convert.ToInt64(result) : 0;
+                }
+                finally
+                {
+                    await using var cmdClose = entry.Connection.CreateCommand();
+                    cmdClose.CommandText = "SELECT lo_close(@fd)";
+                    cmdClose.Transaction = entry.LocalTransaction;
+                    cmdClose.Parameters.AddWithValue("fd", fd);
+                    await cmdClose.ExecuteScalarAsync(ct).ConfigureAwait(false);
+                }
+
+                newPosition = Math.Max(0, blobSize + offset);
+                break;
+
+            default:
+                newPosition = state.Position;
+                break;
+        }
+
+        state.Position = newPosition;
+        _logger?.LogDebug("PostgresBlobDriver Seek oid={Oid} origin={Origin} offset={Offset} newPos={NewPos}",
+            loFd, origin, offset, newPosition);
+        return newPosition;
     }
 
-    public Task TruncateAsync(int loFd, long length, Transaction transaction, CancellationToken ct = default)
+    public async Task TruncateAsync(int loFd, long length, Transaction transaction, CancellationToken ct = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(transaction);
 
-        // lo_truncate is not available via the simple server-side API.
-        // This is a no-op stub for now; the pgvector-dotnet refactor will address it.
-        _logger?.LogDebug("PostgresBlobDriver Truncate oid={Oid} length={Length} — stub", loFd, length);
-        return Task.CompletedTask;
+        if (!_randomAccessStates.TryGetValue(loFd, out var state) || state.IsClosed)
+        {
+            throw new InvalidOperationException($"Handle {loFd} is not open or has been closed.");
+        }
+
+        var entry = GetEntry(transaction);
+
+        try
+        {
+            // lo_truncate requires a file descriptor. Open, truncate, close.
+            int fd;
+            await using (var cmdOpen = entry.Connection.CreateCommand())
+            {
+                cmdOpen.CommandText = "SELECT lo_open(@oid, @mode)";
+                cmdOpen.Transaction = entry.LocalTransaction;
+                cmdOpen.Parameters.AddWithValue("oid", loFd);
+                cmdOpen.Parameters.AddWithValue("mode", 0x20000); // INV_WRITE
+                fd = Convert.ToInt32(await cmdOpen.ExecuteScalarAsync(ct).ConfigureAwait(false));
+            }
+
+            try
+            {
+                await using var cmdTrunc = entry.Connection.CreateCommand();
+                cmdTrunc.CommandText = "SELECT lo_truncate64(@fd, @length)";
+                cmdTrunc.Transaction = entry.LocalTransaction;
+                cmdTrunc.Parameters.AddWithValue("fd", fd);
+                cmdTrunc.Parameters.AddWithValue("length", length);
+                await cmdTrunc.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
+            }
+            finally
+            {
+                await using var cmdClose = entry.Connection.CreateCommand();
+                cmdClose.CommandText = "SELECT lo_close(@fd)";
+                cmdClose.Transaction = entry.LocalTransaction;
+                cmdClose.Parameters.AddWithValue("fd", fd);
+                await cmdClose.ExecuteScalarAsync(ct).ConfigureAwait(false);
+            }
+
+            // If the current position is past the new end, clamp it
+            if (state.Position > length)
+            {
+                state.Position = length;
+            }
+
+            _logger?.LogDebug("PostgresBlobDriver Truncate oid={Oid} length={Length} done", loFd, length);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "PostgresBlobDriver TruncateAsync failed for oid={Oid}", loFd);
+            throw;
+        }
     }
 
     #endregion
@@ -443,20 +549,8 @@ public sealed class PostgresBlobDriver :
 
     public async Task<bool> HealthCheckAsync(CancellationToken ct = default)
     {
-        try
-        {
-            await using var conn = new NpgsqlConnection(_connectionString);
-            await conn.OpenAsync(ct).ConfigureAwait(false);
-            await using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT 1";
-            await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogWarning(ex, "PostgresBlobDriver health check failed");
-            return false;
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        return await _connectionManager.HealthCheckAsync(ct).ConfigureAwait(false);
     }
 
     #endregion
@@ -520,16 +614,9 @@ public sealed class PostgresBlobDriver :
 
     #region Internal helpers
 
-    private ConnectionEntry GetEntry(Transaction transaction)
+    private NpgsqlConnectionManager.ConnectionEntry GetEntry(Transaction transaction)
     {
-        var txId = transaction.TransactionInformation.LocalIdentifier;
-
-        if (_connections.TryGetValue(txId, out var entry))
-            return entry;
-
-        throw new InvalidOperationException(
-            $"Transaction (LocalIdentifier={txId}) is not enlisted with this driver. " +
-            "Enlist() must be called before data operations.");
+        return _connectionManager.GetEntry(transaction);
     }
 
     /// <summary>Auto-create the <c>adaptor_blob_store</c> table if it does not exist.</summary>
@@ -650,11 +737,7 @@ public sealed class PostgresBlobDriver :
 
     internal void RemoveEntry(string txId)
     {
-        if (_connections.TryRemove(txId, out var entry))
-        {
-            _logger?.LogDebug("PostgresBlobDriver removing transaction {TxId}", txId);
-            entry.Dispose();
-        }
+        _connectionManager.RemoveEntry(txId);
     }
 
     #endregion
@@ -665,112 +748,25 @@ public sealed class PostgresBlobDriver :
     {
         if (_disposed) return;
         _disposed = true;
-
-        foreach (var (_, entry) in _connections)
-        {
-            entry.Dispose();
-        }
-        _connections.Clear();
+        _connectionManager.Dispose();
     }
 
     #endregion
 
     #region Nested types
 
-    private sealed record ConnectionEntry : IDisposable
+    /// <summary>Tracks per-open-instance state for random-access operations.</summary>
+    private sealed class RandomAccessState
     {
-        public NpgsqlConnection Connection { get; }
-        public NpgsqlTransaction LocalTransaction { get; }
+        public int Oid { get; }
+        public long Position { get; set; }
+        public bool IsClosed { get; set; }
 
-        public ConnectionEntry(NpgsqlConnection connection, NpgsqlTransaction localTransaction, Transaction transaction)
+        public RandomAccessState(int oid, long position)
         {
-            Connection = connection;
-            LocalTransaction = localTransaction;
-        }
-
-        public void Dispose()
-        {
-            try { LocalTransaction.Dispose(); } catch { }
-            try { Connection.Dispose(); } catch { }
-        }
-    }
-
-    private sealed class BlobEnlistmentHandler : IEnlistmentNotification
-    {
-        private readonly PostgresBlobDriver _driver;
-        private readonly string _txId;
-
-        public BlobEnlistmentHandler(PostgresBlobDriver driver, string txId)
-        {
-            _driver = driver;
-            _txId = txId;
-        }
-
-        void IEnlistmentNotification.Prepare(PreparingEnlistment preparingEnlistment)
-        {
-            try
-            {
-                _driver._logger?.LogDebug("PostgresBlobDriver [{TxId}] Prepare: voting Prepared", _txId);
-                preparingEnlistment.Prepared();
-            }
-            catch (Exception ex)
-            {
-                _driver._logger?.LogError(ex, "PostgresBlobDriver [{TxId}] Prepare: force rollback", _txId);
-                preparingEnlistment.ForceRollback();
-            }
-        }
-
-        void IEnlistmentNotification.Commit(Enlistment enlistment)
-        {
-            try
-            {
-                _driver._logger?.LogDebug("PostgresBlobDriver [{TxId}] Commit: committing local transaction", _txId);
-
-                if (_driver._connections.TryGetValue(_txId, out var entry))
-                {
-                    entry.LocalTransaction.Commit();
-                    _driver._logger?.LogDebug("PostgresBlobDriver [{TxId}] local transaction committed", _txId);
-                }
-            }
-            catch (Exception ex)
-            {
-                _driver._logger?.LogError(ex, "PostgresBlobDriver [{TxId}] Commit failed", _txId);
-            }
-            finally
-            {
-                _driver.RemoveEntry(_txId);
-                enlistment.Done();
-            }
-        }
-
-        void IEnlistmentNotification.Rollback(Enlistment enlistment)
-        {
-            try
-            {
-                _driver._logger?.LogDebug("PostgresBlobDriver [{TxId}] Rollback: rolling back local transaction", _txId);
-
-                if (_driver._connections.TryGetValue(_txId, out var entry))
-                {
-                    entry.LocalTransaction.Rollback();
-                    _driver._logger?.LogDebug("PostgresBlobDriver [{TxId}] local transaction rolled back", _txId);
-                }
-            }
-            catch (Exception ex)
-            {
-                _driver._logger?.LogError(ex, "PostgresBlobDriver [{TxId}] Rollback failed", _txId);
-            }
-            finally
-            {
-                _driver.RemoveEntry(_txId);
-                enlistment.Done();
-            }
-        }
-
-        void IEnlistmentNotification.InDoubt(Enlistment enlistment)
-        {
-            _driver._logger?.LogWarning("PostgresBlobDriver [{TxId}] InDoubt: transaction outcome unknown", _txId);
-            _driver.RemoveEntry(_txId);
-            enlistment.Done();
+            Oid = oid;
+            Position = position;
+            IsClosed = false;
         }
     }
 

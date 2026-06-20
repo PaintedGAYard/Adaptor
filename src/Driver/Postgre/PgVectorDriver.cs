@@ -1,9 +1,9 @@
-using System.Collections.Concurrent;
 using System.Transactions;
 using Adaptor.Coordinator.Abstractions;
 using Adaptor.Coordinator.Models;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using Pgvector;
 
 namespace Adaptor.Driver.Postgre;
 
@@ -27,20 +27,33 @@ public sealed class PgVectorDriver :
     private const string DefaultTableName = "adaptor_vector_store";
     private const string DimensionTableName = "adaptor_vector_dimensions";
 
-    private readonly string _connectionString;
+    private readonly string? _connectionString;
+    private readonly NpgsqlDataSource? _dataSource;
+    private readonly NpgsqlConnectionManager _connectionManager;
     private readonly ILogger<PgVectorDriver>? _logger;
-    private readonly ConcurrentDictionary<string, ConnectionEntry> _connections = new();
-    private readonly ConcurrentDictionary<string, SemaphoreSlim> _txLocks = new();
     private bool _disposed;
 
     public string Name => "pgvector";
     public ResourceType ResourceType => ResourceType.Vector;
     public Guid ResourceManagerIdentifier { get; } = Guid.NewGuid();
 
+    internal NpgsqlConnectionManager ConnectionManager => _connectionManager;
+
+    /// <summary>Create with a raw connection string (no pgvector type mappings).</summary>
     public PgVectorDriver(string connectionString, ILogger<PgVectorDriver>? logger = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
         _connectionString = connectionString;
+        _connectionManager = new NpgsqlConnectionManager(connectionString, Name, logger);
+        _logger = logger;
+    }
+
+    /// <summary>Create with an NpgsqlDataSource (recommended; supports UseVector()).</summary>
+    public PgVectorDriver(NpgsqlDataSource dataSource, ILogger<PgVectorDriver>? logger = null)
+    {
+        ArgumentNullException.ThrowIfNull(dataSource);
+        _dataSource = dataSource;
+        _connectionManager = new NpgsqlConnectionManager(dataSource, Name, logger);
         _logger = logger;
     }
 
@@ -49,30 +62,7 @@ public sealed class PgVectorDriver :
     public void Enlist(Transaction transaction)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-
-        var txId = transaction.TransactionInformation.LocalIdentifier;
-
-        if (_connections.ContainsKey(txId))
-        {
-            _logger?.LogDebug("PgVectorDriver already enlisted in transaction {TxId}", txId);
-            return;
-        }
-
-        var connection = new NpgsqlConnection(_connectionString);
-        connection.Open();
-        var localTransaction = connection.BeginTransaction(System.Data.IsolationLevel.ReadCommitted);
-
-        var entry = new ConnectionEntry(connection, localTransaction, transaction);
-        if (!_connections.TryAdd(txId, entry))
-        {
-            localTransaction.Dispose();
-            connection.Dispose();
-            return;
-        }
-
-        transaction.EnlistVolatile(new VectorEnlistmentHandler(this, txId), EnlistmentOptions.None);
-
-        _logger?.LogDebug("PgVectorDriver enlisted in transaction {TxId}", txId);
+        _connectionManager.Enlist(transaction);
     }
 
     #endregion
@@ -101,21 +91,11 @@ public sealed class PgVectorDriver :
             await using var cmd = entry.Connection.CreateCommand();
             cmd.Transaction = entry.LocalTransaction;
 
-            string vectorStr;
-            string columnName;
-
-            if (request.DenseVector != null)
-            {
-                vectorStr = DenseVectorToString(request.DenseVector);
-                columnName = request.VectorColumn;
-            }
-            else
-            {
-                vectorStr = SparseVectorToString(request.SparseVector!);
-                columnName = request.VectorColumn;
-            }
-
-            var castType = request.DenseVector != null ? "vector" : "sparsevec";
+            // Build vector parameter using pgvector-dotnet types when DataSource is available.
+            // Fall back to string formatting for raw connection strings.
+            var vectorParam = CreateVectorParameter(request);
+            var columnName = request.VectorColumn;
+            var castSuffix = _dataSource != null ? "" : (request.DenseVector != null ? "::vector" : "::sparsevec");
 
             // Quote identifiers to prevent SQL injection via table/column names
             var safeTable = QuotePgIdentifier(request.Table);
@@ -129,13 +109,13 @@ public sealed class PgVectorDriver :
 
             cmd.CommandText = $"""
                 SELECT id, metadata,
-                       ({safeColumn} <=> @vector::{castType}) AS distance
+                       ({safeColumn} <=> @vector{castSuffix}) AS distance
                 FROM {safeTable}
                 WHERE 1=1{whereClause}
-                ORDER BY {safeColumn} <=> @vector::{castType}
+                ORDER BY {safeColumn} <=> @vector{castSuffix}
                 LIMIT @top_k
                 """;
-            cmd.Parameters.AddWithValue("vector", vectorStr);
+            cmd.Parameters.AddWithValue("vector", vectorParam);
             cmd.Parameters.AddWithValue("top_k", request.TopK);
 
             if (request.Parameters != null)
@@ -188,36 +168,17 @@ public sealed class PgVectorDriver :
 
     public async Task<bool> HealthCheckAsync(CancellationToken ct = default)
     {
-        try
-        {
-            await using var conn = new NpgsqlConnection(_connectionString);
-            await conn.OpenAsync(ct).ConfigureAwait(false);
-            await using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT 1";
-            await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogWarning(ex, "PgVectorDriver health check failed");
-            return false;
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        return await _connectionManager.HealthCheckAsync(ct).ConfigureAwait(false);
     }
 
     #endregion
 
     #region Internal helpers
 
-    private ConnectionEntry GetEntry(Transaction transaction)
+    private NpgsqlConnectionManager.ConnectionEntry GetEntry(Transaction transaction)
     {
-        var txId = transaction.TransactionInformation.LocalIdentifier;
-
-        if (_connections.TryGetValue(txId, out var entry))
-            return entry;
-
-        throw new InvalidOperationException(
-            $"Transaction (LocalIdentifier={txId}) is not enlisted with this driver. " +
-            "Enlist() must be called before data operations.");
+        return _connectionManager.GetEntry(transaction);
     }
 
     /// <summary>Auto-create the vector store and dimension tracking tables if they do not exist.</summary>
@@ -313,96 +274,40 @@ public sealed class PgVectorDriver :
     }
 
     /// <summary>
-    /// Convert a float[] to a pgvector-compatible string: '[0.1,0.2,0.3]'
-    /// Used as a parameter value with ::vector cast.
+    /// Create a pgvector-dotnet <see cref="Vector"/> or <see cref="SparseVector"/>
+    /// from the search request. Uses CLR types when a DataSource is available
+    /// (for proper Npgsql type mapping), otherwise falls back to a string that
+    /// relies on the SQL ::vector / ::sparsevec cast.
     /// </summary>
-    private static string DenseVectorToString(float[] vector)
+    private object CreateVectorParameter(RelationalVectorSearchRequest request)
     {
-        return $"[{string.Join(",", vector.Select(v => v.ToString("G", System.Globalization.CultureInfo.InvariantCulture)))}]";
+        if (request.DenseVector != null)
+        {
+            return _dataSource != null
+                ? new Vector(request.DenseVector)
+                : (object)$"[{string.Join(",", request.DenseVector.Select(v => v.ToString("G", System.Globalization.CultureInfo.InvariantCulture)))}]";
+        }
+
+        if (request.SparseVector != null)
+        {
+            var sv = request.SparseVector;
+            if (sv.Indices.Length != sv.Values.Length)
+                throw new ArgumentException("Indices and Values must have the same length.");
+
+            return _dataSource != null
+                ? new Pgvector.SparseVector(request.SparseVector.Values.Length, sv.Indices, sv.Values)
+                : (object)BuildSparseVecString(sv);
+        }
+
+        throw new ArgumentException("Either DenseVector or SparseVector must be provided.");
     }
 
-    /// <summary>
-    /// Convert a SparseVector to a pgvector sparsevec-compatible string: '{idx1:val1,idx2:val2}'
-    /// Used as a parameter value with ::sparsevec cast.
-    /// </summary>
-    private static string SparseVectorToString(SparseVector vector)
+    /// <summary>Build a sparsevec string literal for the fallback path.</summary>
+    private static string BuildSparseVecString(Coordinator.Models.SparseVector vector)
     {
-        if (vector.Indices.Length != vector.Values.Length)
-            throw new ArgumentException("Indices and Values must have the same length.");
-
         var parts = vector.Indices.Zip(vector.Values, (idx, val) =>
             $"{idx}:{val.ToString("G", System.Globalization.CultureInfo.InvariantCulture)}");
         return $"{{{string.Join(",", parts)}}}";
-    }
-
-    /// <summary>
-    /// Serialize metadata dictionary to a JSON string.
-    /// Used as a parameter value with ::jsonb cast.
-    /// </summary>
-    private static string MetadataToJsonString(IReadOnlyDictionary<string, object?>? metadata)
-    {
-        if (metadata == null || metadata.Count == 0)
-            return "{}";
-
-        var parts = metadata.Select(kvp =>
-        {
-            var key = System.Text.Json.JsonSerializer.Serialize(kvp.Key);
-            var value = kvp.Value switch
-            {
-                null => "null",
-                string s => System.Text.Json.JsonSerializer.Serialize(s),
-                int i => i.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                long l => l.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                double d => d.ToString("G", System.Globalization.CultureInfo.InvariantCulture),
-                float f => f.ToString("G", System.Globalization.CultureInfo.InvariantCulture),
-                bool b => b ? "true" : "false",
-                _ => System.Text.Json.JsonSerializer.Serialize(kvp.Value)
-            };
-            return $"{key}:{value}";
-        });
-
-        return $"{{{string.Join(",", parts)}}}";
-    }
-
-    /// <summary>
-    /// Deserialize a pgvector vector literal '[0.1,0.2,0.3]' to a float[].
-    /// </summary>
-    private static float[]? DeserializeDenseVector(string? value)
-    {
-        if (string.IsNullOrEmpty(value)) return null;
-        // Format: [0.1,0.2,0.3]
-        var trimmed = value.Trim('[', ']');
-        if (trimmed.Length == 0) return Array.Empty<float>();
-        return trimmed.Split(',')
-            .Select(s => float.TryParse(s, System.Globalization.NumberStyles.Float,
-                System.Globalization.CultureInfo.InvariantCulture, out var f) ? f : 0f)
-            .ToArray();
-    }
-
-    /// <summary>
-    /// Deserialize a pgvector sparsevec literal '{idx1:val1,idx2:val2}' to a SparseVector.
-    /// </summary>
-    private static SparseVector? DeserializeSparseVector(string? value)
-    {
-        if (string.IsNullOrEmpty(value)) return null;
-        // Format: {idx1:val1,idx2:val2}
-        var trimmed = value.Trim('{', '}');
-        if (trimmed.Length == 0) return new SparseVector([], []);
-        var pairs = trimmed.Split(',');
-        var indices = new int[pairs.Length];
-        var values = new float[pairs.Length];
-        for (var i = 0; i < pairs.Length; i++)
-        {
-            var parts = pairs[i].Split(':');
-            if (parts.Length == 2)
-            {
-                int.TryParse(parts[0], System.Globalization.NumberStyles.Integer,
-                    System.Globalization.CultureInfo.InvariantCulture, out indices[i]);
-                float.TryParse(parts[1], System.Globalization.NumberStyles.Float,
-                    System.Globalization.CultureInfo.InvariantCulture, out values[i]);
-            }
-        }
-        return new SparseVector(indices, values);
     }
 
     private static IReadOnlyDictionary<string, object?>? DeserializeMetadata(string json)
@@ -443,21 +348,12 @@ public sealed class PgVectorDriver :
 
     internal void RemoveEntry(string txId)
     {
-        if (_connections.TryRemove(txId, out var entry))
-        {
-            _logger?.LogDebug("PgVectorDriver removing transaction {TxId}", txId);
-            entry.Dispose();
-        }
-
-        if (_txLocks.TryRemove(txId, out var gate))
-        {
-            gate.Dispose();
-        }
+        _connectionManager.RemoveEntry(txId);
     }
 
     private SemaphoreSlim GetOrCreateTxLock(string txId)
     {
-        return _txLocks.GetOrAdd(txId, _ => new SemaphoreSlim(1, 1));
+        return _connectionManager.GetOrCreateTxLock(txId);
     }
 
     #endregion
@@ -468,119 +364,7 @@ public sealed class PgVectorDriver :
     {
         if (_disposed) return;
         _disposed = true;
-
-        foreach (var (_, entry) in _connections)
-        {
-            entry.Dispose();
-        }
-        _connections.Clear();
-
-        foreach (var (_, gate) in _txLocks)
-        {
-            gate.Dispose();
-        }
-        _txLocks.Clear();
-    }
-
-    #endregion
-
-    #region Nested types
-
-    private sealed record ConnectionEntry : IDisposable
-    {
-        public NpgsqlConnection Connection { get; }
-        public NpgsqlTransaction LocalTransaction { get; }
-
-        public ConnectionEntry(NpgsqlConnection connection, NpgsqlTransaction localTransaction, Transaction transaction)
-        {
-            Connection = connection;
-            LocalTransaction = localTransaction;
-        }
-
-        public void Dispose()
-        {
-            try { LocalTransaction.Dispose(); } catch { }
-            try { Connection.Dispose(); } catch { }
-        }
-    }
-
-    private sealed class VectorEnlistmentHandler : IEnlistmentNotification
-    {
-        private readonly PgVectorDriver _driver;
-        private readonly string _txId;
-
-        public VectorEnlistmentHandler(PgVectorDriver driver, string txId)
-        {
-            _driver = driver;
-            _txId = txId;
-        }
-
-        void IEnlistmentNotification.Prepare(PreparingEnlistment preparingEnlistment)
-        {
-            try
-            {
-                _driver._logger?.LogDebug("PgVectorDriver [{TxId}] Prepare: voting Prepared", _txId);
-                preparingEnlistment.Prepared();
-            }
-            catch (Exception ex)
-            {
-                _driver._logger?.LogError(ex, "PgVectorDriver [{TxId}] Prepare: force rollback", _txId);
-                preparingEnlistment.ForceRollback();
-            }
-        }
-
-        void IEnlistmentNotification.Commit(Enlistment enlistment)
-        {
-            try
-            {
-                _driver._logger?.LogDebug("PgVectorDriver [{TxId}] Commit: committing local transaction", _txId);
-
-                if (_driver._connections.TryGetValue(_txId, out var entry))
-                {
-                    entry.LocalTransaction.Commit();
-                    _driver._logger?.LogDebug("PgVectorDriver [{TxId}] local transaction committed", _txId);
-                }
-            }
-            catch (Exception ex)
-            {
-                _driver._logger?.LogError(ex, "PgVectorDriver [{TxId}] Commit failed", _txId);
-            }
-            finally
-            {
-                _driver.RemoveEntry(_txId);
-                enlistment.Done();
-            }
-        }
-
-        void IEnlistmentNotification.Rollback(Enlistment enlistment)
-        {
-            try
-            {
-                _driver._logger?.LogDebug("PgVectorDriver [{TxId}] Rollback: rolling back local transaction", _txId);
-
-                if (_driver._connections.TryGetValue(_txId, out var entry))
-                {
-                    entry.LocalTransaction.Rollback();
-                    _driver._logger?.LogDebug("PgVectorDriver [{TxId}] local transaction rolled back", _txId);
-                }
-            }
-            catch (Exception ex)
-            {
-                _driver._logger?.LogError(ex, "PgVectorDriver [{TxId}] Rollback failed", _txId);
-            }
-            finally
-            {
-                _driver.RemoveEntry(_txId);
-                enlistment.Done();
-            }
-        }
-
-        void IEnlistmentNotification.InDoubt(Enlistment enlistment)
-        {
-            _driver._logger?.LogWarning("PgVectorDriver [{TxId}] InDoubt: transaction outcome unknown", _txId);
-            _driver.RemoveEntry(_txId);
-            enlistment.Done();
-        }
+        _connectionManager.Dispose();
     }
 
     #endregion

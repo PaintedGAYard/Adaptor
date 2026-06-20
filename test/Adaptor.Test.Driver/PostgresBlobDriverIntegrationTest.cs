@@ -175,9 +175,8 @@ public sealed class PostgresBlobDriverIntegrationTest : IAsyncLifetime
     /// <summary>
     /// Design: CloseAsync should release the server-side LO descriptor.
     /// After closing, reading via the same loFd should fail.
-    /// SKIPPED: current placeholder implementation is a no-op.
     /// </summary>
-    [Fact(Skip = "Placeholder — CloseAsync is not yet implemented (lo_get/lo_put API has no descriptors to close)")]
+    [Fact]
     public async Task CloseAsync_ShouldReleaseDescriptor()
     {
         // Arrange
@@ -208,10 +207,8 @@ public sealed class PostgresBlobDriverIntegrationTest : IAsyncLifetime
     /// <summary>
     /// Design: SeekAsync should reposition the read/write offset.
     /// After Seek(Begin, 5), ReadAsync(1024) should return bytes starting at offset 5.
-    /// SKIPPED: current placeholder implementation does not actually seek;
-    /// lo_get/lo_put take explicit offsets and don't maintain position state.
     /// </summary>
-    [Fact(Skip = "Placeholder — SeekAsync is not yet implemented (lo_get/lo_put maintain no position; local offset tracking needed)")]
+    [Fact]
     public async Task SeekAsync_ShouldAffectSubsequentReadPosition()
     {
         // Arrange
@@ -243,9 +240,8 @@ public sealed class PostgresBlobDriverIntegrationTest : IAsyncLifetime
     /// <summary>
     /// Design: WriteAsync should write at the current seek position and advance the offset.
     /// After Seek(5), Write(data) should write starting at offset 5, not offset 0.
-    /// SKIPPED: current implementation uses lo_put(oid, 0, data) which always writes at offset 0.
     /// </summary>
-    [Fact(Skip = "Placeholder — WriteAsync always writes at offset 0; local offset tracking + lo_put at tracked offset needed")]
+    [Fact]
     public async Task WriteAsync_ShouldRespectSeekPosition()
     {
         // Arrange
@@ -277,9 +273,8 @@ public sealed class PostgresBlobDriverIntegrationTest : IAsyncLifetime
     /// <summary>
     /// Design: TruncateAsync should shorten the large object to the given length.
     /// After Truncate(3), reading the full blob should return only 3 bytes.
-    /// SKIPPED: current placeholder implementation is a no-op stub.
     /// </summary>
-    [Fact(Skip = "Placeholder — TruncateAsync is not yet implemented (no server-side lo_truncate equivalent via lo_get/lo_put)")]
+    [Fact]
     public async Task TruncateAsync_ShouldShortenBlob()
     {
         // Arrange
