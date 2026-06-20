@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Coding style guideline | Adaptor </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Coding style guideline | Adaptor ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        <div class="article row grid">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="coding-style-guideline">Coding style guideline</h1>
+
+<p>For conciseness, logical <strong>clarity</strong>, and maintainability:</p>
+<ol>
+<li>Code <strong>documentation</strong> should only include the following content:
+<ol>
+<li>Interface contract
+<ul>
+<li>All functions must be documented with full type annotations, along with their parameters, return values, common exceptions, and notable side-effects.</li>
+<li>Only the interface contract is strictly necessary for all code <strong>constructs</strong>. Try your best <strong>not to include</strong> other items.</li>
+</ul>
+</li>
+<li>Summary of Purpose
+<ul>
+<li>Should only be used for complex code constructs such as classes and modules in the vast majority of cases.</li>
+<li>Should be used for simpler constructs such as functions <strong>if and only if</strong> the construct name is not self-explanatory.</li>
+</ul>
+</li>
+<li>Usage example
+<ul>
+<li>Is <strong>only</strong> needed where the code construct in question has complex or counterintuitive behavior.</li>
+</ul>
+</li>
+<li>Remarks
+<ul>
+<li>Should only be used to convey important information related to business logic, such as architectural information or rationale behind design decisions.</li>
+<li><strong>Is not</strong> a place to put random notes.</li>
+<li><strong>Not to be confused with inline comments</strong> (see item 3).</li>
+</ul>
+</li>
+</ol>
+</li>
+<li>Code <strong>documentation</strong> should only focus on external behavior, and <strong>NOT</strong> implementation <strong>details</strong>.</li>
+<li>Comments should only be used to note complex or subtle business logic. <strong>IT IS NOT FOR MAKING RANDOM NOTES UNRELATED TO BUSINESS LOGIC</strong>, nor for stating the obvious.</li>
+<li>Always prefer abstraction over complex logic flow.</li>
+<li>Always consider adding abstraction layer instead of adding a new branch.
+<ul>
+<li>However, this applies <em>when the branching condition represents a conceptual category that may grow or change independently</em> (e.g., file type processing strategies, upload mode strategies). If there are only 2–3 simple branches with low likelihood of expansion, keep it simple.</li>
+</ul>
+</li>
+<li>For <strong>any</strong> function with more than 3 parameters, it is at risk of being overcomplicated. Functions with more than 5 parameters <strong>must</strong> be refactored. Always consider refactoring into a class or using a parameter pack object.</li>
+<li>For <strong>any</strong> function with more than 2 nested layers of basic logic constructs (<code>if</code>/<code>elif</code>/<code>else</code>, <code>for</code>, <code>while</code>, <code>try</code>/<code>except</code>/<code>finally</code>, <code>with</code>, <code>match</code>/<code>case</code>), or containing more than 3 such constructs, it is at risk of being a long method. Always consider refactoring it by breaking it into smaller pieces or transforming it into a class.</li>
+<li>For <strong>any</strong> function with more than 1 nested function, it is at risk of being a long method. Always consider transforming it into a class.</li>
+<li><strong>Error handling strategy</strong>
+<ul>
+<li>Internal logic errors should propagate as exceptions to the caller.</li>
+<li>External interfaces should catch and translate exceptions into structured error responses — prefer a shared helper to avoid repetitive <code>try/except</code> blocks across tools.</li>
+</ul>
+</li>
+<li><strong>Async conventions</strong>
+<ul>
+<li>I/O-bound operations → Run on the calling thread;</li>
+<li>CPU-bound pure computations → Run on thread pool;</li>
+<li>Use Synchronization context to sync continuations as needed if it is available.</li>
+<li>Be mindful of shared mutable state across coroutines — document or guard against race conditions.</li>
+</ul>
+</li>
+<li><strong>Shared mutable state</strong>
+<ul>
+<li>Instance-level mutable state (e.g., accumulators, phase trackers) must be documented with thread/coroutine safety considerations.</li>
+<li>If a method modifies shared state, that is a <strong>side-effect</strong> and must be declared in the interface contract (see item 1.1).</li>
+</ul>
+</li>
+<li><strong>DO NOT HANDCRAFT COMMANDS WITH STRING CONCAT</strong>
+<ul>
+<li><strong>Always</strong> use parameterized query</li>
+<li><strong>Always</strong> use script function with parameters</li>
+</ul>
+</li>
+</ol>
+<h2 id="notable-exceptions">Notable exceptions</h2>
+<p>Interface from external dependencies might have different requirements and styles, especially:</p>
+<ul>
+<li>Database interfaces</li>
+<li>Independent providers this project depends on</li>
+</ul>
+<p>In this case, follow the requirement of said dependencies.</p>
+<h1 id="language-usage-guideline">Language Usage Guideline</h1>
+<ol>
+<li>Always use English for source code documentation and inline comments.
+<ul>
+<li>If the programming language/dev tool supports documentation localization, always produce a Chinese localization file.</li>
+</ul>
+</li>
+<li>For all other files, including but not limited to design documents and agent prompts:
+<ol>
+<li>A working document uses English and Chinese as working languages, where:
+<ul>
+<li>Always use Chinese in conceptual content, such as architectural design, data flows, and relationships.</li>
+<li>Always use English in rules, guidelines, and logical content.</li>
+</ul>
+</li>
+<li>Always produce a Chinese and/or an English translation document based on the working document as needed. For example, if a working document is fully English, produce a Chinese translation. For another example, if a working document is written in mixed language, produce both translations.</li>
+<li>In the comparison between the working document and the translation, the working document shall prevail.</li>
+</ol>
+</li>
+</ol>
+<h1 id="work-log-guideline">Work Log Guideline</h1>
+<h2 id="todo">TODO</h2>
+<p>A flat, single-level checklist updated as work progresses. Check off items
+(<code>- [x]</code>) when completed. Add new items as they arise. The TODO file lives
+in the job folder alongside other work logs.</p>
+<pre><code>TODO.md
+- [x] Task A
+- [ ] Task B
+- [ ] Task C
+</code></pre>
+<p>The TODO is a <strong>living document</strong> — review and check items after each entry
+in the work note, not just at the end of the session.</p>
+<h2 id="work-notes">Work Notes</h2>
+<p>Work notes are <strong>real-time progress logs</strong> written during a
+work session. They serve as a granular, timestamped record of actions taken,
+decisions made, and findings encountered — supplementing the planning document
+(<code>Testing Plan.md</code>), task tracker (<code>TODO.md</code>), and retrospective report
+(<code>Work Summary.md</code>) that live alongside them in the same job folder.</p>
+<h3 id="note-format">Note format</h3>
+<h4 id="file-naming">File naming</h4>
+<pre><code>YYYY-MM-DD.HHmm-HHmm.Short-Description.md
+</code></pre>
+<p>One file = one continuous work session. A workday may contain 1–5 sessions.</p>
+<h4 id="frontmatter">Frontmatter</h4>
+<p>Every note file must begin with a YAML frontmatter block:</p>
+<pre><code class="lang-yaml">---
+session_start: 2026-06-20T09:30:00+00:00
+session_end: 2026-06-20T18:30:00+00:00
+tags: [tag1, tag2, tag3]
+revisit:
+  - &quot;Component X requires further testing&quot;
+  - &quot;YYY.cs line 123 - better async handling&quot;
+files:
+  - src/**/*.ext
+---
+</code></pre>
+<p>Frontmatter fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>session_start</code> / <code>session_end</code></td>
+<td>Yes</td>
+<td>Precise time range; enables chronological queries</td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td>Yes</td>
+<td>Keywords for categorization and search</td>
+</tr>
+<tr>
+<td><code>revisit</code></td>
+<td>No</td>
+<td>Accumulating list of items to revisit in a future cycle</td>
+</tr>
+<tr>
+<td><code>files</code></td>
+<td>No</td>
+<td>Source files touched during this session</td>
+</tr>
+</tbody>
+</table>
+<h4 id="body-structure">Body structure</h4>
+<p>The body is organized into <strong>entries</strong> — each entry is a self-contained unit
+modeled after a small GitHub issue. An entry may describe a task, a bug fix,
+a design decision, an exploration, a problem encountered, or any other
+meaningful unit of work.</p>
+<pre><code class="lang-markdown"># [dd HH:MM] Brief session title
+
+## Context
+Background and motivation for this session. 1–2 paragraphs.
+
+## Entries
+
+### Short descriptive title
+&gt; time: [dd HH:MM] · status: resolved | deferred | blocked | in-progress | discarded | ... · tags: bugfix, driver, pgvector, ...
+
+Free-form body. Cross-reference source files, design documents, companion
+files (`Testing Plan.md`, `TODO.md`, `Work Summary.md`), or other entries.
+
+### Another entry
+&gt; time: [dd HH:MM] · status: deferred · tags: placeholder, blob
+
+Body text...
+
+## Delta
+Quantifiable changes produced during this session.
+
+## Next
+Immediate follow-up tasks. Bullet list.
+</code></pre>
+<h3 id="entry-metadata-rules">Entry metadata rules</h3>
+<p>Each entry must start with a <code>&gt;</code> line containing <code>time</code>, <code>status</code>, and <code>tags</code>,
+separated by <code>·</code> (U+00B7).</p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>resolved</code></td>
+<td>Task completed, bug fixed, decision made</td>
+</tr>
+<tr>
+<td><code>deferred</code></td>
+<td>Acknowledged but intentionally postponed to a later cycle</td>
+</tr>
+<tr>
+<td><code>blocked</code></td>
+<td>Cannot proceed because of an external dependency</td>
+</tr>
+<tr>
+<td><code>in-progress</code></td>
+<td>Currently being worked on</td>
+</tr>
+<tr>
+<td><code>discarded</code></td>
+<td>Explored and rejected</td>
+</tr>
+</tbody>
+</table>
+<p>Tags are lowercase, hyphen-separated. Reuse existing tags when possible.</p>
+<h3 id="timetamp-rule">Timetamp Rule</h3>
+<ul>
+<li><strong>Always</strong> use UTC+0 for any timestamp format that does not include timezone information.</li>
+<li><strong>Always</strong> use script to print timestamp. <strong>Never</strong> write it or generate it.</li>
+<li>You may use <code>----</code> as placeholder for timestamps that can not be decided at the moment. e.g. &quot;Work ended&quot;. And replace it with the proper timestamp afterwards.</li>
+</ul>
+<h3 id="relationship-with-other-files">Relationship with other files</h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>When</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Testing Plan.md</code></td>
+<td>Before work</td>
+<td>Outlines goals and approach</td>
+</tr>
+<tr>
+<td><code>TODO.md</code></td>
+<td>During work</td>
+<td>Task tracking; updated as items are completed or added</td>
+</tr>
+<tr>
+<td>Work note</td>
+<td><strong>During work</strong></td>
+<td><strong>Real-time progress record</strong></td>
+</tr>
+<tr>
+<td><code>Work Summary.md</code></td>
+<td>After work</td>
+<td>Retrospective engineering report</td>
+</tr>
+</tbody>
+</table>
+<p>The work note is <strong>not</strong> a summary and <strong>not</strong> a replacement for any of the
+above. It is an auxiliary record that provides context the other files cannot:
+timestamps, step-by-step actions, intermediate findings, and the raw timeline
+of decisions.</p>
+<h3 id="style-rules">Style rules</h3>
+<ol>
+<li>Write entries as work progresses, not after the fact.</li>
+<li>Keep entries short and focused. If an entry exceeds ~200 lines, consider
+splitting it into multiple entries.</li>
+<li>Use <code>[file:path]</code> to reference source files. Use <code>[entry:title]</code> to
+cross-reference other entries within the same file.</li>
+<li>Do not repeat information already recorded in <code>Testing Plan.md</code> or
+<code>TODO.md</code> — reference them instead.</li>
+<li>The <code>revisit</code> field in frontmatter should be updated at the end of each
+session: add new items, remove resolved ones. This keeps it as a live
+tech-debt accumulator.</li>
+</ol>
+<h2 id="work-summary">Work Summary</h2>
+<p>A &quot;Work Summary&quot; must be structured as a proper engineering report. At a minimum, it must contain the following major sections:</p>
+<ol>
+<li>A table of contents (TOC)</li>
+<li>Summary</li>
+<li>Background</li>
+<li>Plan</li>
+<li>Work performed</li>
+<li>Unfinished work</li>
+</ol>
+<h3 id="section-descriptions">Section descriptions</h3>
+<p><strong>Table of contents</strong><br>
+Provide a nested numbered list that indexes all sections and subsections in the report. Do not use numbering in the section titles themselves.</p>
+<p><strong>Background</strong><br>
+Summarize the project's status prior to this work, highlighting any specific points of interest that motivated or influenced the current effort. Clearly state the goals and expected outcomes of this work.</p>
+<p><strong>Plan</strong><br>
+Give a concise summary of the intended approach. For the detailed breakdown, reference a separate <code>TODO.md</code> file (or equivalent task-tracking system).</p>
+<p><strong>Work performed</strong><br>
+Provide a detailed, factual record covering two distinct aspects:</p>
+<ul>
+<li><strong>Output</strong>: Describe exactly what was produced during this work (e.g., code, designs, tests, documentation).</li>
+<li><strong>Discoveries</strong>: Document all findings made during the work, including but not limited to poor design choices, unforeseen difficulties, and issues that were identified but intentionally left unresolved in this cycle.</li>
+</ul>
+<p><strong>Unfinished work</strong><br>
+Based on the outputs and discoveries listed above, clearly enumerate what tasks or issues remain to be addressed in the future.</p>
+<p><strong>Summary</strong><br>
+Write a 1–2 paragraph condensation of the entire report <strong>after you finish writing everthing else</strong>. Place this summary immediately after the table of contents and before the Background section.</p>
+<h3 id="formatting-notes">Formatting notes</h3>
+<ol>
+<li>You may introduce subsections within any major section to improve organization and readability.</li>
+<li>You may choose alternative titles for the major sections, provided the content framework described above remains intact.</li>
+<li>To simplify maintenance and editing, <strong>do not</strong> include numbered prefixes (e.g., &quot;1.&quot;, &quot;2.1&quot;) in any section or subsection titles. All indexing must be handled exclusively through the table of contents, which must be formatted as a nested numbered list.</li>
+</ol>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/Design/Working Guidelines.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      Copyright © 2026 Mingxi "Lucien" Du
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Architecture Overview | Adaptor </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Architecture Overview | Adaptor ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        <div class="article row grid">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="architecture-overview">Architecture Overview</h1>
+
+<h2 id="layered-design">Layered Design</h2>
+<pre><code>┌──────────────────────────────────────────────────────────┐
+│  Consumer Layer                                           │
+│  (Python / JavaScript / Go / ... 缺乏 DTC 的运行时)      │
+│                                                            │
+│  tx = client.Begin()                                       │
+│  client.SqlQuery(tx, &quot;SELECT ...&quot;)                        │
+│  client.VectorSearch(tx, embedding)                        │
+│  client.BlobUpload(tx, &quot;file.bin&quot;, data)                   │
+│  client.Commit(tx)    /    client.Rollback(tx)             │
+└──────────────────────────┬───────────────────────────────┘
+                           │ gRPC
+┌──────────────────────────▼───────────────────────────────┐
+│  Adaptor Service Layer                                    │
+│  (.NET 10 gRPC 服务)                                      │
+│                                                            │
+│  ┌────────────────────────────────────────────────────┐   │
+│  │  TransactionCoordinator                             │   │
+│  │  ┌──────────────────────────────────────────────┐  │   │
+│  │  │  System.Transactions Abstraction              │  │   │
+│  │  │  - CommittableTransaction                     │  │   │
+│  │  │  - TransactionScope                            │  │   │
+│  │  └──────────────────────────────────────────────┘  │   │
+│  │  ┌──────────────────────────────────────────────┐  │   │
+│  │  │  All or Nothing 策略引擎                      │  │   │
+│  │  │  - Prepare Phase (投票)                      │  │   │
+│  │  │  - Commit Phase (决定 + 重试)                │  │   │
+│  │  │  - Rollback Phase (补偿)                     │  │   │
+│  │  └──────────────────────────────────────────────┘  │   │
+│  │  ┌──────────────────────────────────────────────┐  │   │
+│  │  │  Session / KeepAlive / Timeout 管理          │  │   │
+│  │  └──────────────────────────────────────────────┘  │   │
+│  └────────────────────────────────────────────────────┘   │
+│                                                            │
+│  ┌────────────────────────────────────────────────────┐   │
+│  │  Semantic Kernel Orchestration                     │   │
+│  │  (Kernel + KernelPlugin + KernelFunction)          │   │
+│  └────────────────────────────────────────────────────┘   │
+│                                                            │
+│  ┌──────────────┬──────────────┬──────────────────────┐   │
+│  │  SQL          │  Vector       │  BLOB                 │   │
+│  │  Resource     │  Resource     │  Resource             │   │
+│  │  Manager      │  Manager      │  Manager              │   │
+│  │  IResourceManager              │ IResourceManager          │
+└──────────────────────────┬───────────────────────────────┘
+                           │ Driver SPI
+┌──────────────────────────▼───────────────────────────────┐
+│  Driver Layer                                             │
+│  (PostgreSQL, future: MySQL, Azure Blob, ...)             │
+└──────────────────────────────────────────────────────────┘
+</code></pre>
+<h2 id="core-abstractions">Core Abstractions</h2>
+<h3 id="iresourcemanager"><code>IResourceManager</code></h3>
+<p>Base interface for all storage drivers. Provides identity (<code>Name</code>, <code>ResourceType</code>, <code>ResourceManagerIdentifier</code>) and serves as the common contract.</p>
+<h3 id="itransactionalresourcemanager"><code>ITransactionalResourceManager</code></h3>
+<p>Extends <code>IResourceManager</code> for drivers that participate in distributed transaction coordination via <code>System.Transactions</code>. Drivers call <code>Transaction.EnlistVolatile</code> or <code>Transaction.EnlistDurable</code> to register.</p>
+<h3 id="capability-interfaces">Capability Interfaces</h3>
+<p>Orthogonal interfaces that drivers implement to expose functionality:</p>
+<ul>
+<li><code>IRelationalExecuteCapability</code> — Execute SQL commands</li>
+<li><code>IRelationalQueryCapability</code> — Query relational data</li>
+<li><code>IRelationalVectorSearchCapability</code> — Vector similarity search</li>
+<li><code>IBlobUploadCapability</code> — Upload BLOB data</li>
+<li><code>IBlobDownloadCapability</code> — Download BLOB data</li>
+<li><code>IBlobRandomAccessCapability</code> — Random access to BLOB data</li>
+<li><code>IHealthCheckCapability</code> — Health check endpoint</li>
+</ul>
+<h2 id="transaction-flow">Transaction Flow</h2>
+<ol>
+<li><strong>Begin</strong> — Consumer requests a new transaction via gRPC</li>
+<li><strong>Enlist</strong> — Drivers implementing <code>ITransactionalResourceManager</code> enlist in the .NET <code>Transaction</code></li>
+<li><strong>Operation</strong> — Consumer performs SQL/Vector/BLOB operations within the transaction scope</li>
+<li><strong>Commit/Rollback</strong> — Consumer issues commit or rollback; <code>TransactionCoordinator</code> orchestrates the two-phase commit protocol</li>
+<li><strong>Completion</strong> — All resources are finalized</li>
+</ol>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/doc-gen/articles/architecture.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      Copyright © 2026 Mingxi "Lucien" Du
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

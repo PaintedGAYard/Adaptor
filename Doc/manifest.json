@@ -11,11 +11,41 @@
       }
     },
     {
+      "type": "Conceptual",
+      "source_relative_path": "Design/BLOB-STREAM-DESIGN.md",
+      "output": {
+        ".html": {
+          "relative_path": "design/BLOB-STREAM-DESIGN.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "Design/DETAILED-DESIGN.md",
+      "output": {
+        ".html": {
+          "relative_path": "design/DETAILED-DESIGN.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "Design/Working Guidelines.md",
+      "output": {
+        ".html": {
+          "relative_path": "design/Working Guidelines.html"
+        }
+      },
+      "version": ""
+    },
+    {
       "type": "ManagedReference",
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.BlobAccessMode.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.BlobAccessMode.html"
+          "relative_path": "api/Adaptor.Coordinator.Abstractions.BlobAccessMode.html"
         }
       },
       "version": "",
@@ -29,7 +59,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IBlobDownloadCapability.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IBlobDownloadCapability.html"
+          "relative_path": "api/Adaptor.Coordinator.Abstractions.IBlobDownloadCapability.html"
         }
       },
       "version": "",
@@ -43,7 +73,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.html"
+          "relative_path": "api/Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.html"
         }
       },
       "version": "",
@@ -57,7 +87,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IBlobUploadCapability.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IBlobUploadCapability.html"
+          "relative_path": "api/Adaptor.Coordinator.Abstractions.IBlobUploadCapability.html"
         }
       },
       "version": "",
@@ -71,7 +101,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IHealthCheckCapability.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IHealthCheckCapability.html"
+          "relative_path": "api/Adaptor.Coordinator.Abstractions.IHealthCheckCapability.html"
         }
       },
       "version": "",
@@ -85,7 +115,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IRelationalExecuteCapability.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IRelationalExecuteCapability.html"
+          "relative_path": "api/Adaptor.Coordinator.Abstractions.IRelationalExecuteCapability.html"
         }
       },
       "version": "",
@@ -99,7 +129,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IRelationalQueryCapability.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IRelationalQueryCapability.html"
+          "relative_path": "api/Adaptor.Coordinator.Abstractions.IRelationalQueryCapability.html"
         }
       },
       "version": "",
@@ -113,7 +143,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IRelationalVectorSearchCapability.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IRelationalVectorSearchCapability.html"
+          "relative_path": "api/Adaptor.Coordinator.Abstractions.IRelationalVectorSearchCapability.html"
         }
       },
       "version": "",
@@ -127,7 +157,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IResourceManager.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IResourceManager.html"
+          "relative_path": "api/Adaptor.Coordinator.Abstractions.IResourceManager.html"
         }
       },
       "version": "",
@@ -141,7 +171,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.ITransactionalResourceManager.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.ITransactionalResourceManager.html"
+          "relative_path": "api/Adaptor.Coordinator.Abstractions.ITransactionalResourceManager.html"
         }
       },
       "version": "",
@@ -155,7 +185,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.ResourceManagerExtensions.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.ResourceManagerExtensions.html"
+          "relative_path": "api/Adaptor.Coordinator.Abstractions.ResourceManagerExtensions.html"
         }
       },
       "version": "",
@@ -169,7 +199,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.ResourceType.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.ResourceType.html"
+          "relative_path": "api/Adaptor.Coordinator.Abstractions.ResourceType.html"
         }
       },
       "version": "",
@@ -183,7 +213,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.TransactionCapabilities.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.TransactionCapabilities.html"
+          "relative_path": "api/Adaptor.Coordinator.Abstractions.TransactionCapabilities.html"
         }
       },
       "version": "",
@@ -197,7 +227,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.html"
+          "relative_path": "api/Adaptor.Coordinator.Abstractions.html"
         }
       },
       "version": "",
@@ -211,7 +241,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Configuration.CoordinatorOptions.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Configuration.CoordinatorOptions.html"
+          "relative_path": "api/Adaptor.Coordinator.Configuration.CoordinatorOptions.html"
         }
       },
       "version": "",
@@ -225,7 +255,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Configuration.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Configuration.html"
+          "relative_path": "api/Adaptor.Coordinator.Configuration.html"
         }
       },
       "version": "",
@@ -239,7 +269,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BeginTransactionResult.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BeginTransactionResult.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.BeginTransactionResult.html"
         }
       },
       "version": "",
@@ -253,7 +283,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobDownloadRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobDownloadRequest.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.BlobDownloadRequest.html"
         }
       },
       "version": "",
@@ -267,7 +297,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobDownloadResult.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobDownloadResult.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.BlobDownloadResult.html"
         }
       },
       "version": "",
@@ -281,7 +311,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobOpenResult.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobOpenResult.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.BlobOpenResult.html"
         }
       },
       "version": "",
@@ -295,7 +325,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobReadResult.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobReadResult.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.BlobReadResult.html"
         }
       },
       "version": "",
@@ -309,7 +339,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobUploadRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobUploadRequest.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.BlobUploadRequest.html"
         }
       },
       "version": "",
@@ -323,7 +353,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobUploadResult.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobUploadResult.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.BlobUploadResult.html"
         }
       },
       "version": "",
@@ -337,7 +367,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.CommitResult.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.CommitResult.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.CommitResult.html"
         }
       },
       "version": "",
@@ -351,7 +381,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.CommitStatus.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.CommitStatus.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.CommitStatus.html"
         }
       },
       "version": "",
@@ -365,7 +395,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.DriverCommitResult.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.DriverCommitResult.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.DriverCommitResult.html"
         }
       },
       "version": "",
@@ -379,7 +409,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalExecuteRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalExecuteRequest.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.RelationalExecuteRequest.html"
         }
       },
       "version": "",
@@ -393,7 +423,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalExecuteResult.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalExecuteResult.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.RelationalExecuteResult.html"
         }
       },
       "version": "",
@@ -407,7 +437,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalParameter.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalParameter.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.RelationalParameter.html"
         }
       },
       "version": "",
@@ -421,7 +451,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalQueryRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalQueryRequest.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.RelationalQueryRequest.html"
         }
       },
       "version": "",
@@ -435,7 +465,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalQueryResult.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalQueryResult.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.RelationalQueryResult.html"
         }
       },
       "version": "",
@@ -449,7 +479,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalVectorSearchRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalVectorSearchRequest.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.RelationalVectorSearchRequest.html"
         }
       },
       "version": "",
@@ -463,7 +493,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.SessionContext.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.SessionContext.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.SessionContext.html"
         }
       },
       "version": "",
@@ -477,7 +507,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.SparseVector.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.SparseVector.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.SparseVector.html"
         }
       },
       "version": "",
@@ -491,7 +521,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.VectorSearchHit.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.VectorSearchHit.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.VectorSearchHit.html"
         }
       },
       "version": "",
@@ -505,7 +535,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.VectorSearchResult.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.VectorSearchResult.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.VectorSearchResult.html"
         }
       },
       "version": "",
@@ -519,7 +549,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.html"
+          "relative_path": "api/Adaptor.Coordinator.Models.html"
         }
       },
       "version": "",
@@ -533,7 +563,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.RelationalPlugin.BatchItem.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.RelationalPlugin.BatchItem.html"
+          "relative_path": "api/Adaptor.Coordinator.Plugins.RelationalPlugin.BatchItem.html"
         }
       },
       "version": "",
@@ -547,7 +577,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.RelationalPlugin.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.RelationalPlugin.html"
+          "relative_path": "api/Adaptor.Coordinator.Plugins.RelationalPlugin.html"
         }
       },
       "version": "",
@@ -561,7 +591,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.TransactionPlugin.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.TransactionPlugin.html"
+          "relative_path": "api/Adaptor.Coordinator.Plugins.TransactionPlugin.html"
         }
       },
       "version": "",
@@ -575,7 +605,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.VectorSearchPlugin.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.VectorSearchPlugin.html"
+          "relative_path": "api/Adaptor.Coordinator.Plugins.VectorSearchPlugin.html"
         }
       },
       "version": "",
@@ -589,7 +619,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.html"
+          "relative_path": "api/Adaptor.Coordinator.Plugins.html"
         }
       },
       "version": "",
@@ -603,7 +633,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.ServiceCollectionExtensions.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.ServiceCollectionExtensions.html"
+          "relative_path": "api/Adaptor.Coordinator.ServiceCollectionExtensions.html"
         }
       },
       "version": "",
@@ -617,7 +647,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Services.SessionManager.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Services.SessionManager.html"
+          "relative_path": "api/Adaptor.Coordinator.Services.SessionManager.html"
         }
       },
       "version": "",
@@ -631,7 +661,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Services.TransactionCoordinator.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Services.TransactionCoordinator.html"
+          "relative_path": "api/Adaptor.Coordinator.Services.TransactionCoordinator.html"
         }
       },
       "version": "",
@@ -645,7 +675,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Services.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Services.html"
+          "relative_path": "api/Adaptor.Coordinator.Services.html"
         }
       },
       "version": "",
@@ -659,7 +689,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.html"
+          "relative_path": "api/Adaptor.Coordinator.html"
         }
       },
       "version": "",
@@ -673,7 +703,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.NpgsqlConnectionManager.ConnectionEntry.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.NpgsqlConnectionManager.ConnectionEntry.html"
+          "relative_path": "api/Adaptor.Driver.Postgre.NpgsqlConnectionManager.ConnectionEntry.html"
         }
       },
       "version": "",
@@ -687,7 +717,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.NpgsqlConnectionManager.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.NpgsqlConnectionManager.html"
+          "relative_path": "api/Adaptor.Driver.Postgre.NpgsqlConnectionManager.html"
         }
       },
       "version": "",
@@ -701,7 +731,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.PgVectorDriver.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.PgVectorDriver.html"
+          "relative_path": "api/Adaptor.Driver.Postgre.PgVectorDriver.html"
         }
       },
       "version": "",
@@ -715,7 +745,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.PostgreSqlDriver.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.PostgreSqlDriver.html"
+          "relative_path": "api/Adaptor.Driver.Postgre.PostgreSqlDriver.html"
         }
       },
       "version": "",
@@ -729,7 +759,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.PostgresBlobDriver.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.PostgresBlobDriver.html"
+          "relative_path": "api/Adaptor.Driver.Postgre.PostgresBlobDriver.html"
         }
       },
       "version": "",
@@ -743,7 +773,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.ServiceCollectionExtensions.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.ServiceCollectionExtensions.html"
+          "relative_path": "api/Adaptor.Driver.Postgre.ServiceCollectionExtensions.html"
         }
       },
       "version": "",
@@ -757,7 +787,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.html"
+          "relative_path": "api/Adaptor.Driver.Postgre.html"
         }
       },
       "version": "",
@@ -771,7 +801,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.Abstractions.IConnectionIdProvider.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.Abstractions.IConnectionIdProvider.html"
+          "relative_path": "api/Adaptor.Service.Abstractions.IConnectionIdProvider.html"
         }
       },
       "version": "",
@@ -785,7 +815,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.Abstractions.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.Abstractions.html"
+          "relative_path": "api/Adaptor.Service.Abstractions.html"
         }
       },
       "version": "",
@@ -799,7 +829,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.AdaptorReflection.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.AdaptorReflection.html"
+          "relative_path": "api/Adaptor.Service.AdaptorReflection.html"
         }
       },
       "version": "",
@@ -813,7 +843,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BatchCommand.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BatchCommand.html"
+          "relative_path": "api/Adaptor.Service.BatchCommand.html"
         }
       },
       "version": "",
@@ -827,7 +857,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BeginTransactionRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BeginTransactionRequest.html"
+          "relative_path": "api/Adaptor.Service.BeginTransactionRequest.html"
         }
       },
       "version": "",
@@ -841,7 +871,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BeginTransactionResponse.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BeginTransactionResponse.html"
+          "relative_path": "api/Adaptor.Service.BeginTransactionResponse.html"
         }
       },
       "version": "",
@@ -855,7 +885,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobDeleteRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobDeleteRequest.html"
+          "relative_path": "api/Adaptor.Service.BlobDeleteRequest.html"
         }
       },
       "version": "",
@@ -869,7 +899,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobDeleteResponse.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobDeleteResponse.html"
+          "relative_path": "api/Adaptor.Service.BlobDeleteResponse.html"
         }
       },
       "version": "",
@@ -883,7 +913,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobDownloadRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobDownloadRequest.html"
+          "relative_path": "api/Adaptor.Service.BlobDownloadRequest.html"
         }
       },
       "version": "",
@@ -897,7 +927,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobDownloadResponse.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobDownloadResponse.html"
+          "relative_path": "api/Adaptor.Service.BlobDownloadResponse.html"
         }
       },
       "version": "",
@@ -911,7 +941,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobListRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobListRequest.html"
+          "relative_path": "api/Adaptor.Service.BlobListRequest.html"
         }
       },
       "version": "",
@@ -925,7 +955,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobListResponse.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobListResponse.html"
+          "relative_path": "api/Adaptor.Service.BlobListResponse.html"
         }
       },
       "version": "",
@@ -939,7 +969,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStream.BlobStreamSessionEntry.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStream.BlobStreamSessionEntry.html"
+          "relative_path": "api/Adaptor.Service.BlobStream.BlobStreamSessionEntry.html"
         }
       },
       "version": "",
@@ -953,7 +983,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStream.BlobStreamSessionParams.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStream.BlobStreamSessionParams.html"
+          "relative_path": "api/Adaptor.Service.BlobStream.BlobStreamSessionParams.html"
         }
       },
       "version": "",
@@ -967,7 +997,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStream.BlobStreamSessionStore.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStream.BlobStreamSessionStore.html"
+          "relative_path": "api/Adaptor.Service.BlobStream.BlobStreamSessionStore.html"
         }
       },
       "version": "",
@@ -981,7 +1011,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStream.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStream.html"
+          "relative_path": "api/Adaptor.Service.BlobStream.html"
         }
       },
       "version": "",
@@ -995,7 +1025,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamControl.BlobStreamControlBase.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamControl.BlobStreamControlBase.html"
+          "relative_path": "api/Adaptor.Service.BlobStreamControl.BlobStreamControlBase.html"
         }
       },
       "version": "",
@@ -1009,7 +1039,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamControl.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamControl.html"
+          "relative_path": "api/Adaptor.Service.BlobStreamControl.html"
         }
       },
       "version": "",
@@ -1023,7 +1053,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamSessionEndRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamSessionEndRequest.html"
+          "relative_path": "api/Adaptor.Service.BlobStreamSessionEndRequest.html"
         }
       },
       "version": "",
@@ -1037,7 +1067,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamSessionEndResponse.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamSessionEndResponse.html"
+          "relative_path": "api/Adaptor.Service.BlobStreamSessionEndResponse.html"
         }
       },
       "version": "",
@@ -1051,7 +1081,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamSessionRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamSessionRequest.html"
+          "relative_path": "api/Adaptor.Service.BlobStreamSessionRequest.html"
         }
       },
       "version": "",
@@ -1065,7 +1095,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamSessionResponse.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamSessionResponse.html"
+          "relative_path": "api/Adaptor.Service.BlobStreamSessionResponse.html"
         }
       },
       "version": "",
@@ -1079,7 +1109,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobUploadRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobUploadRequest.html"
+          "relative_path": "api/Adaptor.Service.BlobUploadRequest.html"
         }
       },
       "version": "",
@@ -1093,7 +1123,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobUploadResponse.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobUploadResponse.html"
+          "relative_path": "api/Adaptor.Service.BlobUploadResponse.html"
         }
       },
       "version": "",
@@ -1107,7 +1137,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.CommitStatus.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.CommitStatus.html"
+          "relative_path": "api/Adaptor.Service.CommitStatus.html"
         }
       },
       "version": "",
@@ -1121,7 +1151,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.CommitTransactionRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.CommitTransactionRequest.html"
+          "relative_path": "api/Adaptor.Service.CommitTransactionRequest.html"
         }
       },
       "version": "",
@@ -1135,7 +1165,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.CommitTransactionResponse.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.CommitTransactionResponse.html"
+          "relative_path": "api/Adaptor.Service.CommitTransactionResponse.html"
         }
       },
       "version": "",
@@ -1149,7 +1179,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.DBBLOB.DBBLOBBase.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.DBBLOB.DBBLOBBase.html"
+          "relative_path": "api/Adaptor.Service.DBBLOB.DBBLOBBase.html"
         }
       },
       "version": "",
@@ -1163,7 +1193,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.DBBLOB.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.DBBLOB.html"
+          "relative_path": "api/Adaptor.Service.DBBLOB.html"
         }
       },
       "version": "",
@@ -1177,7 +1207,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.DBRelational.DBRelationalBase.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.DBRelational.DBRelationalBase.html"
+          "relative_path": "api/Adaptor.Service.DBRelational.DBRelationalBase.html"
         }
       },
       "version": "",
@@ -1191,7 +1221,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.DBRelational.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.DBRelational.html"
+          "relative_path": "api/Adaptor.Service.DBRelational.html"
         }
       },
       "version": "",
@@ -1205,7 +1235,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.DBRelationalVector.DBRelationalVectorBase.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.DBRelationalVector.DBRelationalVectorBase.html"
+          "relative_path": "api/Adaptor.Service.DBRelationalVector.DBRelationalVectorBase.html"
         }
       },
       "version": "",
@@ -1219,7 +1249,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.DBRelationalVector.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.DBRelationalVector.html"
+          "relative_path": "api/Adaptor.Service.DBRelationalVector.html"
         }
       },
       "version": "",
@@ -1233,7 +1263,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.DriverCommitResult.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.DriverCommitResult.html"
+          "relative_path": "api/Adaptor.Service.DriverCommitResult.html"
         }
       },
       "version": "",
@@ -1247,7 +1277,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.GetTransactionStatusRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.GetTransactionStatusRequest.html"
+          "relative_path": "api/Adaptor.Service.GetTransactionStatusRequest.html"
         }
       },
       "version": "",
@@ -1261,7 +1291,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.GetTransactionStatusResponse.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.GetTransactionStatusResponse.html"
+          "relative_path": "api/Adaptor.Service.GetTransactionStatusResponse.html"
         }
       },
       "version": "",
@@ -1275,7 +1305,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.GreetReflection.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.GreetReflection.html"
+          "relative_path": "api/Adaptor.Service.GreetReflection.html"
         }
       },
       "version": "",
@@ -1289,7 +1319,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.Greeter.GreeterBase.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.Greeter.GreeterBase.html"
+          "relative_path": "api/Adaptor.Service.Greeter.GreeterBase.html"
         }
       },
       "version": "",
@@ -1303,7 +1333,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.Greeter.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.Greeter.html"
+          "relative_path": "api/Adaptor.Service.Greeter.html"
         }
       },
       "version": "",
@@ -1317,7 +1347,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.HelloReply.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.HelloReply.html"
+          "relative_path": "api/Adaptor.Service.HelloReply.html"
         }
       },
       "version": "",
@@ -1331,7 +1361,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.HelloRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.HelloRequest.html"
+          "relative_path": "api/Adaptor.Service.HelloRequest.html"
         }
       },
       "version": "",
@@ -1345,7 +1375,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.Middleware.GrpcLoggingInterceptor.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.Middleware.GrpcLoggingInterceptor.html"
+          "relative_path": "api/Adaptor.Service.Middleware.GrpcLoggingInterceptor.html"
         }
       },
       "version": "",
@@ -1359,7 +1389,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.Middleware.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.Middleware.html"
+          "relative_path": "api/Adaptor.Service.Middleware.html"
         }
       },
       "version": "",
@@ -1373,7 +1403,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.RelationalExecuteBatchRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.RelationalExecuteBatchRequest.html"
+          "relative_path": "api/Adaptor.Service.RelationalExecuteBatchRequest.html"
         }
       },
       "version": "",
@@ -1387,7 +1417,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.RelationalExecuteBatchResponse.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.RelationalExecuteBatchResponse.html"
+          "relative_path": "api/Adaptor.Service.RelationalExecuteBatchResponse.html"
         }
       },
       "version": "",
@@ -1401,7 +1431,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.RelationalExecuteRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.RelationalExecuteRequest.html"
+          "relative_path": "api/Adaptor.Service.RelationalExecuteRequest.html"
         }
       },
       "version": "",
@@ -1415,7 +1445,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.RelationalExecuteResponse.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.RelationalExecuteResponse.html"
+          "relative_path": "api/Adaptor.Service.RelationalExecuteResponse.html"
         }
       },
       "version": "",
@@ -1429,7 +1459,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.RelationalParameter.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.RelationalParameter.html"
+          "relative_path": "api/Adaptor.Service.RelationalParameter.html"
         }
       },
       "version": "",
@@ -1443,7 +1473,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.RelationalQueryRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.RelationalQueryRequest.html"
+          "relative_path": "api/Adaptor.Service.RelationalQueryRequest.html"
         }
       },
       "version": "",
@@ -1457,7 +1487,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.RelationalQueryResponse.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.RelationalQueryResponse.html"
+          "relative_path": "api/Adaptor.Service.RelationalQueryResponse.html"
         }
       },
       "version": "",
@@ -1471,7 +1501,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.RelationalVectorSearchRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.RelationalVectorSearchRequest.html"
+          "relative_path": "api/Adaptor.Service.RelationalVectorSearchRequest.html"
         }
       },
       "version": "",
@@ -1485,7 +1515,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.RollbackTransactionRequest.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.RollbackTransactionRequest.html"
+          "relative_path": "api/Adaptor.Service.RollbackTransactionRequest.html"
         }
       },
       "version": "",
@@ -1499,7 +1529,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.RollbackTransactionResponse.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.RollbackTransactionResponse.html"
+          "relative_path": "api/Adaptor.Service.RollbackTransactionResponse.html"
         }
       },
       "version": "",
@@ -1513,7 +1543,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.Row.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.Row.html"
+          "relative_path": "api/Adaptor.Service.Row.html"
         }
       },
       "version": "",
@@ -1527,7 +1557,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.Services.AdaptorServiceContext.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.Services.AdaptorServiceContext.html"
+          "relative_path": "api/Adaptor.Service.Services.AdaptorServiceContext.html"
         }
       },
       "version": "",
@@ -1541,7 +1571,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.Services.BlobServiceImpl.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.Services.BlobServiceImpl.html"
+          "relative_path": "api/Adaptor.Service.Services.BlobServiceImpl.html"
         }
       },
       "version": "",
@@ -1555,7 +1585,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.Services.BlobStreamSessionServiceImpl.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.Services.BlobStreamSessionServiceImpl.html"
+          "relative_path": "api/Adaptor.Service.Services.BlobStreamSessionServiceImpl.html"
         }
       },
       "version": "",
@@ -1569,7 +1599,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.Services.RelationalServiceImpl.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.Services.RelationalServiceImpl.html"
+          "relative_path": "api/Adaptor.Service.Services.RelationalServiceImpl.html"
         }
       },
       "version": "",
@@ -1583,7 +1613,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.Services.RelationalVectorServiceImpl.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.Services.RelationalVectorServiceImpl.html"
+          "relative_path": "api/Adaptor.Service.Services.RelationalVectorServiceImpl.html"
         }
       },
       "version": "",
@@ -1597,7 +1627,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.Services.TransactionServiceImpl.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.Services.TransactionServiceImpl.html"
+          "relative_path": "api/Adaptor.Service.Services.TransactionServiceImpl.html"
         }
       },
       "version": "",
@@ -1611,7 +1641,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.Services.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.Services.html"
+          "relative_path": "api/Adaptor.Service.Services.html"
         }
       },
       "version": "",
@@ -1625,7 +1655,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.SparseVector.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.SparseVector.html"
+          "relative_path": "api/Adaptor.Service.SparseVector.html"
         }
       },
       "version": "",
@@ -1639,7 +1669,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.Transaction.TransactionBase.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.Transaction.TransactionBase.html"
+          "relative_path": "api/Adaptor.Service.Transaction.TransactionBase.html"
         }
       },
       "version": "",
@@ -1653,7 +1683,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.Transaction.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.Transaction.html"
+          "relative_path": "api/Adaptor.Service.Transaction.html"
         }
       },
       "version": "",
@@ -1667,7 +1697,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.TransactionContext.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.TransactionContext.html"
+          "relative_path": "api/Adaptor.Service.TransactionContext.html"
         }
       },
       "version": "",
@@ -1681,7 +1711,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.TransactionState.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.TransactionState.html"
+          "relative_path": "api/Adaptor.Service.TransactionState.html"
         }
       },
       "version": "",
@@ -1695,7 +1725,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.VectorSearchHit.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.VectorSearchHit.html"
+          "relative_path": "api/Adaptor.Service.VectorSearchHit.html"
         }
       },
       "version": "",
@@ -1709,7 +1739,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.VectorSearchResponse.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.VectorSearchResponse.html"
+          "relative_path": "api/Adaptor.Service.VectorSearchResponse.html"
         }
       },
       "version": "",
@@ -1723,7 +1753,7 @@
       "source_relative_path": "src/doc-gen/api/Adaptor.Service.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/Adaptor.Service.html"
+          "relative_path": "api/Adaptor.Service.html"
         }
       },
       "version": "",
@@ -1737,7 +1767,7 @@
       "source_relative_path": "src/doc-gen/api/index.md",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/index.html"
+          "relative_path": "api/index.html"
         }
       },
       "version": ""
@@ -1747,10 +1777,10 @@
       "source_relative_path": "src/doc-gen/api/toc.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/api/toc.html"
+          "relative_path": "api/toc.html"
         },
         ".json": {
-          "relative_path": "src/doc-gen/api/toc.json"
+          "relative_path": "api/toc.json"
         }
       },
       "version": ""
@@ -1760,7 +1790,7 @@
       "source_relative_path": "src/doc-gen/articles/architecture.md",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/articles/architecture.html"
+          "relative_path": "articles/architecture.html"
         }
       },
       "version": ""
@@ -1770,7 +1800,7 @@
       "source_relative_path": "src/doc-gen/index.md",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/index.html"
+          "relative_path": "index.html"
         }
       },
       "version": ""
@@ -1780,10 +1810,10 @@
       "source_relative_path": "src/doc-gen/toc.yml",
       "output": {
         ".html": {
-          "relative_path": "src/doc-gen/toc.html"
+          "relative_path": "toc.html"
         },
         ".json": {
-          "relative_path": "src/doc-gen/toc.json"
+          "relative_path": "toc.json"
         }
       },
       "version": ""

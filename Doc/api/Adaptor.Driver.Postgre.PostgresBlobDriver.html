@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Class PostgresBlobDriver | Adaptor </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Class PostgresBlobDriver | Adaptor ">
+    
+    <meta name="description" content="PostgreSQL BLOB driver providing upload/download capabilities via the PostgreSQL Large Object API. Shares the same database schema with  and , and participates in distributed transactions via .">
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver">
+
+
+
+  <h1 id="Adaptor_Driver_Postgre_PostgresBlobDriver" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver" class="text-break">Class PostgresBlobDriver</h1>
+  <div class="markdown level0 summary"><p>PostgreSQL BLOB driver providing upload/download capabilities via the
+PostgreSQL Large Object API. Shares the same database schema with
+<a class="xref" href="Adaptor.Driver.Postgre.PostgreSqlDriver.html">PostgreSqlDriver</a> and <a class="xref" href="Adaptor.Driver.Postgre.PgVectorDriver.html">PgVectorDriver</a>,
+and participates in distributed transactions via
+<a class="xref" href="Adaptor.Coordinator.Abstractions.ITransactionalResourceManager.html#Adaptor_Coordinator_Abstractions_ITransactionalResourceManager_Enlist_System_Transactions_Transaction_">Enlist(Transaction)</a>.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">object</span></div>
+    <div class="level1"><span class="xref">PostgresBlobDriver</span></div>
+  </div>
+  <div class="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Adaptor.Coordinator.Abstractions.ITransactionalResourceManager.html">ITransactionalResourceManager</a></div>
+    <div><a class="xref" href="Adaptor.Coordinator.Abstractions.IResourceManager.html">IResourceManager</a></div>
+    <div><a class="xref" href="Adaptor.Coordinator.Abstractions.IBlobUploadCapability.html">IBlobUploadCapability</a></div>
+    <div><a class="xref" href="Adaptor.Coordinator.Abstractions.IBlobDownloadCapability.html">IBlobDownloadCapability</a></div>
+    <div><a class="xref" href="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.html">IBlobRandomAccessCapability</a></div>
+    <div><a class="xref" href="Adaptor.Coordinator.Abstractions.IHealthCheckCapability.html">IHealthCheckCapability</a></div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Adaptor.html">Adaptor</a>.<a class="xref" href="Adaptor.Driver.html">Driver</a>.<a class="xref" href="Adaptor.Driver.Postgre.html">Postgre</a></h6>
+  <h6><strong>Assembly</strong>: Adaptor.Driver.Postgre.dll</h6>
+  <h5 id="Adaptor_Driver_Postgre_PostgresBlobDriver_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sealed class PostgresBlobDriver : ITransactionalResourceManager, IResourceManager, IBlobUploadCapability, IBlobDownloadCapability, IBlobRandomAccessCapability, IHealthCheckCapability</code></pre>
+  </div>
+  <h5 id="Adaptor_Driver_Postgre_PostgresBlobDriver_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>Uses PostgreSQL built-in Large Object mechanism (<code>lo_creat</code>/<code>lo_write</code>/<code>lo_read</code>/<code>lo_unlink</code>).
+All LO operations are transactional and support rollback.
+The <code>adaptor_blob_store</code> mapping table is auto-created on first upload.</p>
+</div>
+  <h3 id="constructors">Constructors
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver__ctor_Npgsql_NpgsqlDataSource_Microsoft_Extensions_Logging_ILogger_Adaptor_Driver_Postgre_PostgresBlobDriver__.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver.%23ctor(Npgsql.NpgsqlDataSource%2CMicrosoft.Extensions.Logging.ILogger%7BAdaptor.Driver.Postgre.PostgresBlobDriver%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L52">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgresBlobDriver__ctor_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.#ctor*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgresBlobDriver__ctor_Npgsql_NpgsqlDataSource_Microsoft_Extensions_Logging_ILogger_Adaptor_Driver_Postgre_PostgresBlobDriver__" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.#ctor(Npgsql.NpgsqlDataSource,Microsoft.Extensions.Logging.ILogger{Adaptor.Driver.Postgre.PostgresBlobDriver})">PostgresBlobDriver(NpgsqlDataSource, ILogger&lt;PostgresBlobDriver&gt;?)</h4>
+  <div class="markdown level1 summary"><p>Create with an NpgsqlDataSource (recommended for connection pooling).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public PostgresBlobDriver(NpgsqlDataSource dataSource, ILogger&lt;PostgresBlobDriver&gt;? logger = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">NpgsqlDataSource</span></td>
+        <td><span class="parametername">dataSource</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">ILogger</span>&lt;<a class="xref" href="Adaptor.Driver.Postgre.PostgresBlobDriver.html">PostgresBlobDriver</a>&gt;</td>
+        <td><span class="parametername">logger</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver__ctor_System_String_Microsoft_Extensions_Logging_ILogger_Adaptor_Driver_Postgre_PostgresBlobDriver__.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver.%23ctor(System.String%2CMicrosoft.Extensions.Logging.ILogger%7BAdaptor.Driver.Postgre.PostgresBlobDriver%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L43">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgresBlobDriver__ctor_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.#ctor*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgresBlobDriver__ctor_System_String_Microsoft_Extensions_Logging_ILogger_Adaptor_Driver_Postgre_PostgresBlobDriver__" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.#ctor(System.String,Microsoft.Extensions.Logging.ILogger{Adaptor.Driver.Postgre.PostgresBlobDriver})">PostgresBlobDriver(string, ILogger&lt;PostgresBlobDriver&gt;?)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public PostgresBlobDriver(string connectionString, ILogger&lt;PostgresBlobDriver&gt;? logger = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">string</span></td>
+        <td><span class="parametername">connectionString</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">ILogger</span>&lt;<a class="xref" href="Adaptor.Driver.Postgre.PostgresBlobDriver.html">PostgresBlobDriver</a>&gt;</td>
+        <td><span class="parametername">logger</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver_Name.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver.Name%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L39">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgresBlobDriver_Name_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.Name*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgresBlobDriver_Name" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.Name">Name</h4>
+  <div class="markdown level1 summary"><p>A human-readable name for the driver instance.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string Name { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">string</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver_ResourceManagerIdentifier.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver.ResourceManagerIdentifier%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L41">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgresBlobDriver_ResourceManagerIdentifier_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.ResourceManagerIdentifier*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgresBlobDriver_ResourceManagerIdentifier" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.ResourceManagerIdentifier">ResourceManagerIdentifier</h4>
+  <div class="markdown level1 summary"><p>Unique identifier (following ADO convention).
+Used to identify this RM in .NET System.Transactions.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Guid ResourceManagerIdentifier { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Guid</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver_ResourceType.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver.ResourceType%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L40">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgresBlobDriver_ResourceType_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.ResourceType*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgresBlobDriver_ResourceType" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.ResourceType">ResourceType</h4>
+  <div class="markdown level1 summary"><p>The type of storage resource this driver manages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ResourceType ResourceType { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Adaptor.Coordinator.Abstractions.ResourceType.html">ResourceType</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver_CloseAsync_System_Int32_System_Transactions_Transaction_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver.CloseAsync(System.Int32%2CSystem.Transactions.Transaction%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L341">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgresBlobDriver_CloseAsync_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.CloseAsync*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgresBlobDriver_CloseAsync_System_Int32_System_Transactions_Transaction_System_Threading_CancellationToken_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.CloseAsync(System.Int32,System.Transactions.Transaction,System.Threading.CancellationToken)">CloseAsync(int, Transaction, CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task CloseAsync(int loFd, Transaction transaction, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">int</span></td>
+        <td><span class="parametername">loFd</span></td>
+        <td><p>The file descriptor returned by <a class="xref" href="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.html#Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_OpenAsync_System_String_Adaptor_Coordinator_Abstractions_BlobAccessMode_System_Transactions_Transaction_System_Threading_CancellationToken_">OpenAsync(string, BlobAccessMode, Transaction, CancellationToken)</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td><p>The distributed transaction to enlist in.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver_DeleteAsync_System_String_System_Transactions_Transaction_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver.DeleteAsync(System.String%2CSystem.Transactions.Transaction%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L583">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgresBlobDriver_DeleteAsync_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.DeleteAsync*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgresBlobDriver_DeleteAsync_System_String_System_Transactions_Transaction_System_Threading_CancellationToken_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.DeleteAsync(System.String,System.Transactions.Transaction,System.Threading.CancellationToken)">DeleteAsync(string, Transaction, CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>Delete a BLOB by key.
+<b>Not</b> part of the capability interfaces — call via direct driver reference.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;BlobUploadResult&gt; DeleteAsync(string key, Transaction transaction, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">string</span></td>
+        <td><span class="parametername">key</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<a class="xref" href="Adaptor.Coordinator.Models.BlobUploadResult.html">BlobUploadResult</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver_Dispose.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver.Dispose%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L765">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgresBlobDriver_Dispose_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.Dispose*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgresBlobDriver_Dispose" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.Dispose">Dispose()</h4>
+  <div class="markdown level1 summary"><p>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Dispose()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver_DownloadAsync_Adaptor_Coordinator_Models_BlobDownloadRequest_System_Transactions_Transaction_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver.DownloadAsync(Adaptor.Coordinator.Models.BlobDownloadRequest%2CSystem.Transactions.Transaction%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L149">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgresBlobDriver_DownloadAsync_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.DownloadAsync*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgresBlobDriver_DownloadAsync_Adaptor_Coordinator_Models_BlobDownloadRequest_System_Transactions_Transaction_System_Threading_CancellationToken_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.DownloadAsync(Adaptor.Coordinator.Models.BlobDownloadRequest,System.Transactions.Transaction,System.Threading.CancellationToken)">DownloadAsync(BlobDownloadRequest, Transaction, CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;BlobDownloadResult&gt; DownloadAsync(BlobDownloadRequest request, Transaction transaction, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Adaptor.Coordinator.Models.BlobDownloadRequest.html">BlobDownloadRequest</a></td>
+        <td><span class="parametername">request</span></td>
+        <td><p>The blob key to download.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td><p>The distributed transaction to enlist in. Must be active.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<a class="xref" href="Adaptor.Coordinator.Models.BlobDownloadResult.html">BlobDownloadResult</a>&gt;</td>
+        <td><p><a class="xref" href="Adaptor.Coordinator.Models.BlobDownloadResult.html">BlobDownloadResult</a> with <code>ErrorMessage</code> null on success.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver_Enlist_System_Transactions_Transaction_.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver.Enlist(System.Transactions.Transaction)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L62">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgresBlobDriver_Enlist_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.Enlist*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgresBlobDriver_Enlist_System_Transactions_Transaction_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.Enlist(System.Transactions.Transaction)">Enlist(Transaction)</h4>
+  <div class="markdown level1 summary"><p>Enlist this driver in the specified .NET <span class="xref">System.Transactions.Transaction</span>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Enlist(Transaction transaction)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td><p>The transaction to enlist in. Must be active.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Adaptor_Driver_Postgre_PostgresBlobDriver_Enlist_System_Transactions_Transaction__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Implementations should call <span class="xref">System.Transactions.Transaction.EnlistVolatile(System.Transactions.IEnlistmentNotification, System.Transactions.EnlistmentOptions)</span> or
+<span class="xref">System.Transactions.Transaction.EnlistDurable(System.Guid, System.Transactions.IEnlistmentNotification, System.Transactions.EnlistmentOptions)</span> to complete registration.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver_HealthCheckAsync_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver.HealthCheckAsync(System.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L569">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgresBlobDriver_HealthCheckAsync_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.HealthCheckAsync*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgresBlobDriver_HealthCheckAsync_System_Threading_CancellationToken_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.HealthCheckAsync(System.Threading.CancellationToken)">HealthCheckAsync(CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;bool&gt; HealthCheckAsync(CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<span class="xref">bool</span>&gt;</td>
+        <td><p><code>true</code> if the driver is healthy; <code>false</code> if unreachable or degraded.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver_OpenAsync_System_String_Adaptor_Coordinator_Abstractions_BlobAccessMode_System_Transactions_Transaction_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver.OpenAsync(System.String%2CAdaptor.Coordinator.Abstractions.BlobAccessMode%2CSystem.Transactions.Transaction%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L216">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgresBlobDriver_OpenAsync_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.OpenAsync*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgresBlobDriver_OpenAsync_System_String_Adaptor_Coordinator_Abstractions_BlobAccessMode_System_Transactions_Transaction_System_Threading_CancellationToken_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.OpenAsync(System.String,Adaptor.Coordinator.Abstractions.BlobAccessMode,System.Transactions.Transaction,System.Threading.CancellationToken)">OpenAsync(string, BlobAccessMode, Transaction, CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;BlobOpenResult&gt; OpenAsync(string key, BlobAccessMode mode, Transaction transaction, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">string</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The blob key.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Adaptor.Coordinator.Abstractions.BlobAccessMode.html">BlobAccessMode</a></td>
+        <td><span class="parametername">mode</span></td>
+        <td><p>Access mode; <a class="xref" href="Adaptor.Coordinator.Abstractions.BlobAccessMode.html#Adaptor_Coordinator_Abstractions_BlobAccessMode_Create">Create</a> errors if the key exists.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td><p>The distributed transaction to enlist in. Must be active.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<a class="xref" href="Adaptor.Coordinator.Models.BlobOpenResult.html">BlobOpenResult</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver_ReadAsync_System_Int32_System_Int32_System_Transactions_Transaction_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver.ReadAsync(System.Int32%2CSystem.Int32%2CSystem.Transactions.Transaction%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L359">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgresBlobDriver_ReadAsync_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.ReadAsync*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgresBlobDriver_ReadAsync_System_Int32_System_Int32_System_Transactions_Transaction_System_Threading_CancellationToken_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.ReadAsync(System.Int32,System.Int32,System.Transactions.Transaction,System.Threading.CancellationToken)">ReadAsync(int, int, Transaction, CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>Read up to <code class="paramref">count</code> bytes from the current position.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;BlobReadResult&gt; ReadAsync(int loFd, int count, Transaction transaction, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">int</span></td>
+        <td><span class="parametername">loFd</span></td>
+        <td><p>The file descriptor returned by <a class="xref" href="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.html#Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_OpenAsync_System_String_Adaptor_Coordinator_Abstractions_BlobAccessMode_System_Transactions_Transaction_System_Threading_CancellationToken_">OpenAsync(string, BlobAccessMode, Transaction, CancellationToken)</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">int</span></td>
+        <td><span class="parametername">count</span></td>
+        <td><p>Maximum number of bytes to read.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td><p>The distributed transaction to enlist in.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<a class="xref" href="Adaptor.Coordinator.Models.BlobReadResult.html">BlobReadResult</a>&gt;</td>
+        <td><p><a class="xref" href="Adaptor.Coordinator.Models.BlobReadResult.html">BlobReadResult</a> where <code>BytesRead</code> may be less than <code class="paramref">count</code>; 0 indicates end-of-blob.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver_SeekAsync_System_Int32_System_Int64_System_IO_SeekOrigin_System_Transactions_Transaction_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver.SeekAsync(System.Int32%2CSystem.Int64%2CSystem.IO.SeekOrigin%2CSystem.Transactions.Transaction%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L437">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgresBlobDriver_SeekAsync_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.SeekAsync*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgresBlobDriver_SeekAsync_System_Int32_System_Int64_System_IO_SeekOrigin_System_Transactions_Transaction_System_Threading_CancellationToken_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.SeekAsync(System.Int32,System.Int64,System.IO.SeekOrigin,System.Transactions.Transaction,System.Threading.CancellationToken)">SeekAsync(int, long, SeekOrigin, Transaction, CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>Reposition the read/write offset.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;long&gt; SeekAsync(int loFd, long offset, SeekOrigin origin, Transaction transaction, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">int</span></td>
+        <td><span class="parametername">loFd</span></td>
+        <td><p>The file descriptor returned by <a class="xref" href="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.html#Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_OpenAsync_System_String_Adaptor_Coordinator_Abstractions_BlobAccessMode_System_Transactions_Transaction_System_Threading_CancellationToken_">OpenAsync(string, BlobAccessMode, Transaction, CancellationToken)</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">long</span></td>
+        <td><span class="parametername">offset</span></td>
+        <td><p>Offset relative to <code class="paramref">origin</code>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">SeekOrigin</span></td>
+        <td><span class="parametername">origin</span></td>
+        <td><p>Reference point (Begin, Current, or End).</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td><p>The distributed transaction to enlist in.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<span class="xref">long</span>&gt;</td>
+        <td><p>The new absolute offset from the beginning of the blob.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver_TruncateAsync_System_Int32_System_Int64_System_Transactions_Transaction_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver.TruncateAsync(System.Int32%2CSystem.Int64%2CSystem.Transactions.Transaction%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L507">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgresBlobDriver_TruncateAsync_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.TruncateAsync*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgresBlobDriver_TruncateAsync_System_Int32_System_Int64_System_Transactions_Transaction_System_Threading_CancellationToken_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.TruncateAsync(System.Int32,System.Int64,System.Transactions.Transaction,System.Threading.CancellationToken)">TruncateAsync(int, long, Transaction, CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task TruncateAsync(int loFd, long length, Transaction transaction, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">int</span></td>
+        <td><span class="parametername">loFd</span></td>
+        <td><p>The file descriptor returned by <a class="xref" href="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.html#Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_OpenAsync_System_String_Adaptor_Coordinator_Abstractions_BlobAccessMode_System_Transactions_Transaction_System_Threading_CancellationToken_">OpenAsync(string, BlobAccessMode, Transaction, CancellationToken)</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">long</span></td>
+        <td><span class="parametername">length</span></td>
+        <td><p>New size in bytes.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td><p>The distributed transaction to enlist in.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver_UploadAsync_Adaptor_Coordinator_Models_BlobUploadRequest_System_Transactions_Transaction_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver.UploadAsync(Adaptor.Coordinator.Models.BlobUploadRequest%2CSystem.Transactions.Transaction%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L72">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgresBlobDriver_UploadAsync_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.UploadAsync*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgresBlobDriver_UploadAsync_Adaptor_Coordinator_Models_BlobUploadRequest_System_Transactions_Transaction_System_Threading_CancellationToken_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.UploadAsync(Adaptor.Coordinator.Models.BlobUploadRequest,System.Transactions.Transaction,System.Threading.CancellationToken)">UploadAsync(BlobUploadRequest, Transaction, CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;BlobUploadResult&gt; UploadAsync(BlobUploadRequest request, Transaction transaction, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Adaptor.Coordinator.Models.BlobUploadRequest.html">BlobUploadRequest</a></td>
+        <td><span class="parametername">request</span></td>
+        <td><p>The blob key, data, optional content-type, and metadata.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td><p>The distributed transaction to enlist in. Must be active.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<a class="xref" href="Adaptor.Coordinator.Models.BlobUploadResult.html">BlobUploadResult</a>&gt;</td>
+        <td><p><a class="xref" href="Adaptor.Coordinator.Models.BlobUploadResult.html">BlobUploadResult</a> with <code>ErrorMessage</code> null on success.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver_WriteAsync_System_Int32_System_Byte___System_Transactions_Transaction_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver.WriteAsync(System.Int32%2CSystem.Byte%5B%5D%2CSystem.Transactions.Transaction%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L398">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgresBlobDriver_WriteAsync_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.WriteAsync*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgresBlobDriver_WriteAsync_System_Int32_System_Byte___System_Transactions_Transaction_System_Threading_CancellationToken_" data-uid="Adaptor.Driver.Postgre.PostgresBlobDriver.WriteAsync(System.Int32,System.Byte[],System.Transactions.Transaction,System.Threading.CancellationToken)">WriteAsync(int, byte[], Transaction, CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>Write data at the current position and advance the offset.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;int&gt; WriteAsync(int loFd, byte[] data, Transaction transaction, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">int</span></td>
+        <td><span class="parametername">loFd</span></td>
+        <td><p>The file descriptor returned by <a class="xref" href="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.html#Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_OpenAsync_System_String_Adaptor_Coordinator_Abstractions_BlobAccessMode_System_Transactions_Transaction_System_Threading_CancellationToken_">OpenAsync(string, BlobAccessMode, Transaction, CancellationToken)</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">byte</span>[]</td>
+        <td><span class="parametername">data</span></td>
+        <td><p>The bytes to write.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td><p>The distributed transaction to enlist in.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<span class="xref">int</span>&gt;</td>
+        <td><p>The number of bytes actually written.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Adaptor.Coordinator.Abstractions.ITransactionalResourceManager.html">ITransactionalResourceManager</a>
+  </div>
+  <div>
+      <a class="xref" href="Adaptor.Coordinator.Abstractions.IResourceManager.html">IResourceManager</a>
+  </div>
+  <div>
+      <a class="xref" href="Adaptor.Coordinator.Abstractions.IBlobUploadCapability.html">IBlobUploadCapability</a>
+  </div>
+  <div>
+      <a class="xref" href="Adaptor.Coordinator.Abstractions.IBlobDownloadCapability.html">IBlobDownloadCapability</a>
+  </div>
+  <div>
+      <a class="xref" href="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.html">IBlobRandomAccessCapability</a>
+  </div>
+  <div>
+      <a class="xref" href="Adaptor.Coordinator.Abstractions.IHealthCheckCapability.html">IHealthCheckCapability</a>
+  </div>
+  <h3 id="extensionmethods">Extension Methods</h3>
+  <div>
+      <a class="xref" href="Adaptor.Coordinator.Abstractions.ResourceManagerExtensions.html#Adaptor_Coordinator_Abstractions_ResourceManagerExtensions_GetTransactionCapabilities_Adaptor_Coordinator_Abstractions_IResourceManager_">ResourceManagerExtensions.GetTransactionCapabilities(IResourceManager)</a>
+  </div>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgresBlobDriver.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgresBlobDriver%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Edit this page</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgresBlobDriver.cs/#L22" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      Copyright © 2026 Mingxi "Lucien" Du
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

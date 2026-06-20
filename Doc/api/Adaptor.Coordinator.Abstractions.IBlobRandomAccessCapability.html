@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Interface IBlobRandomAccessCapability | Adaptor </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Interface IBlobRandomAccessCapability | Adaptor ">
+    
+    <meta name="description" content="Random-access BLOB operations with file-like Seek/Read/Write/Close semantics, orthogonal to the upload/download capabilities.">
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability">
+
+
+
+  <h1 id="Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability" data-uid="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability" class="text-break">Interface IBlobRandomAccessCapability</h1>
+  <div class="markdown level0 summary"><p>Random-access BLOB operations with file-like Seek/Read/Write/Close semantics,
+orthogonal to the upload/download capabilities.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Adaptor.html">Adaptor</a>.<a class="xref" href="Adaptor.Coordinator.html">Coordinator</a>.<a class="xref" href="Adaptor.Coordinator.Abstractions.html">Abstractions</a></h6>
+  <h6><strong>Assembly</strong>: Adaptor.Coordinator.dll</h6>
+  <h5 id="Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IBlobRandomAccessCapability</code></pre>
+  </div>
+  <h5 id="Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>The file descriptor (<code>loFd</code>) is obtained from <a class="xref" href="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.html#Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_OpenAsync_System_String_Adaptor_Coordinator_Abstractions_BlobAccessMode_System_Transactions_Transaction_System_Threading_CancellationToken_">OpenAsync(string, BlobAccessMode, Transaction, CancellationToken)</a> and used in subsequent operations.</p>
+</div>
+  <h3 id="methods">Methods
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_CloseAsync_System_Int32_System_Transactions_Transaction_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.CloseAsync(System.Int32%2CSystem.Transactions.Transaction%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Coordinator/Abstractions/IBlobRandomAccessCapability.cs/#L39">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_CloseAsync_" data-uid="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.CloseAsync*"></a>
+  <h4 id="Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_CloseAsync_System_Int32_System_Transactions_Transaction_System_Threading_CancellationToken_" data-uid="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.CloseAsync(System.Int32,System.Transactions.Transaction,System.Threading.CancellationToken)">CloseAsync(int, Transaction, CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task CloseAsync(int loFd, Transaction transaction, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">int</span></td>
+        <td><span class="parametername">loFd</span></td>
+        <td><p>The file descriptor returned by <a class="xref" href="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.html#Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_OpenAsync_System_String_Adaptor_Coordinator_Abstractions_BlobAccessMode_System_Transactions_Transaction_System_Threading_CancellationToken_">OpenAsync(string, BlobAccessMode, Transaction, CancellationToken)</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td><p>The distributed transaction to enlist in.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_OpenAsync_System_String_Adaptor_Coordinator_Abstractions_BlobAccessMode_System_Transactions_Transaction_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.OpenAsync(System.String%2CAdaptor.Coordinator.Abstractions.BlobAccessMode%2CSystem.Transactions.Transaction%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Coordinator/Abstractions/IBlobRandomAccessCapability.cs/#L30">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_OpenAsync_" data-uid="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.OpenAsync*"></a>
+  <h4 id="Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_OpenAsync_System_String_Adaptor_Coordinator_Abstractions_BlobAccessMode_System_Transactions_Transaction_System_Threading_CancellationToken_" data-uid="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.OpenAsync(System.String,Adaptor.Coordinator.Abstractions.BlobAccessMode,System.Transactions.Transaction,System.Threading.CancellationToken)">OpenAsync(string, BlobAccessMode, Transaction, CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;BlobOpenResult&gt; OpenAsync(string key, BlobAccessMode mode, Transaction transaction, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">string</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The blob key.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Adaptor.Coordinator.Abstractions.BlobAccessMode.html">BlobAccessMode</a></td>
+        <td><span class="parametername">mode</span></td>
+        <td><p>Access mode; <a class="xref" href="Adaptor.Coordinator.Abstractions.BlobAccessMode.html#Adaptor_Coordinator_Abstractions_BlobAccessMode_Create">Create</a> errors if the key exists.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td><p>The distributed transaction to enlist in. Must be active.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<a class="xref" href="Adaptor.Coordinator.Models.BlobOpenResult.html">BlobOpenResult</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_ReadAsync_System_Int32_System_Int32_System_Transactions_Transaction_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.ReadAsync(System.Int32%2CSystem.Int32%2CSystem.Transactions.Transaction%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Coordinator/Abstractions/IBlobRandomAccessCapability.cs/#L50">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_ReadAsync_" data-uid="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.ReadAsync*"></a>
+  <h4 id="Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_ReadAsync_System_Int32_System_Int32_System_Transactions_Transaction_System_Threading_CancellationToken_" data-uid="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.ReadAsync(System.Int32,System.Int32,System.Transactions.Transaction,System.Threading.CancellationToken)">ReadAsync(int, int, Transaction, CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>Read up to <code class="paramref">count</code> bytes from the current position.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;BlobReadResult&gt; ReadAsync(int loFd, int count, Transaction transaction, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">int</span></td>
+        <td><span class="parametername">loFd</span></td>
+        <td><p>The file descriptor returned by <a class="xref" href="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.html#Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_OpenAsync_System_String_Adaptor_Coordinator_Abstractions_BlobAccessMode_System_Transactions_Transaction_System_Threading_CancellationToken_">OpenAsync(string, BlobAccessMode, Transaction, CancellationToken)</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">int</span></td>
+        <td><span class="parametername">count</span></td>
+        <td><p>Maximum number of bytes to read.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td><p>The distributed transaction to enlist in.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<a class="xref" href="Adaptor.Coordinator.Models.BlobReadResult.html">BlobReadResult</a>&gt;</td>
+        <td><p><a class="xref" href="Adaptor.Coordinator.Models.BlobReadResult.html">BlobReadResult</a> where <code>BytesRead</code> may be less than <code class="paramref">count</code>; 0 indicates end-of-blob.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_SeekAsync_System_Int32_System_Int64_System_IO_SeekOrigin_System_Transactions_Transaction_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.SeekAsync(System.Int32%2CSystem.Int64%2CSystem.IO.SeekOrigin%2CSystem.Transactions.Transaction%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Coordinator/Abstractions/IBlobRandomAccessCapability.cs/#L75">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_SeekAsync_" data-uid="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.SeekAsync*"></a>
+  <h4 id="Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_SeekAsync_System_Int32_System_Int64_System_IO_SeekOrigin_System_Transactions_Transaction_System_Threading_CancellationToken_" data-uid="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.SeekAsync(System.Int32,System.Int64,System.IO.SeekOrigin,System.Transactions.Transaction,System.Threading.CancellationToken)">SeekAsync(int, long, SeekOrigin, Transaction, CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>Reposition the read/write offset.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;long&gt; SeekAsync(int loFd, long offset, SeekOrigin origin, Transaction transaction, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">int</span></td>
+        <td><span class="parametername">loFd</span></td>
+        <td><p>The file descriptor returned by <a class="xref" href="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.html#Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_OpenAsync_System_String_Adaptor_Coordinator_Abstractions_BlobAccessMode_System_Transactions_Transaction_System_Threading_CancellationToken_">OpenAsync(string, BlobAccessMode, Transaction, CancellationToken)</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">long</span></td>
+        <td><span class="parametername">offset</span></td>
+        <td><p>Offset relative to <code class="paramref">origin</code>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">SeekOrigin</span></td>
+        <td><span class="parametername">origin</span></td>
+        <td><p>Reference point (Begin, Current, or End).</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td><p>The distributed transaction to enlist in.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<span class="xref">long</span>&gt;</td>
+        <td><p>The new absolute offset from the beginning of the blob.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_TruncateAsync_System_Int32_System_Int64_System_Transactions_Transaction_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.TruncateAsync(System.Int32%2CSystem.Int64%2CSystem.Transactions.Transaction%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Coordinator/Abstractions/IBlobRandomAccessCapability.cs/#L86">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_TruncateAsync_" data-uid="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.TruncateAsync*"></a>
+  <h4 id="Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_TruncateAsync_System_Int32_System_Int64_System_Transactions_Transaction_System_Threading_CancellationToken_" data-uid="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.TruncateAsync(System.Int32,System.Int64,System.Transactions.Transaction,System.Threading.CancellationToken)">TruncateAsync(int, long, Transaction, CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task TruncateAsync(int loFd, long length, Transaction transaction, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">int</span></td>
+        <td><span class="parametername">loFd</span></td>
+        <td><p>The file descriptor returned by <a class="xref" href="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.html#Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_OpenAsync_System_String_Adaptor_Coordinator_Abstractions_BlobAccessMode_System_Transactions_Transaction_System_Threading_CancellationToken_">OpenAsync(string, BlobAccessMode, Transaction, CancellationToken)</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">long</span></td>
+        <td><span class="parametername">length</span></td>
+        <td><p>New size in bytes.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td><p>The distributed transaction to enlist in.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_WriteAsync_System_Int32_System_Byte___System_Transactions_Transaction_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.WriteAsync(System.Int32%2CSystem.Byte%5B%5D%2CSystem.Transactions.Transaction%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Coordinator/Abstractions/IBlobRandomAccessCapability.cs/#L62">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_WriteAsync_" data-uid="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.WriteAsync*"></a>
+  <h4 id="Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_WriteAsync_System_Int32_System_Byte___System_Transactions_Transaction_System_Threading_CancellationToken_" data-uid="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.WriteAsync(System.Int32,System.Byte[],System.Transactions.Transaction,System.Threading.CancellationToken)">WriteAsync(int, byte[], Transaction, CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>Write data at the current position and advance the offset.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;int&gt; WriteAsync(int loFd, byte[] data, Transaction transaction, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">int</span></td>
+        <td><span class="parametername">loFd</span></td>
+        <td><p>The file descriptor returned by <a class="xref" href="Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.html#Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability_OpenAsync_System_String_Adaptor_Coordinator_Abstractions_BlobAccessMode_System_Transactions_Transaction_System_Threading_CancellationToken_">OpenAsync(string, BlobAccessMode, Transaction, CancellationToken)</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">byte</span>[]</td>
+        <td><span class="parametername">data</span></td>
+        <td><p>The bytes to write.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td><p>The distributed transaction to enlist in.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<span class="xref">int</span>&gt;</td>
+        <td><p>The number of bytes actually written.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Coordinator_Abstractions_IBlobRandomAccessCapability.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Edit this page</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Coordinator/Abstractions/IBlobRandomAccessCapability.cs/#L24" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      Copyright © 2026 Mingxi "Lucien" Du
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

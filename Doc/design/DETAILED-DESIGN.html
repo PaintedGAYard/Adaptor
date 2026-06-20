@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Adaptor — 详细设计文档 | Adaptor </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Adaptor — 详细设计文档 | Adaptor ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        <div class="article row grid">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="adaptor--详细设计文档">Adaptor — 详细设计文档</h1>
+
+<blockquote>
+<p>版本: 1.0<br>
+日期: 2026-06-18<br>
+状态: Draft</p>
+</blockquote>
+<hr>
+<h2 id="目录">目录</h2>
+<ol>
+<li><a href="#1-%E9%A1%B9%E7%9B%AE%E6%A6%82%E8%BF%B0">项目概述</a></li>
+<li><a href="#2-%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84">系统架构</a></li>
+<li><a href="#3-grpc-%E5%8D%8F%E8%AE%AE%E8%AE%BE%E8%AE%A1">gRPC 协议设计</a></li>
+<li><a href="#4-%E4%BA%8B%E5%8A%A1%E5%8D%8F%E8%B0%83%E5%99%A8">事务协调器</a></li>
+<li><a href="#5-driver-%E6%8E%A5%E5%8F%A3%E8%AE%BE%E8%AE%A1">Driver 接口设计</a></li>
+<li><a href="#6-%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%E4%B8%8E%E9%87%8D%E8%AF%95">错误处理与重试</a></li>
+<li><a href="#7-%E8%BF%9E%E6%8E%A5%E4%B8%8E%E4%BC%9A%E8%AF%9D%E7%AE%A1%E7%90%86">连接与会话管理</a></li>
+<li><a href="#8-%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84">项目结构</a></li>
+<li><a href="#9-%E5%B0%9A%E6%9C%AA%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98">尚未解决的问题</a></li>
+</ol>
+<hr>
+<h2 id="1-项目概述">1. 项目概述</h2>
+<h3 id="11-背景">1.1 背景</h3>
+<p>许多现代运行时（Python、JavaScript、Go 等）缺乏成熟的分布式事务基础设施（DTC）。当应用需要同时操作 <strong>SQL 数据库</strong>、<strong>向量数据库</strong> 和 <strong>BLOB 存储</strong> 时，跨这三种异构存储的一致性事务管理变得极其复杂。</p>
+<h3 id="12-目标">1.2 目标</h3>
+<p>Adaptor 是一个基于 .NET 10 的独立中间件服务，面向<strong>缺乏 DTC 设施的运行时</strong>，通过自定义 gRPC 协议暴露统一的分布式事务语义。其核心职责是：</p>
+<ol>
+<li><strong>向下</strong> — 通过模块化的 Driver 接口统一控制 SQL DB、Vector DB、BLOB Storage 三种存储设施</li>
+<li><strong>向上</strong> — 通过统一的 gRPC 协议暴露简化的 <code>Begin</code> / <code>Commit</code> / <code>Rollback</code> 事务语义</li>
+<li><strong>内部</strong> — 利用 .NET 的 <code>System.Transactions</code> 基础设施，将多个异构存储的事务生命周期聚合为单个可协调的事务</li>
+</ol>
+<h3 id="13-核心设计原则">1.3 核心设计原则</h3>
+<table>
+<thead>
+<tr>
+<th>原则</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>操作语义分离</strong></td>
+<td>SQL、Vector、BLOB 各自保留独立的操作 API，不强行统一</td>
+</tr>
+<tr>
+<td><strong>事务语义统一</strong></td>
+<td>三者的事务生命周期通过中间件协调为统一的 Begin/Commit/Rollback</td>
+</tr>
+<tr>
+<td><strong>All or Nothing</strong></td>
+<td>事务最终要么全部成功，要么全部回滚</td>
+</tr>
+<tr>
+<td><strong>Driver 负责事务</strong></td>
+<td>Driver 实现完整的分布式事务支持（.NET 标准接口），中间件只负责聚合</td>
+</tr>
+<tr>
+<td><strong>无自定义事务类型</strong></td>
+<td>仅在 .NET 内置设施不满足需求时才考虑自定义 Transaction 子类</td>
+</tr>
+<tr>
+<td><strong>Composition over Inheritance</strong></td>
+<td>不定义大一统的 Driver 接口；能力通过正交的独立接口暴露，Driver 按需组合</td>
+</tr>
+<tr>
+<td><strong>Semantic Kernel 技术栈</strong></td>
+<td>Driver 和中间件均基于 <code>Microsoft.SemanticKernel</code> 构建，利用其 Plugin/Connector 模型</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="2-系统架构">2. 系统架构</h2>
+<h3 id="21-分层架构">2.1 分层架构</h3>
+<pre><code>┌──────────────────────────────────────────────────────────┐
+│  Consumer Layer                                           │
+│  (Python / JavaScript / Go / ... 缺乏 DTC 的运行时)      │
+│                                                            │
+│  tx = client.Begin()                                       │
+│  client.SqlQuery(tx, &quot;SELECT ...&quot;)                        │
+│  client.VectorSearch(tx, embedding)                        │
+│  client.BlobUpload(tx, &quot;file.bin&quot;, data)                   │
+│  client.Commit(tx)    /    client.Rollback(tx)             │
+└──────────────────────────┬───────────────────────────────┘
+                           │ gRPC (自定义协议)
+┌──────────────────────────▼───────────────────────────────┐
+│  Adaptor Service Layer                                    │
+│  (.NET 10 gRPC 服务)                                      │
+│                                                            │
+│  ┌────────────────────────────────────────────────────┐   │
+│  │  TransactionCoordinator                             │   │
+│  │  ┌──────────────────────────────────────────────┐  │   │
+│  │  │  System.Transactions Abstraction              │  │   │
+│  │  │  - CommittableTransaction                     │  │   │
+│  │  │  - TransactionScope (内部使用)                 │  │   │
+│  │  │  - DependentTransaction (如需嵌套)             │  │   │
+│  │  └──────────────────────────────────────────────┘  │   │
+│  │  ┌──────────────────────────────────────────────┐  │   │
+│  │  │  All or Nothing 策略引擎                      │  │   │
+│  │  │  - Prepare Phase (投票)                      │  │   │
+│  │  │  - Commit Phase (决定 + 重试)                │  │   │
+│  │  │  - Rollback Phase (补偿)                     │  │   │
+│  │  └──────────────────────────────────────────────┘  │   │
+│  │  ┌──────────────────────────────────────────────┐  │   │
+│  │  │  Session / KeepAlive / Timeout 管理          │  │   │
+│  │  └──────────────────────────────────────────────┘  │   │
+│  └────────────────────────────────────────────────────┘   │
+│                                                            │
+│  ┌────────────────────────────────────────────────────┐   │
+│  │  Semantic Kernel Orchestration                     │   │
+│  │  (Kernel + KernelPlugin + KernelFunction)          │   │
+│  └────────────────────────────────────────────────────┘   │
+│                                                            │
+│  ┌──────────────┬──────────────┬──────────────────────┐   │
+│  │  SQL          │  Vector       │  BLOB                 │   │
+│  │  Resource     │  Resource     │  Resource             │   │
+│  │  Manager      │  Manager      │  Manager              │   │
+│  ├──────────────┤├──────────────┤├──────────────────────┤   │
+│  │ IResourceManager              │ IResourceManager          │
+│  │ + ITransactionalResource      │ + ITransactionalResource  │
+│  │ + IRelationalExecuteCapability│ + IBlobUploadCapability   │
+│  │ + IRelationalQueryCapability  │ + IBlobDownloadCapability │
+│  │ + IHealthCheckCapability      │ + IHealthCheckCapability  │
+│  └──────┬───────┴──────┬───────┴──────────┬───────────┘   │
+│         │              │                  │                │
+│  ┌──────▼──────┐ ┌─────▼──────┐  ┌────────▼────────┐     │
+│  │ PgSQL       │ │ pgvector   │  │ BYTEA + LO      │     │
+│  │ MySQL       │ │ Milvus     │  │ AWS S3 + 补偿   │     │
+│  │ ...         │ │ ...        │  │ ...             │     │
+│  └─────────────┘ └────────────┘  └─────────────────┘     │
+└──────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="22-关键概念">2.2 关键概念</h3>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>定义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Transaction</strong></td>
+<td>.NET <code>System.Transactions.Transaction</code> 实例，代表一个工作单元。中间件内部使用 <code>CommittableTransaction</code> 作为顶层事务</td>
+</tr>
+<tr>
+<td><strong>Resource Manager (RM)</strong></td>
+<td>分布式事务的基本参与单元。每个 Driver 是一个 RM，管理一种存储资源，通过 <code>IEnlistmentNotification</code> 参与两阶段提交</td>
+</tr>
+<tr>
+<td><strong>Enlistment</strong></td>
+<td>RM (Driver) 将自身注册到 .NET Transaction 的过程</td>
+</tr>
+<tr>
+<td><strong>Session</strong></td>
+<td>Consumer 与中间件之间的 gRPC 会话上下文，绑定到一个活跃事务</td>
+</tr>
+<tr>
+<td><strong>Driver</strong></td>
+<td>实现 <code>IResourceManager</code> 的适配器，通过组合独立的能力接口对外暴露操作，基于 Semantic Kernel Plugin 模型加载</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23-事务生命周期">2.3 事务生命周期</h3>
+<pre><code>Consumer              Middleware              Driver 1 (SQL)      Driver 2 (Vector)    Driver 3 (BLOB)
+   │                      │                       │                   │                   │
+   │── BeginTransaction ──│                       │                   │                   │
+   │                      │── 创建 .NET CommittableTransaction        │                   │
+   │                      │── 注册到事务表                            │                   │
+   │&lt;── tx_id ────────────│                       │                   │                   │
+   │                      │                       │                   │                   │
+   │── SqlQuery(tx_id) ───│                       │                   │                   │
+   │                      │── Enlist Driver 1 ──▶ │── 开始本地事务    │                   │
+   │                      │                       │── Prepare() OK    │                   │
+   │&lt;── result ───────────│                       │                   │                   │
+   │                      │                       │                   │                   │
+   │── VectorSearch(tx_id)│                       │                   │                   │
+   │                      │── Enlist Driver 2 ────│─────────────────▶ │── 开始本地事务   │
+   │                      │                       │                   │── Prepare() OK   │
+   │&lt;── result ───────────│                       │                   │                   │
+   │                      │                       │                   │                   │
+   │── BlobUpload(tx_id)  │                       │                   │                   │
+   │                      │── Enlist Driver 3 ────│───────────────────│─────────────────▶│── 开始本地事务
+   │                      │                       │                   │                   │── Prepare() OK
+   │&lt;── result ───────────│                       │                   │                   │
+   │                      │                       │                   │                   │
+   │── Commit(tx_id) ─────│                       │                   │                   │
+   │                      │── Phase 1: Prepare    │                   │                   │
+   │                      │── Driver 1 ──────────▶│── Prepare ◀──────│── Prepare ◀───────│── Prepare
+   │                      │── Driver 2 ───────────│──────────────────▶│                   │
+   │                      │── Driver 3 ───────────│───────────────────│──────────────────▶│
+   │                      │                       │                   │                   │
+   │                      │◀── All Prepared ──────│◀── OK ───────────│◀── OK ────────────│◀── OK
+   │                      │                       │                   │                   │
+   │                      │── Phase 2: Commit     │                   │                   │
+   │                      │── Driver 1 ──────────▶│── Commit ◀───────│── Commit ◀────────│── Commit
+   │                      │── Driver 2 ───────────│──────────────────▶│                   │
+   │                      │── Driver 3 ───────────│───────────────────│──────────────────▶│
+   │                      │                       │                   │                   │
+   │                      │◀── All Committed ─────│◀── OK ───────────│◀── OK ────────────│◀── OK
+   │                      │── 释放 .NET Transaction                    │                   │
+   │&lt;── OK ───────────────│                       │                   │                   │
+</code></pre>
+<hr>
+<h2 id="3-grpc-协议设计">3. gRPC 协议设计</h2>
+<h3 id="31-协议定位">3.1 协议定位</h3>
+<p>gRPC 的 <code>service</code> 关键字在此项目中<strong>不是自包含的 service 单元</strong>，仅作为 <strong>endpoint group</strong>。真正的 service 单元是<strong>围绕中间件事务对象生命周期管理形成的 API 整体</strong>。</p>
+<h3 id="32-服务组织">3.2 服务组织</h3>
+<p>一个统一的 gRPC namespace，其中包含以下端点：</p>
+<pre><code>namespace Adaptor;
+
+service Transaction {
+  // ─── 事务生命周期（核心） ───
+  rpc BeginTransaction(BeginTransactionRequest) returns (BeginTransactionResponse);
+  rpc CommitTransaction(CommitTransactionRequest) returns (CommitTransactionResponse);
+  rpc RollbackTransaction(RollbackTransactionRequest) returns (RollbackTransactionResponse);
+  // 查询事务状态（映射自 System.Transactions.TransactionStatus）
+  rpc GetTransactionStatus(GetTransactionStatusRequest) returns (GetTransactionStatusResponse);
+}
+
+service DBRelational {
+  // ─── 关系数据库通用操作 ───
+  rpc Execute(RelationalExecuteRequest) returns (RelationalExecuteResponse);
+  rpc Query(RelationalQueryRequest) returns (RelationalQueryResponse);
+  rpc ExecuteBatch(RelationalExecuteBatchRequest) returns (RelationalExecuteBatchResponse);
+}
+
+service DBRelationalVector {
+  // ─── 关系数据库向量扩展搜索 ───
+  // CRUD 通过 DBRelational 的原生 SQL 完成，本服务仅提供向量距离模糊搜索
+  rpc Search(RelationalVectorSearchRequest) returns (VectorSearchResponse);
+}
+
+service DBBLOB {
+  // ─── BLOB 操作 ───
+  rpc BlobUpload(BlobUploadRequest) returns (BlobUploadResponse);
+  rpc BlobDownload(BlobDownloadRequest) returns (BlobDownloadResponse);
+  rpc BlobDelete(BlobDeleteRequest) returns (BlobDeleteResponse);
+  rpc BlobList(BlobListRequest) returns (BlobListResponse);
+}
+
+// ...
+</code></pre>
+<h3 id="33-事务上下文传递">3.3 事务上下文传递</h3>
+<p>所有数据操作 RPC 的消息中必须包含事务上下文：</p>
+<pre><code class="lang-protobuf">message TransactionContext {
+  string transaction_id = 1;    // BeginTransaction 返回的 ID
+  // 可选：未来版本可能扩展 ambient 事务支持
+}
+</code></pre>
+<h3 id="34-核心-rpc-定义">3.4 核心 RPC 定义</h3>
+<pre><code class="lang-protobuf">// ─── Transaction 生命周期 ───
+message BeginTransactionRequest {
+  google.protobuf.Duration timeout = 1;
+  map&lt;string, string&gt; metadata = 2;
+}
+
+message BeginTransactionResponse {
+  string transaction_id = 1;
+  google.protobuf.Timestamp expires_at = 2;
+}
+
+message CommitTransactionRequest { string transaction_id = 1; }
+
+message CommitTransactionResponse {
+  CommitStatus status = 1;
+  repeated DriverCommitResult driver_results = 2;
+  string error_message = 3;
+}
+
+message RollbackTransactionRequest { string transaction_id = 1; }
+message RollbackTransactionResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+message GetTransactionStatusRequest { string transaction_id = 1; }
+message GetTransactionStatusResponse {
+  TransactionState state = 1;
+  google.protobuf.Timestamp expires_at = 2;
+}
+
+enum CommitStatus {
+  COMMIT_STATUS_UNSPECIFIED = 0;
+  COMMIT_STATUS_COMMITTED = 1;
+  COMMIT_STATUS_PARTIAL = 2;
+  COMMIT_STATUS_ROLLED_BACK = 3;
+  COMMIT_STATUS_TIMEOUT = 4;
+}
+
+enum TransactionState {
+  TRANSACTION_STATE_UNSPECIFIED = 0;
+  TRANSACTION_STATE_ACTIVE = 1;
+  TRANSACTION_STATE_COMMITTED = 2;
+  TRANSACTION_STATE_ROLLED_BACK = 3;
+  TRANSACTION_STATE_IN_DOUBT = 4;
+}
+
+// ─── DBRelational（关系数据库通用操作）───
+// 消费端通过原生 SQL 完成所有 CRUD，包括向量表的写入与删除
+message RelationalParameter {
+  string name = 1;
+  google.protobuf.Value value = 2;
+}
+
+message RelationalExecuteRequest {
+  TransactionContext transaction_context = 1;
+  string command = 2;
+  repeated RelationalParameter parameters = 3;
+}
+
+message RelationalExecuteResponse {
+  int32 affected_rows = 1;
+  double duration_ms = 2;
+  string error_message = 3;
+}
+
+message RelationalQueryRequest {
+  TransactionContext transaction_context = 1;
+  string command = 2;
+  repeated RelationalParameter parameters = 3;
+}
+
+message RelationalQueryResponse {
+  repeated Row rows = 1;
+  double duration_ms = 2;
+  string error_message = 3;
+}
+
+// ─── DBRelationalVector（关系数据库向量扩展搜索）───
+message SparseVector {
+  repeated int32 indices = 1;
+  repeated float values = 2;
+}
+
+message RelationalVectorSearchRequest {
+  TransactionContext transaction_context = 1;
+  string table = 2;               // 表名
+  string vector_column = 3;       // 向量列名
+  repeated float dense_vector = 4;
+  SparseVector sparse_vector = 5;
+  int32 top_k = 6;
+  string where_clause = 7;         // 原生 SQL WHERE 片段，值通过 parameters 绑定
+  repeated RelationalParameter parameters = 8;
+}
+
+message VectorSearchResponse {
+  repeated VectorSearchHit hits = 1;
+  double duration_ms = 2;
+  string error_message = 3;
+}
+
+message VectorSearchHit {
+  string id = 1;
+  float score = 2;
+  map&lt;string, google.protobuf.Value&gt; metadata = 3;
+}
+
+</code></pre>
+<h3 id="35-连接与-keepalive">3.5 连接与 KeepAlive</h3>
+<ul>
+<li>使用 gRPC 内置的 HTTP/2 keepalive ping</li>
+<li>超时在 <code>BeginTransaction</code> 时通过 <code>timeout</code> 参数指定（可选，默认 30s）</li>
+<li>如需长时间操作，Consumer 应创建超时无限的独立事务</li>
+<li>中间件服务端配置默认事务超时 + 会话空闲超时</li>
+<li>超时未 commit 的事务自动回滚（由 CommittableTransaction 内建机制处理）</li>
+</ul>
+<hr>
+<h2 id="4-事务协调器">4. 事务协调器</h2>
+<h3 id="41-核心职责">4.1 核心职责</h3>
+<p><code>TransactionCoordinator</code> 是中间件的核心组件，负责：</p>
+<ol>
+<li>管理 .NET <code>CommittableTransaction</code> 的生命周期</li>
+<li>协调多个 Driver 的 Enlistment</li>
+<li>委托 .NET <code>System.Transactions</code> 执行 All or Nothing 策略</li>
+<li>处理超时和自动回滚</li>
+<li>映射 <code>System.Transactions.TransactionStatus</code> 到应用层 CommitStatus</li>
+</ol>
+<h3 id="42-systemtransactions-使用策略">4.2 System.Transactions 使用策略</h3>
+<pre><code>┌──────────────────────────────────────────────────────┐
+│  TransactionCoordinator                               │
+│                                                        │
+│  1. BeginTransaction                                   │
+│     → 创建 CommittableTransaction                      │
+│     → 配置超时                                         │
+│     → 生成 transaction_id 并注册到事务表               │
+│                                                        │
+│  2. 数据操作（SqlQuery / VectorSearch / BlobUpload）   │
+│     → 按需 Enlist Driver（延迟 enlistment）             │
+│     → 每个 Driver 在自己的线程/任务中：                │
+│       a. 调用 driver.Enlist(transaction)               │
+│       b. Driver 内部开始本地事务                       │
+│       c. Driver 调用 transaction.EnlistVolatile/       │
+│          EnlistDurable 注册自己                        │
+│       d. 执行操作                                      │
+│                                                        │
+│  3. CommitTransaction                                  │
+│     → 调用 transaction.Commit()                        │
+│     → .NET 内部触发两阶段提交：                        │
+│       a. 每个 Driver 的 Prepare()                      │
+│       b. 全部通过后，每个 Driver 的 Commit()           │
+│     → 任一 Prepare 失败 → Rollback                     │
+│                                                        │
+│  4. RollbackTransaction                                │
+│     → 调用 transaction.Rollback()                      │
+│     → .NET 通知所有 Driver 回滚                       │
+│                                                        │
+│  5. 超时处理                                           │
+│     → CommittableTransaction 超时自动触发 Rollback     │
+│     → 所有 Enlisted Driver 收到 Rollback 通知          │
+└──────────────────────────────────────────────────────┘
+</code></pre>
+<p><strong>关键说明：无需自定义 Transaction 子类</strong></p>
+<p>.NET 的 <code>System.Transactions</code> 已经提供了完整的分布式事务协调基础设施：</p>
+<ul>
+<li><code>CommittableTransaction</code> — 顶层可提交事务</li>
+<li><code>Transaction.EnlistVolatile</code> / <code>EnlistDurable</code> — 驱动程序化注册</li>
+<li><code>IEnlistmentNotification</code> — 两阶段提交回调接口（<code>Prepare</code> / <code>Commit</code> / <code>Rollback</code> / <code>InDoubt</code>）</li>
+<li><code>IPromotableSinglePhaseNotification</code> — 可提升单阶段提交（PSPE）</li>
+<li><code>TransactionScope</code> — 方便内部使用的 ambient 事务范围</li>
+</ul>
+<p>除非上述接口在某场景（如非关系型存储的高级事务协调）中暴露出不足，否则<strong>不引入自定义 Transaction 子类</strong>。</p>
+<h3 id="43-事务隔离级别">4.3 事务隔离级别</h3>
+<p>默认使用 <code>System.Transactions.IsolationLevel.ReadCommitted</code>。
+后续可根据 Driver 能力暴露可配置的隔离级别选择。</p>
+<h3 id="44-事务状态">4.4 事务状态</h3>
+<p>事务状态直接使用 .NET <code>System.Transactions.TransactionStatus</code> 枚举：</p>
+<table>
+<thead>
+<tr>
+<th>TransactionStatus</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Active</code></td>
+<td>事务活跃，可执行数据操作</td>
+</tr>
+<tr>
+<td><code>Committed</code></td>
+<td>事务已成功提交</td>
+</tr>
+<tr>
+<td><code>Aborted</code></td>
+<td>事务已回滚</td>
+</tr>
+<tr>
+<td><code>InDoubt</code></td>
+<td>事务结果不确定（极少发生）</td>
+</tr>
+</tbody>
+</table>
+<p>Coordinator 不维护中间状态（Preparing / Committing / RollingBack 等），
+这些状态由 .NET DTC 基础设施在内部管理，不对外暴露。</p>
+<pre><code>                         ┌─────────┐
+                         │  ACTIVE  │ ◀── BeginTransaction
+                         └────┬─────┘
+                              │
+                    ┌─────────┼─────────┐
+                    │         │         │
+               Data Op    Commit    Rollback
+                    │         │         │
+                    ▼         ▼         ▼
+               (Enlist)  ┌──────────┐  │
+                         │ .NET 内部│  │
+                         │ 协调 2PC │  │
+                         └────┬─────┘  │
+                              │         │
+                    ┌─────────┼─────────┘
+                    │         │
+               ┌────▼────┐ ┌─▼────────┐
+               │COMMITTED│ │ ABORTED  │
+               │(终态)   │ │ (终态)   │
+               └─────────┘ └──────────┘
+
+           IN_DOUBT 为极罕见的终态，仅当与 MSDTC
+           通信失败且无法恢复时进入。
+</code></pre>
+<hr>
+<h2 id="5-driver-接口设计">5. Driver 接口设计</h2>
+<h3 id="51-设计原则">5.1 设计原则</h3>
+<ol>
+<li><strong>Resource Manager 模式</strong> — 每个 Driver 是一个 Resource Manager (RM)，管理一种存储资源，参与 .NET <code>System.Transactions</code> 两阶段提交协调</li>
+<li><strong>Composition over Inheritance</strong> — 不定义大一统的 <code>IStorageDriver</code> 接口；能力通过正交的独立接口暴露，Driver 按需组合</li>
+<li><strong>Semantic Kernel 技术栈</strong> — Driver 和中间件均基于 <code>Microsoft.SemanticKernel</code> 构建，利用其 Plugin/Connector 模型和 DI 基础设施</li>
+</ol>
+<h3 id="52-resource-manager-模式">5.2 Resource Manager 模式</h3>
+<p>在 .NET <code>System.Transactions</code> 中，Resource Manager (RM) 是参与分布式事务的基本单元：</p>
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│  TransactionCoordinator (Transaction Manager)            │
+│                                                          │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │  System.Transactions                              │  │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌────────┐ │  │
+│  │  │ Committable  │  │ Enlistment   │  │ Two-   │ │  │
+│  │  │ Transaction  │  │ Notification │  │ Phase  │ │  │
+│  │  └──────────────┘  └──────────────┘  └────────┘ │  │
+│  └───────────────────────────────────────────────────┘  │
+│              │ Enlist          │ Enlist          │ Enlist│
+│     ┌────────▼────┐   ┌────────▼────┐   ┌────────▼────┐│
+│     │ SQL RM      │   │ Vector RM   │   │ BLOB RM     ││
+│     │ (Driver)    │   │ (Driver)    │   │ (Driver)    ││
+│     └─────────────┘   └─────────────┘   └─────────────┘│
+└─────────────────────────────────────────────────────────┘
+</code></pre>
+<p>每个 Driver (RM) 必须：</p>
+<ul>
+<li>实现 <code>IEnlistmentNotification</code>（两阶段提交回调接口）</li>
+<li>通过 <code>Transaction.EnlistVolatile()</code> / <code>EnlistDurable()</code> 注册自身</li>
+<li>在 <code>Prepare()</code> 中投票，在 <code>Commit()</code> / <code>Rollback()</code> 中执行最终操作</li>
+</ul>
+<h3 id="53-能力接口体系composition">5.3 能力接口体系（Composition）</h3>
+<p>Driver 的能力通过独立的接口暴露，各接口职责正交、可独立实现：</p>
+<pre><code class="lang-csharp">/// &lt;summary&gt;
+/// 最基础标记：该 Driver 是一个资源管理器。
+/// 所有 Driver 必须实现此接口。
+/// &lt;/summary&gt;
+public interface IResourceManager
+{
+    string Name { get; }
+    ResourceType ResourceType { get; }
+}
+
+[Flags]
+public enum ResourceType
+{
+    Sql,
+    Vector,
+    Blob,
+}
+
+/// &lt;summary&gt;
+/// 声明该 Driver 支持事务性 Enlistment。
+/// 只有实现此接口的 Driver 才会参与分布式事务协调。
+/// &lt;/summary&gt;
+public interface ITransactionalResourceManager : IResourceManager
+{
+    void Enlist(Transaction transaction);
+}
+</code></pre>
+<p>能力接口（按存储类型和应用场景分离）：</p>
+<pre><code class="lang-csharp">// ─── 关系数据库通用能力 ───
+public interface IRelationalExecuteCapability
+{
+    Task&lt;RelationalExecuteResult&gt; ExecuteAsync(
+        RelationalExecuteRequest request, Transaction transaction, CancellationToken ct = default);
+}
+
+public interface IRelationalQueryCapability
+{
+    Task&lt;RelationalQueryResult&gt; QueryAsync(
+        RelationalQueryRequest request, Transaction transaction, CancellationToken ct = default);
+}
+
+// ─── 关系数据库向量扩展搜索能力 ───
+// CRUD（Upsert/Read/Delete/Batch）通过 IRelationalExecuteCapability 的原生 SQL 完成。
+// 本接口仅提供向量距离模糊搜索。
+public interface IRelationalVectorSearchCapability
+{
+    Task&lt;VectorSearchResult&gt; SearchAsync(
+        RelationalVectorSearchRequest request, Transaction transaction, CancellationToken ct = default);
+}
+
+// ─── BLOB 能力 ───
+public interface IBlobUploadCapability
+{
+    Task&lt;BlobUploadResult&gt; UploadAsync(
+        BlobUploadRequest request, CancellationToken ct);
+}
+
+public interface IBlobDownloadCapability
+{
+    Task&lt;BlobDownloadResult&gt; DownloadAsync(
+        BlobDownloadRequest request, CancellationToken ct);
+}
+
+// ─── 公共能力 ───
+public interface IHealthCheckCapability
+{
+    Task&lt;bool&gt; HealthCheckAsync(CancellationToken ct);
+}
+</code></pre>
+<h3 id="54-driver-实现范例composition-in-action">5.4 Driver 实现范例（Composition in action）</h3>
+<p>Driver 不继承、不实现任何&quot;大一统&quot;接口，而是按需选择能力接口：</p>
+<pre><code class="lang-csharp">// ── PostgreSQL Driver：SQL RM + SQL Execute/Query + HealthCheck ──
+public sealed class PostgreSqlDriver :
+    IResourceManager,
+    ITransactionalResourceManager,  // 参与分布式事务
+    IRelationalExecuteCapability,
+    IRelationalQueryCapability,
+    IHealthCheckCapability
+{
+    public string Name =&gt; &quot;PostgreSQL&quot;;
+    public ResourceType ResourceType =&gt; ResourceType.Sql;
+
+    // ITransactionalResourceManager
+    public void Enlist(Transaction transaction)
+    {
+        // 将 NpgsqlConnection enlist 到 System.Transactions
+    }
+
+    // IEnlistmentNotification（显式接口实现）
+    void IEnlistmentNotification.Prepare(PreparingEnlistment pe)
+    {
+        try { /* 验证本地事务可提交 */ pe.Prepared(); }
+        catch { pe.ForceRollback(); }
+    }
+    void IEnlistmentNotification.Commit(Enlistment e) { /* 提交 */ e.Done(); }
+    void IEnlistmentNotification.Rollback(Enlistment e) { /* 回滚 */ e.Done(); }
+    void IEnlistmentNotification.InDoubt(Enlistment e) { /* 记录 */ e.Done(); }
+
+    // IRelationalQueryCapability
+    public Task&lt;RelationalQueryResult&gt; QueryAsync(RelationalQueryRequest request, CancellationToken ct)
+    {
+        // 实际的 SQL 查询逻辑
+    }
+
+    // IRelationalExecuteCapability
+    public Task&lt;RelationalExecuteResult&gt; ExecuteAsync(RelationalExecuteRequest request, CancellationToken ct) { /* ... */ }
+
+    // IHealthCheckCapability
+    public Task&lt;bool&gt; HealthCheckAsync(CancellationToken ct) { /* ... */ }
+}
+
+// ── AWS S3 Driver：BLOB RM + Upload/Download/Delete + HealthCheck ──
+// 注意：S3 没有原生事务支持，Driver应自行实现事务逻辑
+public sealed class S3BlobDriver :
+    IResourceManager,
+    ITransactionalResourceManager,  // 应用层补偿事务
+    IBlobUploadCapability,
+    IBlobDownloadCapability,
+    IHealthCheckCapability
+{
+    public string Name =&gt; &quot;AWS S3&quot;;
+    public ResourceType ResourceType =&gt; ResourceType.Blob;
+    // ... 类似实现
+}
+</code></pre>
+<h3 id="55-semantic-kernel-集成">5.5 Semantic Kernel 集成</h3>
+<p>Adaptor 基于 <code>Microsoft.SemanticKernel</code> 技术栈构建，提供三个 SK Plugin 作为统一入口：</p>
+<pre><code>                    ┌──────────────────────────────────────┐
+                    │        SK Consumer                     │
+                    │  kernel.InvokeAsync(&quot;Search&quot;, args)    │
+                    └──────────┬───────────────────────────┘
+                               │ SK Function Calling
+                    ┌──────────▼───────────────────────────┐
+                    │     Adaptor SK Plugin Layer            │
+                    │                                       │
+                    │  ┌─────────────────────────────┐      │
+                    │  │  TransactionPlugin           │      │
+                    │  │  [BeginTransaction / Commit  │      │
+                    │  │   / Rollback]                │      │
+                    │  └─────────────────────────────┘      │
+                    │                                       │
+                    │  ┌─────────────────────────────┐      │
+                    │  │  RelationalPlugin             │      │
+                    │  │  [Execute / Query]            │      │
+                    │  └─────────────────────────────┘      │
+                    │                                       │
+                    │  ┌─────────────────────────────┐      │
+                    │  │  VectorSearchPlugin          │      │
+                    │  │  [Search]                    │      │
+                    │  └─────────────────────────────┘      │
+                    └──────────┬───────────────────────────┘
+                               │ 直接调用
+                    ┌──────────▼───────────────────────────┐
+                    │     Coordinator + Driver 核心         │
+                    │  (TransactionCoordinator,             │
+                    │   IRelationalVectorSearchCapability)  │
+                    └──────────────────────────────────────┘
+</code></pre>
+<p>Plugin 层是薄转发层，不包含业务逻辑，仅将 Coordinator 能力包装为 SK <code>KernelFunction</code>。
+gRPC 端点也可通过转发到 Plugin 实现，两者共享同一逻辑路径。</p>
+<pre><code class="lang-csharp">// 使用 Adaptor SK Plugin
+var kernel = builder.Build();
+
+// 通过 Plugin 名称调用
+var result = await kernel.InvokeAsync(&quot;vector_search&quot;, new KernelArguments
+{
+    [&quot;transactionId&quot;] = txId,
+    [&quot;table&quot;] = &quot;doc_embeddings&quot;,
+    [&quot;vectorColumn&quot;] = &quot;embedding&quot;,
+    [&quot;denseVector&quot;] = myEmbedding,
+    [&quot;topK&quot;] = 10,
+});
+</code></pre>
+<pre><code>    RelationalQueryRequest request,
+    CancellationToken ct)
+{
+    // 查找提供 IRelationalQueryCapability 的 Driver
+    var sqlDriver = _kernel.Services
+        .GetServices&lt;IResourceManager&gt;()
+        .OfType&lt;IRelationalQueryCapability&gt;()
+        .FirstOrDefault()
+        ?? throw new InvalidOperationException(
+            &quot;No SQL query driver registered&quot;);
+
+    // Enlist 到当前事务（如果支持）
+    if (sqlDriver is ITransactionalResourceManager txRm)
+        txRm.Enlist(GetCurrentTransaction(transactionId));
+
+    return await sqlDriver.QueryAsync(request, ct);
+}
+</code></pre>
+<p>}</p>
+<pre><code>
+**SK 技术栈在本项目中的使用要点：**
+
+| SK 概念 | Adaptor 映射 |
+|---------|-------------|
+| `Kernel` | 消费端编排核心，通过 `InvokeAsync` 调用 Adaptor 能力 |
+| `KernelPlugin` | Adaptor 提供的三个 Plugin（`TransactionPlugin`、`RelationalPlugin`、`VectorSearchPlugin`） |
+| `KernelFunction` | Plugin 中标注 `[KernelFunction]` 的公开方法 |
+| `KernelArguments` | 消费端传递参数的标准方式 |
+| Plugin 注册 | Plugin 通过 DI 注册，消费者通过 `kernel.Plugins.AddFromObject` 加载 |
+
+### 5.6 Driver 事务能力声明
+
+Driver 通过自身实现的接口组合来声明能力，同时保留显式枚举以支持运行时查询：
+
+```csharp
+[Flags]
+public enum TransactionCapabilities
+{
+    None = 0,
+    /// &lt;summary&gt;支持 IEnlistmentNotification（标准两阶段提交）&lt;/summary&gt;
+    TwoPhaseCommit = 1 &lt;&lt; 0,
+    /// &lt;summary&gt;支持可提升单阶段提交 PSPE&lt;/summary&gt;
+    Promotable = 1 &lt;&lt; 1,
+    /// &lt;summary&gt;支持补偿事务（Commit 失败后可回滚）&lt;/summary&gt;
+    Compensating = 1 &lt;&lt; 2,
+}
+
+public static class ResourceManagerExtensions
+{
+    /// &lt;summary&gt;运行时查询 Driver 的事务能力&lt;/summary&gt;
+    public static TransactionCapabilities GetTransactionCapabilities(
+        this IResourceManager rm)
+    {
+        var caps = TransactionCapabilities.None;
+        if (rm is ITransactionalResourceManager) caps |= TransactionCapabilities.TwoPhaseCommit;
+        // 通过 reflection 或已注册的元数据检查 PSPE/Compensating
+        return caps;
+    }
+}
+</code></pre>
+<h3 id="57-示例场景">5.7 示例场景</h3>
+<h4 id="例-1-pgsql--pgvector--bytealo三者同库">例 1: PgSQL + pgvector + BYTEA/LO（三者同库）</h4>
+<pre><code>PostgreSqlDriver     : IResourceManager
+                     + ITransactionalResourceManager  (PSPE 优化)
+                     + IRelationalExecuteCapability + IRelationalQueryCapability
+                     + IHealthCheckCapability
+
+PgVectorDriver       : IResourceManager
+                     + ITransactionalResourceManager  (共享连接, PSPE)
+                     + IRelationalVectorSearchCapability
+                     + IHealthCheckCapability
+
+PostgresBlobDriver   : IResourceManager
+                     + ITransactionalResourceManager  (共享连接, PSPE)
+                     + IBlobUploadCapability + IBlobDownloadCapability
+                     + IHealthCheckCapability
+</code></pre>
+<p>三者共享同一个 <code>NpgsqlConnection</code>，PSPE 使整个事务在 PG 本地完成，无需提升为分布式。</p>
+<blockquote>
+<p>注：pgvector 的 CRUD（Upsert/Read/Delete/Batch）通过 <code>IRelationalExecuteCapability</code> 的原生 SQL 完成，
+<code>IRelationalVectorSearchCapability</code> 仅提供向量距离搜索。</p>
+</blockquote>
+<h4 id="例-2-mysql--sqlite-vector--aws-s3完全异构">例 2: MySQL + SQLite-Vector + AWS S3（完全异构）</h4>
+<pre><code>MySqlDriver          : IResourceManager
+                     + ITransactionalResourceManager  (2PC)
+                     + IRelationalExecuteCapability + IRelationalQueryCapability
+
+SqliteVectorDriver   : IResourceManager
+                     + ITransactionalResourceManager  (2PC)
+                     + IRelationalVectorSearchCapability
+
+S3BlobDriver         : IResourceManager
+                     + ITransactionalResourceManager  (应用层补偿)
+                     + IBlobUploadCapability + IBlobDownloadCapability
+                     + IHealthCheckCapability
+</code></pre>
+<p>三者分属不同存储系统，需完整 2PC。S3 在 <code>Prepare()</code> 中预上传并记录版本号，<code>Commit()</code> 确认，<code>Rollback()</code> 删除（补偿）。</p>
+<hr>
+<h2 id="6-错误处理与重试">6. 错误处理与重试</h2>
+<h3 id="61-all-or-nothing-策略">6.1 All or Nothing 策略</h3>
+<h3 id="61-all-or-nothing-策略-1">6.1 All or Nothing 策略</h3>
+<p>Coordinator <strong>不手动遍历 Driver 执行 2PC</strong>。两阶段提交的协调委托给 .NET <code>System.Transactions</code> 完成。Driver 在 <code>Enlist()</code> 时通过 <code>Transaction.EnlistVolatile()</code> 注册自身并实现 <code>IEnlistmentNotification</code> 回调接口。</p>
+<pre><code>Consumer: CommitTransaction(tx_id)
+  → TransactionCoordinator.CommitTransactionAsync()
+    → 查找 TransactionEntry
+    → committableTransaction.Commit()
+      │
+      ▼
+    .NET Transaction Manager 内部协调 2PC:
+
+      Phase 1 — Prepare（投票）:
+        for each enlisted RM (Driver):
+          → IEnlistmentNotification.Prepare(PreparingEnlistment)
+          → Driver 验证本地事务可提交:
+            ✅ → PreparingEnlistment.Prepared()
+            ❌ → PreparingEnlistment.ForceRollback()
+
+        全部 Prepared → 进入 Phase 2
+        任一 ForceRollback → .NET TM 通知所有 Driver.Rollback()
+
+      Phase 2 — Commit（决定）:
+        for each enlisted RM (Driver):
+          → IEnlistmentNotification.Commit(Enlistment)
+          → Driver 提交本地事务
+          → Enlistment.Done()
+
+        全部成功 → TransactionStatus = Committed
+        任一失败 → TransactionStatus = InDoubt
+
+    │
+    ▼
+    Coordinator 映射结果:
+      Committed → CommitStatus.Committed
+      Aborted   → CommitStatus.RolledBack
+      InDoubt   → CommitStatus.Partial（需人工介入）
+</code></pre>
+<blockquote>
+<p><strong>Phase 2 的 Commit 回调不可重试</strong>。如果 Driver 的 <code>Commit()</code> 抛出异常，.NET TM 捕获后标记事务为 <code>InDoubt</code>，不会自动重试。<code>InDoubt</code> 是极罕见的终态，需要人工检查各存储的实际状态。</p>
+</blockquote>
+<h3 id="62-配置参数">6.2 配置参数</h3>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>默认值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DefaultTransactionTimeout</code></td>
+<td>30s</td>
+<td>事务默认超时时间</td>
+</tr>
+<tr>
+<td><code>SessionIdleTimeout</code></td>
+<td>60s</td>
+<td>会话空闲超时（超时未操作自动回滚）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="63-回滚流程">6.3 回滚流程</h3>
+<p>与提交相同，回滚也委托给 .NET <code>System.Transactions</code>：</p>
+<pre><code>Consumer: RollbackTransaction(tx_id)
+  → TransactionCoordinator.RollbackTransactionAsync()
+    → committableTransaction.Rollback()
+    → .NET TM 通知所有 enlisted RM: IEnlistmentNotification.Rollback()
+    → 各 Driver 回滚本地事务 → Enlistment.Done()
+    → TransactionStatus = Aborted
+    → Coordinator 清理事务状态
+    → 返回 Consumer
+</code></pre>
+<blockquote>
+<p>注：如果 .NET 的 <code>Rollback()</code> 抛出异常（如连接断开），Coordinator 记录日志后继续清理。此时需要人工介入检查不一致状态。</p>
+</blockquote>
+<h3 id="64-超时管理">6.4 超时管理</h3>
+<p>超时由 <code>CommittableTransaction</code> 内建机制处理，Coordinator 不手写监控。</p>
+<pre><code>BeginTransaction(timeout)
+  → 创建 CommittableTransaction 并设置超时
+
+Timeout 触发:
+  → .NET 自动调用所有 Enlisted Driver 的 Rollback()
+  → 清理事务状态
+  → (可选) 通知 Consumer（如 gRPC 连接仍存活）
+
+注意:
+  - CommittableTransaction 构造后超时不可修改
+  - 如需长时间操作，Consumer 应创建超时无限的独立事务
+  - SetTransactionTimeout RPC 已移除
+</code></pre>
+<hr>
+<h2 id="7-连接与会话管理">7. 连接与会话管理</h2>
+<h3 id="71-会话生命周期">7.1 会话生命周期</h3>
+<pre><code>┌───────────────────────────────────────┐
+│  gRPC 连接建立                         │
+│    ↓                                   │
+│  Consumer: BeginTransaction            │
+│    ↓                                   │
+│  Session 创建 + Transaction 创建       │
+│    ↓                                   │
+│  Consumer: 数据操作 (多次)             │
+│    → Driver Enlist (按需延迟)          │
+│    ↓                                   │
+│  Consumer: Commit / Rollback           │
+│    ↓                                   │
+│  Session 关闭 + Transaction 释放       │
+│    ↓                                   │
+│  gRPC 连接关闭                         │
+└───────────────────────────────────────┘
+</code></pre>
+<h3 id="72-并发与线程模型">7.2 并发与线程模型</h3>
+<ul>
+<li>每个事务在一个独立的 <code>Task</code> 中处理</li>
+<li>多个 Consumer 可并行发起多个事务</li>
+<li>同一事务内并发操作的串行化由 <strong>Driver 层自行负责</strong>，Coordinator 不做约束
+<ul>
+<li>Npgsql 等有状态驱动的 Driver 内部使用 per-transaction <code>SemaphoreSlim</code></li>
+<li>S3 等无状态驱动的 Driver 天然支持并发</li>
+</ul>
+</li>
+<li>Coordinator 仅维护 <code>ConcurrentDictionary&lt;string, TransactionEntry&gt;</code> 事务表</li>
+</ul>
+<h3 id="73-驱逐策略">7.3 驱逐策略</h3>
+<table>
+<thead>
+<tr>
+<th>条件</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>事务超时</td>
+<td>自动 Rollback，清理状态</td>
+</tr>
+<tr>
+<td>gRPC 连接断开</td>
+<td>关联的活跃事务自动 Rollback</td>
+</tr>
+<tr>
+<td>服务关闭（Graceful）</td>
+<td>等待进行中的 Commit 完成，Rollback 其余事务</td>
+</tr>
+<tr>
+<td>服务崩溃</td>
+<td>重启后加载持久化的事务状态（未来版本）</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="8-项目结构">8. 项目结构</h2>
+<h3 id="81-单项目布局当前阶段">8.1 单项目布局（当前阶段）</h3>
+<pre><code>Adaptor/
+├── Adaptor.csproj              # .NET 10 gRPC 服务项目
+├── Program.cs                  # 入口：DI 配置、gRPC 服务注册
+├── appsettings.json            # 配置文件
+│
+├── Protos/
+│   └── adaptor.proto           # gRPC 协议定义
+│
+├── Services/
+│   ├── AdaptorService.cs       # gRPC service 实现（endpoint group）
+│   │                            # 注：不是 service 单元，只是 endpoint 路由
+│   ├── TransactionCoordinator.cs # 事务协调器
+│   └── SessionManager.cs       # 会话管理
+│
+├── Abstractions/
+│   ├── IResourceManager.cs              # 基础 RM 标记接口
+│   ├── ITransactionalResourceManager.cs # 事务性 RM（含 Enlist）
+│   ├── IRelationalExecuteCapability.cs  # 关系数据库执行能力
+│   ├── IRelationalQueryCapability.cs    # 关系数据库查询能力
+│   ├── IRelationalVectorSearchCapability.cs  # 关系数据库向量搜索能力
+│   ├── IBlobUploadCapability.cs         # BLOB 上传能力
+│   ├── IBlobDownloadCapability.cs       # BLOB 下载能力
+│   └── IHealthCheckCapability.cs        # 健康检查能力
+│
+├── Drivers/
+│   ├── Postgre/
+│   │   ├── PostgreSqlDriver.cs          # PostgreSQL 关系数据库 Driver（SQL）
+│   │   ├── PgVectorDriver.cs            # pgvector 向量搜索 Driver
+│   │   └── PostgresBlobDriver.cs        # BYTEA + Large Object BLOB Driver
+│   └── (未来非关系 Driver 放在独立目录)
+│
+├── Models/
+│   ├── RelationalModels.cs              # 关系数据库模型（RelationalParameter, RelationalExecuteRequest 等）
+│   ├── VectorModels.cs                  # 向量模型（SparseVector, RelationalVectorSearchRequest, VectorSearchResult）
+│   └── DriverCommitResult.cs            # 提交结果记录（含 CommitStatus 枚举）
+│
+├── Configuration/
+│   └── AdaptorOptions.cs       # 配置模型
+│
+├── Plugins/
+│   ├── TransactionPlugin.cs    # SK Plugin — 事务生命周期
+│   ├── RelationalPlugin.cs     # SK Plugin — 关系数据库操作
+│   └── VectorSearchPlugin.cs   # SK Plugin — 向量搜索
+│
+└── Utilities/
+    └── (暂空，后续按需添加)
+</code></pre>
+<h3 id="82-多项目扩展当需要自定义-driver-接口时">8.2 多项目扩展（当需要自定义 Driver 接口时）</h3>
+<pre><code>Adaptor.sln
+├── src/
+│   ├── Adaptor.Core/           # 核心：gRPC 服务、协调器、抽象接口
+│   │   ├── Adaptor.Core.csproj
+│   │   ├── Abstractions/
+│   │   │   ├── IResourceManager.cs
+│   │   │   ├── ITransactionalResourceManager.cs
+│   │   │   ├── IRelationalExecuteCapability.cs
+│   │   │   ├── IRelationalQueryCapability.cs
+│   │   │   ├── IRelationalVectorSearchCapability.cs
+│   │   │   ├── IBlobUploadCapability.cs
+│   │   │   ├── IBlobDownloadCapability.cs
+│   │   │   └── IHealthCheckCapability.cs
+│   │   ├── Services/
+│   │   │   ├── TransactionCoordinator.cs
+│   │   │   └── AdaptorService.cs
+│   │   └── Protos/
+│   │       └── adaptor.proto
+│   │
+│   └── Adaptor.Drivers/        # 所有 Driver 实现（按需拆分）
+│       ├── Adaptor.Drivers.csproj
+│       ├── Sql/
+│       ├── Vector/
+│       └── Blob/
+│
+└── tests/
+    └── Adaptor.Tests/
+</code></pre>
+<hr>
+<h2 id="9-尚未解决的问题">9. 尚未解决的问题</h2>
+<p>以下问题需在后续阶段确定：</p>
+<ol>
+<li><strong>具体 API 需求</strong> — gRPC 数据操作 RPC 的请求/响应消息结构，需在 API 需求冻结后设计</li>
+<li><strong>身份认证与授权</strong> — 是否需要在 gRPC 层面加入认证（mTLS / Token）？</li>
+<li><strong>日志与可观测性</strong> — OpenTelemetry 集成策略（Traces / Metrics / Logs）</li>
+<li><strong>配置管理</strong> — 如何管理 Driver 连接字符串？环境变量？配置中心？</li>
+<li><strong>事务状态持久化</strong> — 服务崩溃后如何恢复正在进行中的事务？</li>
+<li><strong>Driver 热加载</strong> — 是否支持运行时动态加载/卸载 Driver？</li>
+<li><strong>Schema 管理</strong> — SQL 表结构 / 向量索引 / BLOB 容器的自动初始化？</li>
+<li><strong>多租户</strong> — 是否需要支持？</li>
+<li><strong>版本兼容性</strong> — gRPC proto 的版本演进策略。</li>
+<li><strong>测试策略</strong> — 如何编写集成测试覆盖异构存储组合？</li>
+</ol>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/Design/DETAILED-DESIGN.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      Copyright © 2026 Mingxi "Lucien" Du
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

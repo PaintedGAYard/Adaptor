@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Class AdaptorServiceContext | Adaptor </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Class AdaptorServiceContext | Adaptor ">
+    
+    <meta name="description" content="Shared infrastructure for all gRPC service implementations.">
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Adaptor.Service.Services.AdaptorServiceContext">
+
+
+
+  <h1 id="Adaptor_Service_Services_AdaptorServiceContext" data-uid="Adaptor.Service.Services.AdaptorServiceContext" class="text-break">Class AdaptorServiceContext</h1>
+  <div class="markdown level0 summary"><p>Shared infrastructure for all gRPC service implementations.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">object</span></div>
+    <div class="level1"><span class="xref">AdaptorServiceContext</span></div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Adaptor.html">Adaptor</a>.<a class="xref" href="Adaptor.Service.html">Service</a>.<a class="xref" href="Adaptor.Service.Services.html">Services</a></h6>
+  <h6><strong>Assembly</strong>: Adaptor.Service.dll</h6>
+  <h5 id="Adaptor_Service_Services_AdaptorServiceContext_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sealed class AdaptorServiceContext</code></pre>
+  </div>
+  <h5 id="Adaptor_Service_Services_AdaptorServiceContext_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>gRPC transaction_id reuses <span class="xref">System.Transactions.TransactionInformation.LocalIdentifier</span> directly.</p>
+</div>
+  <h3 id="constructors">Constructors
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Service_Services_AdaptorServiceContext__ctor_Adaptor_Coordinator_Services_TransactionCoordinator_Microsoft_Extensions_Options_IOptions_Adaptor_Coordinator_Configuration_CoordinatorOptions__Microsoft_Extensions_Logging_ILogger_Adaptor_Service_Services_AdaptorServiceContext__.md&amp;value=---%0Auid%3A%20Adaptor.Service.Services.AdaptorServiceContext.%23ctor(Adaptor.Coordinator.Services.TransactionCoordinator%2CMicrosoft.Extensions.Options.IOptions%7BAdaptor.Coordinator.Configuration.CoordinatorOptions%7D%2CMicrosoft.Extensions.Logging.ILogger%7BAdaptor.Service.Services.AdaptorServiceContext%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Service/Services/AdaptorService.cs/#L26">View Source</a>
+  </span>
+  <a id="Adaptor_Service_Services_AdaptorServiceContext__ctor_" data-uid="Adaptor.Service.Services.AdaptorServiceContext.#ctor*"></a>
+  <h4 id="Adaptor_Service_Services_AdaptorServiceContext__ctor_Adaptor_Coordinator_Services_TransactionCoordinator_Microsoft_Extensions_Options_IOptions_Adaptor_Coordinator_Configuration_CoordinatorOptions__Microsoft_Extensions_Logging_ILogger_Adaptor_Service_Services_AdaptorServiceContext__" data-uid="Adaptor.Service.Services.AdaptorServiceContext.#ctor(Adaptor.Coordinator.Services.TransactionCoordinator,Microsoft.Extensions.Options.IOptions{Adaptor.Coordinator.Configuration.CoordinatorOptions},Microsoft.Extensions.Logging.ILogger{Adaptor.Service.Services.AdaptorServiceContext})">AdaptorServiceContext(TransactionCoordinator, IOptions&lt;CoordinatorOptions&gt;, ILogger&lt;AdaptorServiceContext&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public AdaptorServiceContext(TransactionCoordinator coordinator, IOptions&lt;CoordinatorOptions&gt; options, ILogger&lt;AdaptorServiceContext&gt; logger)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Adaptor.Coordinator.Services.TransactionCoordinator.html">TransactionCoordinator</a></td>
+        <td><span class="parametername">coordinator</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">IOptions</span>&lt;<a class="xref" href="Adaptor.Coordinator.Configuration.CoordinatorOptions.html">CoordinatorOptions</a>&gt;</td>
+        <td><span class="parametername">options</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">ILogger</span>&lt;<a class="xref" href="Adaptor.Service.Services.AdaptorServiceContext.html">AdaptorServiceContext</a>&gt;</td>
+        <td><span class="parametername">logger</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Service_Services_AdaptorServiceContext_Coordinator.md&amp;value=---%0Auid%3A%20Adaptor.Service.Services.AdaptorServiceContext.Coordinator%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Service/Services/AdaptorService.cs/#L22">View Source</a>
+  </span>
+  <a id="Adaptor_Service_Services_AdaptorServiceContext_Coordinator_" data-uid="Adaptor.Service.Services.AdaptorServiceContext.Coordinator*"></a>
+  <h4 id="Adaptor_Service_Services_AdaptorServiceContext_Coordinator" data-uid="Adaptor.Service.Services.AdaptorServiceContext.Coordinator">Coordinator</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TransactionCoordinator Coordinator { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Adaptor.Coordinator.Services.TransactionCoordinator.html">TransactionCoordinator</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Service_Services_AdaptorServiceContext_Logger.md&amp;value=---%0Auid%3A%20Adaptor.Service.Services.AdaptorServiceContext.Logger%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Service/Services/AdaptorService.cs/#L23">View Source</a>
+  </span>
+  <a id="Adaptor_Service_Services_AdaptorServiceContext_Logger_" data-uid="Adaptor.Service.Services.AdaptorServiceContext.Logger*"></a>
+  <h4 id="Adaptor_Service_Services_AdaptorServiceContext_Logger" data-uid="Adaptor.Service.Services.AdaptorServiceContext.Logger">Logger</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ILogger Logger { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">ILogger</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Service_Services_AdaptorServiceContext_Options.md&amp;value=---%0Auid%3A%20Adaptor.Service.Services.AdaptorServiceContext.Options%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Service/Services/AdaptorService.cs/#L24">View Source</a>
+  </span>
+  <a id="Adaptor_Service_Services_AdaptorServiceContext_Options_" data-uid="Adaptor.Service.Services.AdaptorServiceContext.Options*"></a>
+  <h4 id="Adaptor_Service_Services_AdaptorServiceContext_Options" data-uid="Adaptor.Service.Services.AdaptorServiceContext.Options">Options</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public CoordinatorOptions Options { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Adaptor.Coordinator.Configuration.CoordinatorOptions.html">CoordinatorOptions</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Service_Services_AdaptorServiceContext_ConvertStatus_Adaptor_Coordinator_Models_CommitStatus_.md&amp;value=---%0Auid%3A%20Adaptor.Service.Services.AdaptorServiceContext.ConvertStatus(Adaptor.Coordinator.Models.CommitStatus)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Service/Services/AdaptorService.cs/#L39">View Source</a>
+  </span>
+  <a id="Adaptor_Service_Services_AdaptorServiceContext_ConvertStatus_" data-uid="Adaptor.Service.Services.AdaptorServiceContext.ConvertStatus*"></a>
+  <h4 id="Adaptor_Service_Services_AdaptorServiceContext_ConvertStatus_Adaptor_Coordinator_Models_CommitStatus_" data-uid="Adaptor.Service.Services.AdaptorServiceContext.ConvertStatus(Adaptor.Coordinator.Models.CommitStatus)">ConvertStatus(CommitStatus)</h4>
+  <div class="markdown level1 summary"><p>Map internal <a class="xref" href="Adaptor.Coordinator.Models.CommitStatus.html">CommitStatus</a> to the protobuf enum.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static CommitStatus ConvertStatus(CommitStatus status)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Adaptor.Coordinator.Models.CommitStatus.html">CommitStatus</a></td>
+        <td><span class="parametername">status</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Adaptor.Service.CommitStatus.html">CommitStatus</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Service_Services_AdaptorServiceContext_ConvertTransactionStatus_System_Transactions_TransactionStatus_.md&amp;value=---%0Auid%3A%20Adaptor.Service.Services.AdaptorServiceContext.ConvertTransactionStatus(System.Transactions.TransactionStatus)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Service/Services/AdaptorService.cs/#L52">View Source</a>
+  </span>
+  <a id="Adaptor_Service_Services_AdaptorServiceContext_ConvertTransactionStatus_" data-uid="Adaptor.Service.Services.AdaptorServiceContext.ConvertTransactionStatus*"></a>
+  <h4 id="Adaptor_Service_Services_AdaptorServiceContext_ConvertTransactionStatus_System_Transactions_TransactionStatus_" data-uid="Adaptor.Service.Services.AdaptorServiceContext.ConvertTransactionStatus(System.Transactions.TransactionStatus)">ConvertTransactionStatus(TransactionStatus)</h4>
+  <div class="markdown level1 summary"><p>Map <span class="xref">System.Transactions.TransactionStatus</span> to the protobuf TransactionState.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static TransactionState ConvertTransactionStatus(TransactionStatus status)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">TransactionStatus</span></td>
+        <td><span class="parametername">status</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Adaptor.Service.TransactionState.html">TransactionState</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Service_Services_AdaptorServiceContext_ObjectToValue_System_Object_.md&amp;value=---%0Auid%3A%20Adaptor.Service.Services.AdaptorServiceContext.ObjectToValue(System.Object)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Service/Services/AdaptorService.cs/#L69">View Source</a>
+  </span>
+  <a id="Adaptor_Service_Services_AdaptorServiceContext_ObjectToValue_" data-uid="Adaptor.Service.Services.AdaptorServiceContext.ObjectToValue*"></a>
+  <h4 id="Adaptor_Service_Services_AdaptorServiceContext_ObjectToValue_System_Object_" data-uid="Adaptor.Service.Services.AdaptorServiceContext.ObjectToValue(System.Object)">ObjectToValue(object?)</h4>
+  <div class="markdown level1 summary"><p>Convert a CLR object to a protobuf <span class="xref">Google.Protobuf.WellKnownTypes.Value</span>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Value ObjectToValue(object? value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Value</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Adaptor_Service_Services_AdaptorServiceContext_ObjectToValue_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Google.Protobuf has no built-in FromObject. Dictionaries become <span class="xref">Google.Protobuf.WellKnownTypes.Struct</span>,
+lists become <span class="xref">Google.Protobuf.WellKnownTypes.ListValue</span>. Uses if/else chain to avoid type-inference issues.</p>
+</div>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Service_Services_AdaptorServiceContext.md&amp;value=---%0Auid%3A%20Adaptor.Service.Services.AdaptorServiceContext%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Edit this page</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Service/Services/AdaptorService.cs/#L20" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      Copyright © 2026 Mingxi "Lucien" Du
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

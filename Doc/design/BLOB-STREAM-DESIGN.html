@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Blob Stream Access Capability — 详细设计 | Adaptor </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Blob Stream Access Capability — 详细设计 | Adaptor ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        <div class="article row grid">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="blob-stream-access-capability--详细设计">Blob Stream Access Capability — 详细设计</h1>
+
+<blockquote>
+<p><strong>版本</strong>: 1.0<br>
+<strong>日期</strong>: 2026-06-18<br>
+<strong>状态</strong>: Draft</p>
+</blockquote>
+<hr>
+<h2 id="1-架构概览">1. 架构概览</h2>
+<h3 id="11-controldata-plane-分离">1.1 Control/Data Plane 分离</h3>
+<pre><code>┌──────────────────────────────────────────────────────────────────┐
+│  Consumer (Python / JS / Go)                                      │
+│                                                                    │
+│  gRPC:                             WebSocket:                      │
+│  ─────────                         ───────────                     │
+│  tx = client.BeginTransaction()    ws = connect(&quot;wss://host/blob-stream&quot;)│
+│  ...                                ws.send(Open(tx, key))         │
+│  client.CommitTransaction(tx)      ws.send(Seek(handle, 0))       │
+│  client.RollbackTransaction(tx)    ws.send(Read(handle, 1024))    │
+│                                    ws.send(Close(handle))          │
+└────────────────────────────────┬─────────────────────────────────┘
+                                 │
+         gRPC (50051) ──────────┼────────── WebSocket (同端口)
+                                 │
+┌────────────────────────────────▼─────────────────────────────────┐
+│  Adaptor Service (.NET 10 / Kestrel)                              │
+│                                                                    │
+│  ┌─────────────────────┐   ┌──────────────────────────────────┐   │
+│  │  gRPC Services       │   │  BlobStream WebSocket Handler    │   │
+│  │  (Control Plane)     │   │  (Data Plane)                    │   │
+│  │                       │   │                                   │   │
+│  │  TransactionService   │   │  ConnectionHandler               │   │
+│  │  RelationalService    │   │  ├─ OpCode 0x01 = Open           │   │
+│  │  VectorService        │   │  ├─ OpCode 0x02 = Close          │   │
+│  │  BlobService (unary)  │   │  ├─ OpCode 0x03 = Read           │   │
+│  │                       │   │  ├─ OpCode 0x04 = Write          │   │
+│  │  ─ 共用 DI 容器 ───── │   │  ├─ OpCode 0x05 = Seek          │   │
+│  │                       │   │  ├─ OpCode 0x06 = Truncate       │   │
+│  │  TransactionCoordinator│  │  └─ OpCode 0xFF = Error          │   │
+│  │  HandleManager         │  └───────────┬──────────────────────┘   │
+│  └──────────┬──────────────┘             │                          │
+│             │                             │                          │
+│             └─────────┬───────────────────┘                          │
+│                       │                                              │
+│  ┌────────────────────▼────────────────────────────────────────┐    │
+│  │  Driver Layer (同 DI 容器的 IResourceManager 实例)            │    │
+│  │                                                               │    │
+│  │  PostgresBlobDriver :                                          │    │
+│  │    IResourceManager                                            │    │
+│  │    ITransactionalResourceManager                               │    │
+│  │    IBlobUploadCapability          (unary upload, 已有)          │    │
+│  │    IBlobDownloadCapability        (unary download, 已有)        │    │
+│  │    IBlobRandomAccessCapability    (stream random access, 新增)  │    │
+│  │    IHealthCheckCapability                                     │    │
+│  └───────────────────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="12-设计原则">1.2 设计原则</h3>
+<table>
+<thead>
+<tr>
+<th>原则</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Control/Data Plane 分离</strong></td>
+<td>gRPC 负责事务生命周期管理；WebSocket 负责 Blob 数据流读写</td>
+</tr>
+<tr>
+<td><strong>tx_id 作为桥接 Token</strong></td>
+<td>WebSocket 协议中的每条消息携带 tx_id，用于关联到 gRPC 创建的事务</td>
+</tr>
+<tr>
+<td><strong>Handle 抽象</strong></td>
+<td>服务端维护 handle → (LO fd, Transaction, Connection) 映射，客户端通过 handle 操作</td>
+</tr>
+<tr>
+<td><strong>Per-handle 串行化</strong></td>
+<td>每个 handle 一把锁，保证 Seek+Read/Write 的原子性</td>
+</tr>
+<tr>
+<td><strong>自动资源回收</strong></td>
+<td>Handle 超时 + 连接断开双重 GC，防止 LO fd 泄漏</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="2-grpc-控制平面">2. gRPC 控制平面</h2>
+<h3 id="21-保留的-grpc-服务">2.1 保留的 gRPC 服务</h3>
+<table>
+<thead>
+<tr>
+<th>服务</th>
+<th style="text-align: center;">保留</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Transaction</code></td>
+<td style="text-align: center;">✅</td>
+<td>Begin/Commit/Rollback/GetStatus</td>
+</tr>
+<tr>
+<td><code>DBRelational</code></td>
+<td style="text-align: center;">✅</td>
+<td>Execute/Query/ExecuteBatch</td>
+</tr>
+<tr>
+<td><code>DBRelationalVector</code></td>
+<td style="text-align: center;">✅</td>
+<td>Search</td>
+</tr>
+<tr>
+<td><code>DBBLOB</code></td>
+<td style="text-align: center;">✅</td>
+<td>BlobUpload/BlobDownload/BlobDelete/BlobList（unary 操作保留）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>变更</strong>: 无。gRPC 侧不需要任何修改。</p>
+<hr>
+<h2 id="3-websocket-数据平面">3. WebSocket 数据平面</h2>
+<h3 id="31-端点">3.1 端点</h3>
+<pre><code>wss://host:50051/blob-stream   (共享 Kestrel 端口)
+</code></pre>
+<p>WebSocket 升级路径在 ASP.NET Core 中间件管道中注册，与 gRPC 共享同一端口和 TLS。</p>
+<h3 id="32-二进制协议">3.2 二进制协议</h3>
+<p>采用 <strong>简单 TLV (Type-Length-Value)</strong> 格式：</p>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│  请求消息格式:                                                │
+│  ┌──────┬────────┬──────────┬──────────────────────────┐    │
+│  │ 1B   │ 4B     │ 4B       │ N-Bytes                  │    │
+│  │ Ver  │ OpCode │ BodyLen  │ Body (opcode-specific)   │    │
+│  │ =0x01│ (uint) │ (uint BE)│                          │    │
+│  └──────┴────────┴──────────┴──────────────────────────┘    │
+│                                                              │
+│  响应消息格式:                                                │
+│  ┌──────┬────────┬──────────┬──────────────────────────┐    │
+│  │ 1B   │ 4B     │ 4B       │ N-Bytes                  │    │
+│  │ Ver  │ OpCode │ BodyLen  │ Body (opcode-specific)   │    │
+│  │ =0x01│ (=请求 │ (uint BE)│ 或 ErrorBody if OpCode   │    │
+│  │      │  OpCode│          │ = 0xFF)                  │    │
+│  └──────┴────────┴──────────┴──────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+</code></pre>
+<p>所有多字节整数均为 <strong>大端序 (Big Endian)</strong>。</p>
+<h3 id="33-opcode-定义">3.3 OpCode 定义</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">OpCode</th>
+<th style="text-align: center;">方向</th>
+<th>名称</th>
+<th>请求 Body</th>
+<th>响应 Body</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><code>0x01</code></td>
+<td style="text-align: center;">C→S</td>
+<td><strong>Open</strong></td>
+<td><code>[4B txIdLen][UTF8 txId][4B keyLen][UTF8 key][1B mode]</code></td>
+<td><code>[8B handle]</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x02</code></td>
+<td style="text-align: center;">C→S</td>
+<td><strong>Close</strong></td>
+<td><code>[8B handle]</code></td>
+<td><code>[1B status]</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x03</code></td>
+<td style="text-align: center;">C→S</td>
+<td><strong>Read</strong></td>
+<td><code>[8B handle][4B count]</code></td>
+<td><code>[4B dataLen][data]</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x04</code></td>
+<td style="text-align: center;">C→S</td>
+<td><strong>Write</strong></td>
+<td><code>[8B handle][4B dataLen][data]</code></td>
+<td><code>[4B bytesWritten]</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x05</code></td>
+<td style="text-align: center;">C→S</td>
+<td><strong>Seek</strong></td>
+<td><code>[8B handle][8B offset][1B whence(0=Begin,1=Cur,2=End)]</code></td>
+<td><code>[8B newPosition]</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x06</code></td>
+<td style="text-align: center;">C→S</td>
+<td><strong>Truncate</strong></td>
+<td><code>[8B handle][8B newLength]</code></td>
+<td><code>[1B status]</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0xFF</code></td>
+<td style="text-align: center;">S→C</td>
+<td><strong>Error</strong></td>
+<td>—</td>
+<td><code>[4B errorCode][2B msgLen][UTF8 msg]</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="34-open-mode-枚举">3.4 Open Mode 枚举</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Mode 值</th>
+<th>名称</th>
+<th>语义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><code>0x01</code></td>
+<td>Read</td>
+<td>打开已有 blob 进行读取</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x02</code></td>
+<td>Write</td>
+<td>打开已有 blob 进行写入（从 offset 0 开始）</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x03</code></td>
+<td>ReadWrite</td>
+<td>打开已有 blob 进行读写</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x04</code></td>
+<td>Create</td>
+<td>创建新 blob，key 已存在则报错</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x05</code></td>
+<td>CreateOrReplace</td>
+<td>创建新 blob，key 存在则替换（Create-New-Swap）</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x06</code></td>
+<td>Append</td>
+<td>打开已有 blob 并在末尾追加</td>
+</tr>
+</tbody>
+</table>
+<h3 id="35-error-code-枚举">3.5 Error Code 枚举</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Code</th>
+<th>名称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><code>0x0001</code></td>
+<td>InvalidOpCode</td>
+<td>无法识别的 OpCode</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x0002</code></td>
+<td>InvalidBody</td>
+<td>Body 格式错误或长度不匹配</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x0003</code></td>
+<td>InvalidHandle</td>
+<td>Handle 不存在或已关闭</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x0004</code></td>
+<td>TransactionNotFound</td>
+<td>tx_id 不存在</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x0005</code></td>
+<td>TransactionNotActive</td>
+<td>事务已提交/回滚</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x0006</code></td>
+<td>KeyNotFound</td>
+<td>Blob key 不存在（Open Read 时）</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x0007</code></td>
+<td>KeyAlreadyExists</td>
+<td>Blob key 已存在（Open Create 时）</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x0008</code></td>
+<td>DriverNotAvailable</td>
+<td>未注册支持随机访问的 Driver</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x0009</code></td>
+<td>IoError</td>
+<td>底层存储 I/O 错误</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x000A</code></td>
+<td>HandleLimitExceeded</td>
+<td>超过最大 handle 数限制</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0x000B</code></td>
+<td>ReadBeyondEnd</td>
+<td>读取超出 blob 末尾</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0xFFFF</code></td>
+<td>UnknownError</td>
+<td>其他内部错误</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="4-服务端组件设计">4. 服务端组件设计</h2>
+<h3 id="41-组件依赖关系">4.1 组件依赖关系</h3>
+<pre><code>BlobStreamConnectionHandler (WebSocket)
+  ├── TransactionCoordinator  (查找事务、执行能力)
+  ├── HandleManager           (handle 生命周期管理)
+  │     ├── HandleEntry[]     (per-handle 状态)
+  │     └── Timer             (超时 GC)
+  └── ILogger
+</code></pre>
+<h3 id="42-handlemanager">4.2 HandleManager</h3>
+<p><strong>职责</strong>:</p>
+<ol>
+<li>分配全局唯一的 handle ID（<code>Interlocked.Increment</code>，起始于随机值）</li>
+<li>维护 <code>ConcurrentDictionary&lt;long, HandleEntry&gt;</code> 映射</li>
+<li>定时清理过期 handle（事务已结束 / 空闲超时）</li>
+<li>限制每连接最大 handle 数（默认 64）</li>
+</ol>
+<pre><code class="lang-csharp">public sealed class HandleManager : IDisposable
+{
+    private long _nextHandle;  // 从随机值开始
+    private readonly ConcurrentDictionary&lt;long, HandleEntry&gt; _handles = new();
+    
+    public long Register(HandleEntry entry);
+    public bool TryGet(long handle, out HandleEntry entry);
+    public bool Remove(long handle, out HandleEntry entry);
+    public IReadOnlyList&lt;HandleEntry&gt; RemoveAllForConnection(string connectionId);
+    public int ActiveHandleCount { get; }
+}
+</code></pre>
+<h3 id="43-handleentry">4.3 HandleEntry</h3>
+<pre><code class="lang-csharp">internal sealed class HandleEntry : IDisposable
+{
+    public long HandleId { get; init; }
+    public int LoFd { get; set; }           // PostgreSQL LO file descriptor
+    public string Key { get; init; } = &quot;&quot;;
+    public string TransactionId { get; init; } = &quot;&quot;;
+    public string ConnectionId { get; init; } = &quot;&quot;;
+    public DateTime LastActivityAt { get; set; }
+    public SemaphoreSlim Gate { get; } = new(1, 1);
+    
+    // 实际资源由 Driver 管理，HandleEntry 只记录映射
+}
+</code></pre>
+<h3 id="44-blobstreamconnectionhandler">4.4 BlobStreamConnectionHandler</h3>
+<p><strong>消息处理流程</strong>:</p>
+<pre><code>Receive binary message
+  → 解析固定头部 (9 bytes)
+  → 解析 OpCode-specific Body
+  → 验证 tx_id (若需要)
+  → 获取 HandleEntry (若需要)
+  → 获取 Transaction (via Coordinator)
+  → acquire HandleEntry.Gate (若需要)
+  → 调用 Driver 执行操作
+  → 构造响应消息
+  → Send binary response
+  → release HandleEntry.Gate
+</code></pre>
+<p><strong>连接关闭处理</strong>:</p>
+<pre><code>WebSocket 断开
+  → HandleManager.RemoveAllForConnection(connectionId)
+  → 对每个 handle: CloseBlobAsync(fd, tx) → lo_close
+</code></pre>
+<hr>
+<h2 id="5-coordinator-能力接口">5. Coordinator 能力接口</h2>
+<h3 id="51-iblobrandomaccesscapability">5.1 IBlobRandomAccessCapability</h3>
+<pre><code class="lang-csharp">public enum BlobAccessMode
+{
+    Read = 1,
+    Write = 2,
+    ReadWrite = 3,
+    Create = 4,
+    CreateOrReplace = 5,
+    Append = 6,
+}
+
+public interface IBlobRandomAccessCapability
+{
+    Task&lt;BlobOpenResult&gt; OpenAsync(
+        string key, BlobAccessMode mode, Transaction transaction, CancellationToken ct);
+
+    Task CloseAsync(
+        int loFd, Transaction transaction, CancellationToken ct);
+
+    Task&lt;BlobReadResult&gt; ReadAsync(
+        int loFd, int count, Transaction transaction, CancellationToken ct);
+
+    Task&lt;int&gt; WriteAsync(
+        int loFd, byte[] data, Transaction transaction, CancellationToken ct);
+
+    Task&lt;long&gt; SeekAsync(
+        int loFd, long offset, SeekOrigin origin, Transaction transaction, CancellationToken ct);
+
+    Task TruncateAsync(
+        int loFd, long length, Transaction transaction, CancellationToken ct);
+}
+</code></pre>
+<h3 id="52-模型">5.2 模型</h3>
+<pre><code class="lang-csharp">public sealed record BlobOpenResult(
+    int LoFd,           // PostgreSQL Large Object file descriptor
+    long BlobSize,      // 已有 blob 的大小（新建时为 0）
+    string? ErrorMessage = null);
+
+public sealed record BlobReadResult(
+    byte[] Data,
+    int BytesRead,
+    string? ErrorMessage = null);
+</code></pre>
+<hr>
+<h2 id="6-driver-实现postgresblobdriver-扩展">6. Driver 实现（PostgresBlobDriver 扩展）</h2>
+<h3 id="61-新增方法">6.1 新增方法</h3>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>PostgreSQL 实现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OpenAsync(key, mode, tx)</code></td>
+<td>1. 通过 tx 查找连接<br>2. 查询 <code>adaptor_blob_store</code> 获取 OID<br>3. <code>lo_open(oid, mode)</code> → fd<br>4. Return (fd, size)</td>
+</tr>
+<tr>
+<td><code>CloseAsync(fd, tx)</code></td>
+<td><code>lo_close(fd)</code></td>
+</tr>
+<tr>
+<td><code>ReadAsync(fd, count, tx)</code></td>
+<td><code>lo_read(fd, count)</code> → byte[]</td>
+</tr>
+<tr>
+<td><code>WriteAsync(fd, data, tx)</code></td>
+<td><code>lo_write(fd, data)</code> → bytes written</td>
+</tr>
+<tr>
+<td><code>SeekAsync(fd, offset, origin, tx)</code></td>
+<td><code>lo_lseek(fd, offset, whence)</code> → new position</td>
+</tr>
+<tr>
+<td><code>TruncateAsync(fd, length, tx)</code></td>
+<td><code>lo_truncate(fd, length)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="62-create-模式特殊处理">6.2 Create 模式特殊处理</h3>
+<pre><code>Open(Create) 或 Open(CreateOrReplace):
+  1. lo_creat(-1) → 新 OID
+  2. 写入映射表 INSERT ... ON CONFLICT DO ...
+  3. lo_open(newOid, INV_WRITE) → fd
+  4. Return (fd, 0)
+
+Open(CreateOrReplace) 时 key 已存在:
+  1. 查询旧 OID
+  2. lo_creat(-1) → 新 OID
+  3. UPDATE adaptor_blob_store SET oid = @newOid
+  4. lo_unlink(@oldOid)
+  5. lo_open(newOid, INV_WRITE) → fd
+</code></pre>
+<hr>
+<h2 id="7-关键流程示例">7. 关键流程示例</h2>
+<h3 id="71-大文件上传流式覆盖写入">7.1 大文件上传（流式覆盖写入）</h3>
+<pre><code>Consumer                              Adaptor Server
+─────────────────────────────────────────────────────────
+(gRPC) tx = BeginTransaction()
+  │
+(WS)   Open(tx, &quot;video.mp4&quot;, CreateOrReplace)
+  │                                     验证 tx Active
+  │                                     lo_creat → OID=123
+  │                                     lo_open(123, INV_WRITE) → fd=5
+  │                                     HandleManager.Register(fd=5) → handle=42
+  │←── handle=42
+  │
+(WS)   Seek(42, 0)
+  │                                     lo_lseek(5, 0, SEEK_SET)
+  │←── position=0
+  │
+(WS)   Write(42, [chunk1])   ← 客户端循环
+  │                                     lo_write(5, chunk1) → 65536
+  │←── bytesWritten=65536
+  │
+(WS)   Write(42, [chunkN])
+  │                                     lo_write(5, chunkN) → 32768
+  │←── bytesWritten=32768
+  │
+(WS)   Close(42)
+  │                                     lo_close(5)
+  │                                     INSERT adaptor_blob_store ...
+  │←── OK
+  │
+(gRPC) CommitTransaction(tx)
+  │                                     2PC → lo 事务提交
+</code></pre>
+<h3 id="72-随机读取">7.2 随机读取</h3>
+<pre><code>Consumer                              Adaptor Server
+─────────────────────────────────────────────────────────
+(gRPC) tx = BeginTransaction()
+  │
+(WS)   Open(tx, &quot;archive.bin&quot;, Read)
+  │←── handle=7, blobSize=104857600
+  │
+(WS)   Seek(7, 4096)
+  │←── position=4096
+  │
+(WS)   Read(7, 1024)
+  │                                     lo_read(5, 1024) → data
+  │←── data[1024]
+  │
+(WS)   Close(7)
+  │←── OK
+  │
+(gRPC) RollbackTransaction(tx)   ← 只读操作，无需提交
+</code></pre>
+<hr>
+<h2 id="8-文件清单">8. 文件清单</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">操作</th>
+<th>文件</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>新增</strong></td>
+<td><code>Coordinator/Abstractions/IBlobRandomAccessCapability.cs</code></td>
+<td>随机访问能力接口</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>新增</strong></td>
+<td><code>Coordinator/Models/BlobStreamModels.cs</code></td>
+<td>BlobOpenResult / BlobReadResult</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>新增</strong></td>
+<td><code>Service/BlobStream/Protocol/OpCode.cs</code></td>
+<td>OpCode 枚举</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>新增</strong></td>
+<td><code>Service/BlobStream/Protocol/BlobStreamMessage.cs</code></td>
+<td>二进制消息读写</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>新增</strong></td>
+<td><code>Service/BlobStream/Protocol/BlobStreamException.cs</code></td>
+<td>错误码 + 异常</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>新增</strong></td>
+<td><code>Service/BlobStream/HandleManager.cs</code></td>
+<td>Handle 生命周期管理</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>新增</strong></td>
+<td><code>Service/BlobStream/HandleEntry.cs</code></td>
+<td>Handle 状态记录</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>新增</strong></td>
+<td><code>Service/BlobStream/BlobStreamConnectionHandler.cs</code></td>
+<td>WebSocket 连接处理器</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>修改</strong></td>
+<td><code>Driver/Postgre/PostgresBlobDriver.cs</code></td>
+<td>实现 IBlobRandomAccessCapability</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>修改</strong></td>
+<td><code>Service/Program.cs</code></td>
+<td>注册 WebSocket + BlobStream 组件</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="9-实施反思与修复记录">9. 实施反思与修复记录</h2>
+<h3 id="91-已识别并修复的坑">9.1 已识别并修复的坑</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">#</th>
+<th>风险</th>
+<th style="text-align: center;">等级</th>
+<th>修复措施</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td><strong>大 Read 导致 OOM</strong> — 客户端请求 <code>int.MaxValue</code> 字节读取</td>
+<td style="text-align: center;">🟡</td>
+<td>添加 <code>MaxReadSize = 4 MiB</code> 限制，超限返回 <code>InvalidBody</code> 错误</td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td><strong>Open 时 ExecuteOnCapabilityAsync 异常映射</strong> — <code>InvalidOperationException</code> 被吞为 <code>UnknownError</code></td>
+<td style="text-align: center;">🟡</td>
+<td>添加 catch 子句，将事务不存在 / Driver 不存在映射到对应协议错误码</td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td><strong>GetValidatedEntry 不清理已结束事务的 handle</strong> — TransactionNotActive 时 handle 残留</td>
+<td style="text-align: center;">🟡</td>
+<td>两个分支均添加 <code>_handleManager.Remove</code> + <code>entry.Dispose()</code></td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td><strong>事务完成后 handle 无通知</strong> — BlobEnlistmentHandler 清理连接后 handle 仍在 HandleManager 中</td>
+<td style="text-align: center;">🟡</td>
+<td>添加 <code>InvalidateHandlesForTransaction(txId)</code> 方法；GetValidatedEntry 即时检测 + GC 定时器兜底</td>
+</tr>
+</tbody>
+</table>
+<h3 id="92-已识别但未修复的坑需要后续版本处理">9.2 已识别但未修复的坑（需要后续版本处理）</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">#</th>
+<th>风险</th>
+<th style="text-align: center;">等级</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">5</td>
+<td><strong>PG lo_lseek 32 位 offset</strong> — 大于 2GB 的文件无法正确定位</td>
+<td style="text-align: center;">🔴</td>
+<td>PostgreSQL <code>lo_lseek</code> 的 <code>offset</code> 参数是 <code>int</code>(32-bit)。PG 14+ 提供 <code>lo_lseek64</code> 接受 <code>bigint</code>。当前实现传递 <code>long</code>，在 PG 14+ 上自动使用 <code>lo_lseek64</code>。需要在部署文档中标注 PG 版本要求</td>
+</tr>
+<tr>
+<td style="text-align: center;">6</td>
+<td><strong>PG lo_write 的 bytea 上限</strong> — 单次写入超过 1GB 时 PG 报错</td>
+<td style="text-align: center;">🟡</td>
+<td>WebSocket 协议已限制单条消息 ≤ 32MB；大文件写入由客户端分块，不会触发此限制</td>
+</tr>
+<tr>
+<td style="text-align: center;">7</td>
+<td><strong>ReceiveFullMessageAsync 双倍拷贝</strong> — 先租 ArrayPool 再复制到新 byte[]</td>
+<td style="text-align: center;">🟡</td>
+<td>当前实现正确但非零拷贝。优化方案：直接使用 <code>ArrayPool</code> 租用缓冲区并在解析前保持引用，复杂度高且收益有限，暂不处理</td>
+</tr>
+<tr>
+<td style="text-align: center;">8</td>
+<td><strong>WebSocket 消息缓冲区指数增长</strong> — 大消息时可能导致碎片</td>
+<td style="text-align: center;">🟡</td>
+<td><code>MaxMessageSize = 32MB</code> 限制了最大分配量，32MB 以下的内存增长可接受</td>
+</tr>
+<tr>
+<td style="text-align: center;">9</td>
+<td><strong>HandleManager 单点</strong> — 进程重启后所有 handle 失效</td>
+<td style="text-align: center;">🟡</td>
+<td>Handle 是进程内状态，与事务生命周期一致（事务也在进程中）。进程重启 → 所有事务失效 → handle 自动无效。这是预期行为，不是 bug</td>
+</tr>
+<tr>
+<td style="text-align: center;">10</td>
+<td><strong>HandleManager GC 与请求处理器的并发</strong> — Timer 回调与请求处理器同时访问 <code>_handles</code></td>
+<td style="text-align: center;">🟢</td>
+<td><code>ConcurrentDictionary</code> 线程安全；Remove 和 TryGet 是原子操作。GC 可能移除一个正在被请求使用的 handle，但请求处理器会通过 <code>GetValidatedEntry</code> 发现 handle 已不存在，返回 <code>InvalidHandle</code> 错误给客户端</td>
+</tr>
+</tbody>
+</table>
+<h3 id="93-架构层面的潜在问题">9.3 架构层面的潜在问题</h3>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>分析</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>事务生命周期 vs Handle 生命周期耦合</strong></td>
+<td>Handle 绑定到 .NET <code>Transaction</code>，而 transaction 的生命周期由 gRPC 控制（gRPC client 调用 Commit）。这意味着 WebSocket 的 Handle 存活期依赖于 gRPC 连接的状态。若 gRPC client 崩溃但 WebSocket 连接还在，handle 会因 GC 超时（5 分钟）而回收，但在此期间 LO fd 保持打开。这是合理的设计取舍</td>
+</tr>
+<tr>
+<td><strong>Driver 的 Enlist 语义</strong></td>
+<td><code>IBlobRandomAccessCapability.OpenAsync</code> 内部通过 <code>GetEntry(transaction)</code> 查找连接，如果未 enlist 会抛出异常。因此 WebSocket handler 必须在 Open 之前确保 driver 已 enlist。当前的 <code>ExecuteOnCapabilityAsync</code> 自动处理了 enlistment（如果 driver 实现 <code>ITransactionalResourceManager</code>），所以 Open 时已自动 Enlist</td>
+</tr>
+<tr>
+<td><strong>负载均衡</strong></td>
+<td>Handle 是进程内状态，无法在多实例间共享。需要 <strong>sticky session</strong> 或将 WebSocket 连接路由到同一实例。这是 WebSocket 类协议的通用约束</td>
+</tr>
+<tr>
+<td><strong>PG 连接数</strong></td>
+<td>每个事务创建一个 PG 连接（通过 <code>Enlist</code>），该连接在事务生命周期内保持打开。每个 handle 通过这个已建立的连接操作 LO fd，不额外消耗连接数</td>
+</tr>
+</tbody>
+</table>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/Design/BLOB-STREAM-DESIGN.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      Copyright © 2026 Mingxi "Lucien" Du
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -26,4 +26,4 @@ Adaptor bridges the gap between modern application runtimes and enterprise-grade
 
 - [Architecture Overview](articles/architecture.md)
 - [API Reference](api/index.md)
-- [Design Documents](../../Design/DETAILED-DESIGN.md)
+- [Design Documents](~/design/DETAILED-DESIGN.md)

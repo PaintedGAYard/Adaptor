@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Class PostgreSqlDriver | Adaptor </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Class PostgreSqlDriver | Adaptor ">
+    
+    <meta name="description" content="PostgreSQL SQL driver providing Execute/Query capabilities with .NET distributed transaction support via .">
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver">
+
+
+
+  <h1 id="Adaptor_Driver_Postgre_PostgreSqlDriver" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver" class="text-break">Class PostgreSqlDriver</h1>
+  <div class="markdown level0 summary"><p>PostgreSQL SQL driver providing Execute/Query capabilities with
+.NET distributed transaction support via <a class="xref" href="Adaptor.Coordinator.Abstractions.ITransactionalResourceManager.html#Adaptor_Coordinator_Abstractions_ITransactionalResourceManager_Enlist_System_Transactions_Transaction_">Enlist(Transaction)</a>.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">object</span></div>
+    <div class="level1"><span class="xref">PostgreSqlDriver</span></div>
+  </div>
+  <div class="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Adaptor.Coordinator.Abstractions.ITransactionalResourceManager.html">ITransactionalResourceManager</a></div>
+    <div><a class="xref" href="Adaptor.Coordinator.Abstractions.IResourceManager.html">IResourceManager</a></div>
+    <div><a class="xref" href="Adaptor.Coordinator.Abstractions.IRelationalExecuteCapability.html">IRelationalExecuteCapability</a></div>
+    <div><a class="xref" href="Adaptor.Coordinator.Abstractions.IRelationalQueryCapability.html">IRelationalQueryCapability</a></div>
+    <div><a class="xref" href="Adaptor.Coordinator.Abstractions.IHealthCheckCapability.html">IHealthCheckCapability</a></div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Adaptor.html">Adaptor</a>.<a class="xref" href="Adaptor.Driver.html">Driver</a>.<a class="xref" href="Adaptor.Driver.Postgre.html">Postgre</a></h6>
+  <h6><strong>Assembly</strong>: Adaptor.Driver.Postgre.dll</h6>
+  <h5 id="Adaptor_Driver_Postgre_PostgreSqlDriver_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sealed class PostgreSqlDriver : ITransactionalResourceManager, IResourceManager, IRelationalExecuteCapability, IRelationalQueryCapability, IHealthCheckCapability</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgreSqlDriver__ctor_Npgsql_NpgsqlDataSource_Microsoft_Extensions_Logging_ILogger_Adaptor_Driver_Postgre_PostgreSqlDriver__.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgreSqlDriver.%23ctor(Npgsql.NpgsqlDataSource%2CMicrosoft.Extensions.Logging.ILogger%7BAdaptor.Driver.Postgre.PostgreSqlDriver%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgreSqlDriver.cs/#L38">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgreSqlDriver__ctor_" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.#ctor*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgreSqlDriver__ctor_Npgsql_NpgsqlDataSource_Microsoft_Extensions_Logging_ILogger_Adaptor_Driver_Postgre_PostgreSqlDriver__" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.#ctor(Npgsql.NpgsqlDataSource,Microsoft.Extensions.Logging.ILogger{Adaptor.Driver.Postgre.PostgreSqlDriver})">PostgreSqlDriver(NpgsqlDataSource, ILogger&lt;PostgreSqlDriver&gt;?)</h4>
+  <div class="markdown level1 summary"><p>Create with an NpgsqlDataSource (recommended for connection pooling).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public PostgreSqlDriver(NpgsqlDataSource dataSource, ILogger&lt;PostgreSqlDriver&gt;? logger = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">NpgsqlDataSource</span></td>
+        <td><span class="parametername">dataSource</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">ILogger</span>&lt;<a class="xref" href="Adaptor.Driver.Postgre.PostgreSqlDriver.html">PostgreSqlDriver</a>&gt;</td>
+        <td><span class="parametername">logger</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgreSqlDriver__ctor_System_String_Microsoft_Extensions_Logging_ILogger_Adaptor_Driver_Postgre_PostgreSqlDriver__.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgreSqlDriver.%23ctor(System.String%2CMicrosoft.Extensions.Logging.ILogger%7BAdaptor.Driver.Postgre.PostgreSqlDriver%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgreSqlDriver.cs/#L30">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgreSqlDriver__ctor_" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.#ctor*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgreSqlDriver__ctor_System_String_Microsoft_Extensions_Logging_ILogger_Adaptor_Driver_Postgre_PostgreSqlDriver__" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.#ctor(System.String,Microsoft.Extensions.Logging.ILogger{Adaptor.Driver.Postgre.PostgreSqlDriver})">PostgreSqlDriver(string, ILogger&lt;PostgreSqlDriver&gt;?)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public PostgreSqlDriver(string connectionString, ILogger&lt;PostgreSqlDriver&gt;? logger = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">string</span></td>
+        <td><span class="parametername">connectionString</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">ILogger</span>&lt;<a class="xref" href="Adaptor.Driver.Postgre.PostgreSqlDriver.html">PostgreSqlDriver</a>&gt;</td>
+        <td><span class="parametername">logger</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgreSqlDriver_Name.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgreSqlDriver.Name%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgreSqlDriver.cs/#L26">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgreSqlDriver_Name_" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.Name*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgreSqlDriver_Name" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.Name">Name</h4>
+  <div class="markdown level1 summary"><p>A human-readable name for the driver instance.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string Name { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">string</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgreSqlDriver_ResourceManagerIdentifier.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgreSqlDriver.ResourceManagerIdentifier%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgreSqlDriver.cs/#L28">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgreSqlDriver_ResourceManagerIdentifier_" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.ResourceManagerIdentifier*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgreSqlDriver_ResourceManagerIdentifier" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.ResourceManagerIdentifier">ResourceManagerIdentifier</h4>
+  <div class="markdown level1 summary"><p>Unique identifier (following ADO convention).
+Used to identify this RM in .NET System.Transactions.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Guid ResourceManagerIdentifier { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Guid</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgreSqlDriver_ResourceType.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgreSqlDriver.ResourceType%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgreSqlDriver.cs/#L27">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgreSqlDriver_ResourceType_" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.ResourceType*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgreSqlDriver_ResourceType" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.ResourceType">ResourceType</h4>
+  <div class="markdown level1 summary"><p>The type of storage resource this driver manages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ResourceType ResourceType { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Adaptor.Coordinator.Abstractions.ResourceType.html">ResourceType</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgreSqlDriver_Dispose.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgreSqlDriver.Dispose%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgreSqlDriver.cs/#L210">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgreSqlDriver_Dispose_" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.Dispose*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgreSqlDriver_Dispose" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.Dispose">Dispose()</h4>
+  <div class="markdown level1 summary"><p>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Dispose()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgreSqlDriver_Enlist_System_Transactions_Transaction_.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgreSqlDriver.Enlist(System.Transactions.Transaction)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgreSqlDriver.cs/#L47">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgreSqlDriver_Enlist_" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.Enlist*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgreSqlDriver_Enlist_System_Transactions_Transaction_" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.Enlist(System.Transactions.Transaction)">Enlist(Transaction)</h4>
+  <div class="markdown level1 summary"><p>Enlist this driver in the specified .NET <span class="xref">System.Transactions.Transaction</span>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Enlist(Transaction transaction)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td><p>The transaction to enlist in. Must be active.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Adaptor_Driver_Postgre_PostgreSqlDriver_Enlist_System_Transactions_Transaction__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Implementations should call <span class="xref">System.Transactions.Transaction.EnlistVolatile(System.Transactions.IEnlistmentNotification, System.Transactions.EnlistmentOptions)</span> or
+<span class="xref">System.Transactions.Transaction.EnlistDurable(System.Guid, System.Transactions.IEnlistmentNotification, System.Transactions.EnlistmentOptions)</span> to complete registration.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgreSqlDriver_ExecuteAsync_Adaptor_Coordinator_Models_RelationalExecuteRequest_System_Transactions_Transaction_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgreSqlDriver.ExecuteAsync(Adaptor.Coordinator.Models.RelationalExecuteRequest%2CSystem.Transactions.Transaction%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgreSqlDriver.cs/#L57">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgreSqlDriver_ExecuteAsync_" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.ExecuteAsync*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgreSqlDriver_ExecuteAsync_Adaptor_Coordinator_Models_RelationalExecuteRequest_System_Transactions_Transaction_System_Threading_CancellationToken_" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.ExecuteAsync(Adaptor.Coordinator.Models.RelationalExecuteRequest,System.Transactions.Transaction,System.Threading.CancellationToken)">ExecuteAsync(RelationalExecuteRequest, Transaction, CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;RelationalExecuteResult&gt; ExecuteAsync(RelationalExecuteRequest request, Transaction transaction, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Adaptor.Coordinator.Models.RelationalExecuteRequest.html">RelationalExecuteRequest</a></td>
+        <td><span class="parametername">request</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<a class="xref" href="Adaptor.Coordinator.Models.RelationalExecuteResult.html">RelationalExecuteResult</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgreSqlDriver_HealthCheckAsync_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgreSqlDriver.HealthCheckAsync(System.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgreSqlDriver.cs/#L200">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgreSqlDriver_HealthCheckAsync_" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.HealthCheckAsync*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgreSqlDriver_HealthCheckAsync_System_Threading_CancellationToken_" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.HealthCheckAsync(System.Threading.CancellationToken)">HealthCheckAsync(CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;bool&gt; HealthCheckAsync(CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<span class="xref">bool</span>&gt;</td>
+        <td><p><code>true</code> if the driver is healthy; <code>false</code> if unreachable or degraded.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgreSqlDriver_QueryAsync_Adaptor_Coordinator_Models_RelationalQueryRequest_System_Transactions_Transaction_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgreSqlDriver.QueryAsync(Adaptor.Coordinator.Models.RelationalQueryRequest%2CSystem.Transactions.Transaction%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgreSqlDriver.cs/#L107">View Source</a>
+  </span>
+  <a id="Adaptor_Driver_Postgre_PostgreSqlDriver_QueryAsync_" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.QueryAsync*"></a>
+  <h4 id="Adaptor_Driver_Postgre_PostgreSqlDriver_QueryAsync_Adaptor_Coordinator_Models_RelationalQueryRequest_System_Transactions_Transaction_System_Threading_CancellationToken_" data-uid="Adaptor.Driver.Postgre.PostgreSqlDriver.QueryAsync(Adaptor.Coordinator.Models.RelationalQueryRequest,System.Transactions.Transaction,System.Threading.CancellationToken)">QueryAsync(RelationalQueryRequest, Transaction, CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;RelationalQueryResult&gt; QueryAsync(RelationalQueryRequest request, Transaction transaction, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Adaptor.Coordinator.Models.RelationalQueryRequest.html">RelationalQueryRequest</a></td>
+        <td><span class="parametername">request</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<a class="xref" href="Adaptor.Coordinator.Models.RelationalQueryResult.html">RelationalQueryResult</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Adaptor.Coordinator.Abstractions.ITransactionalResourceManager.html">ITransactionalResourceManager</a>
+  </div>
+  <div>
+      <a class="xref" href="Adaptor.Coordinator.Abstractions.IResourceManager.html">IResourceManager</a>
+  </div>
+  <div>
+      <a class="xref" href="Adaptor.Coordinator.Abstractions.IRelationalExecuteCapability.html">IRelationalExecuteCapability</a>
+  </div>
+  <div>
+      <a class="xref" href="Adaptor.Coordinator.Abstractions.IRelationalQueryCapability.html">IRelationalQueryCapability</a>
+  </div>
+  <div>
+      <a class="xref" href="Adaptor.Coordinator.Abstractions.IHealthCheckCapability.html">IHealthCheckCapability</a>
+  </div>
+  <h3 id="extensionmethods">Extension Methods</h3>
+  <div>
+      <a class="xref" href="Adaptor.Coordinator.Abstractions.ResourceManagerExtensions.html#Adaptor_Coordinator_Abstractions_ResourceManagerExtensions_GetTransactionCapabilities_Adaptor_Coordinator_Abstractions_IResourceManager_">ResourceManagerExtensions.GetTransactionCapabilities(IResourceManager)</a>
+  </div>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/PaintedGAYard/Adaptor/new/main/apiSpec/new?filename=Adaptor_Driver_Postgre_PostgreSqlDriver.md&amp;value=---%0Auid%3A%20Adaptor.Driver.Postgre.PostgreSqlDriver%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Edit this page</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/PaintedGAYard/Adaptor/blob/main/src/Driver/Postgre/PostgreSqlDriver.cs/#L14" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      Copyright © 2026 Mingxi "Lucien" Du
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -21,18 +21,19 @@
   "build": {
     "content": [
       {
-        "files": [
-          "src/doc-gen/*.md",
-          "src/doc-gen/*.yml",
-          "src/doc-gen/api/**/*.md",
-          "src/doc-gen/api/**/*.yml",
-          "src/doc-gen/articles/**/*.md"
-        ],
+        "files": ["**/*.md", "**/*.yml"],
+        "src": "src/doc-gen",
+        "dest": ".",
         "exclude": [
           "**/obj/**",
           "**/bin/**",
           "_site/**"
         ]
+      },
+      {
+        "files": ["**/*.md"],
+        "src": "Design",
+        "dest": "design"
       }
     ],
     "resource": [
@@ -42,7 +43,7 @@
       }
     ],
     "overwrite": [],
-    "destination": "Doc",
+    "destination": "doc",
     "globalMetadata": {
       "_appTitle": "Adaptor",
       "_appFooter": "Copyright © 2026 Mingxi \"Lucien\" Du",
