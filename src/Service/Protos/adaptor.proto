@@ -63,7 +63,7 @@ message RelationalParameter {
 
 message SparseVector {
   repeated int32 indices = 1;
-  repeated float values = 2;
+  repeated double values = 2;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -171,7 +171,7 @@ message RelationalVectorSearchRequest {
   TransactionContext transaction_context = 1;
   string table = 2;
   string vector_column = 3;
-  repeated float dense_vector = 4;
+  repeated double dense_vector = 4;
   SparseVector sparse_vector = 5;
   int32 top_k = 6;
   string where_clause = 7;

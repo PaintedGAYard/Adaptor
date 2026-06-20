@@ -65,7 +65,7 @@ public sealed class CoordinatorIntegrationTest : IAsyncLifetime
             txId,
             async (cap, tx) =>
             {
-                var req = new RelationalVectorSearchRequest("items", "embedding", [0.1f, 0.2f, 0.3f], TopK: 5);
+                var req = new RelationalVectorSearchRequest("items", "embedding", [0.1, 0.2, 0.3], TopK: 5);
                 return await cap.SearchAsync(req, tx);
             });
         Assert.Null(searchResult.ErrorMessage);

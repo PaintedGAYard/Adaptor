@@ -110,7 +110,7 @@ public sealed class ModelsTest
     [Fact]
     public void RelationalVectorSearchRequest_ShouldRequireTableAndVectorColumn()
     {
-        var request = new RelationalVectorSearchRequest("items", "embedding", [0.1f, 0.2f]);
+        var request = new RelationalVectorSearchRequest("items", "embedding", [0.1, 0.2]);
         Assert.Equal("items", request.Table);
         Assert.Equal("embedding", request.VectorColumn);
     }
@@ -118,7 +118,7 @@ public sealed class ModelsTest
     [Fact]
     public void RelationalVectorSearchRequest_ShouldAcceptDenseVector()
     {
-        var request = new RelationalVectorSearchRequest("t", "v", [1f, 2f, 3f]);
+        var request = new RelationalVectorSearchRequest("t", "v", [1.0, 2.0, 3.0]);
         Assert.NotNull(request.DenseVector);
         Assert.Null(request.SparseVector);
     }
@@ -126,7 +126,7 @@ public sealed class ModelsTest
     [Fact]
     public void RelationalVectorSearchRequest_ShouldAcceptSparseVector()
     {
-        var sparse = new SparseVector([0, 5], [0.5f, 0.8f]);
+        var sparse = new SparseVector([0, 5], [0.5, 0.8]);
         var request = new RelationalVectorSearchRequest("t", "v", null, sparse, TopK: 5);
         Assert.NotNull(request.SparseVector);
         Assert.Null(request.DenseVector);
@@ -137,7 +137,7 @@ public sealed class ModelsTest
     public void RelationalVectorSearchRequest_ShouldAcceptWhereClauseAndParameters()
     {
         var request = new RelationalVectorSearchRequest(
-            "t", "v", [1f], TopK: 10,
+            "t", "v", [1.0], TopK: 10,
             WhereClause: "category = @cat",
             Parameters: [new RelationalParameter("@cat", "electronics")]);
 
@@ -148,7 +148,7 @@ public sealed class ModelsTest
     [Fact]
     public void RelationalVectorSearchRequest_ShouldHaveDefaultTopK()
     {
-        var request = new RelationalVectorSearchRequest("t", "v", [1f]);
+        var request = new RelationalVectorSearchRequest("t", "v", [1.0]);
         Assert.Equal(10, request.TopK);
     }
 
@@ -195,9 +195,9 @@ public sealed class ModelsTest
     [Fact]
     public void SparseVector_ShouldStoreIndicesAndValues()
     {
-        var sv = new SparseVector([0, 1, 5], [0.1f, 0.3f, 0.8f]);
+        var sv = new SparseVector([0, 1, 5], [0.1, 0.3, 0.8]);
         Assert.Equal([0, 1, 5], sv.Indices);
-        Assert.Equal([0.1f, 0.3f, 0.8f], sv.Values);
+        Assert.Equal([0.1, 0.3, 0.8], sv.Values);
     }
 
     // ──────────────────────────────────────────────
@@ -307,13 +307,19 @@ public sealed class ModelsTest
     }
 
     [Fact]
-    public void SparseVector_WithMismatchedLengths_ShouldStillConstruct()
+    public void SparseVector_WithMismatchedLengths_ShouldThrow()
     {
-        // The record doesn't validate lengths — it's the consumer's responsibility.
-        // This test documents the current behavior.
-        var sv = new SparseVector([0, 1], [0.5f]); // 2 indices, 1 value
-        Assert.Equal(2, sv.Indices.Length);
-        Assert.Equal(1, sv.Values.Length);
+        var ex = Assert.Throws<ArgumentException>(() =>
+            new SparseVector([0, 1], [0.5])); // 2 indices, 1 value
+        Assert.Contains("must match", ex.Message);
+    }
+
+    [Fact]
+    public void SparseVector_WithNonIncreasingIndices_ShouldThrow()
+    {
+        var ex = Assert.Throws<ArgumentException>(() =>
+            new SparseVector([0, 2, 1], [0.1, 0.2, 0.3])); // 2 then 1 is not increasing
+        Assert.Contains("strictly increasing", ex.Message);
     }
 
     [Fact]

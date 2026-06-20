@@ -219,7 +219,7 @@ public sealed class CoordinatorPluginsTest
         var txId = beginResult.Transaction.TransactionInformation.LocalIdentifier;
 
         var result = await plugin.SearchAsync(txId, "my_table", "embedding",
-            denseVector: [0.1f, 0.2f, 0.3f]);
+            denseVector: [0.1, 0.2, 0.3]);
 
         Assert.NotNull(result);
     }
@@ -316,7 +316,7 @@ public sealed class CoordinatorPluginsTest
         var txId = beginResult.Transaction.TransactionInformation.LocalIdentifier;
 
         var result = await plugin.SearchAsync(txId, "my_table", "embedding",
-            denseVector: [0.1f, 0.2f, 0.3f],
+            denseVector: [0.1, 0.2, 0.3],
             topK: 20,
             whereClause: "category = @cat",
             parameters: [new RelationalParameter("@cat", "electronics")]);

@@ -7,11 +7,49 @@ namespace Adaptor.Coordinator.Models;
 /// <paramref name="Indices"/> and <paramref name="Values"/> must have the same length;
 /// indices must be strictly increasing.
 /// </remarks>
-/// <param name="Indices">Dimension indices (must be strictly increasing).</param>
-/// <param name="Values">Values at each index; length must match <paramref name="Indices"/>.</param>
-public sealed record SparseVector(
-    int[] Indices,
-    float[] Values);
+/// <param name="indices">Dimension indices (must be strictly increasing).</param>
+/// <param name="values">Values at each index; length must match <paramref name="indices"/>.</param>
+/// <remarks>
+/// Uses <c>double</c> for components so the Coordinator remains DB-agnostic.
+/// Drivers cast to the DB-specific precision (<c>float</c> for pgvector, etc.) as needed.
+/// </remarks>
+public sealed record SparseVector
+{
+    /// <summary>Dimension indices (strictly increasing).</summary>
+    public int[] Indices { get; }
+
+    /// <summary>Values at each index; length matches <see cref="Indices"/>.</summary>
+    public double[] Values { get; }
+
+    public SparseVector(int[] indices, double[] values)
+    {
+        ArgumentNullException.ThrowIfNull(indices);
+        ArgumentNullException.ThrowIfNull(values);
+
+        if (indices.Length != values.Length)
+            throw new ArgumentException(
+                $"Indices length ({indices.Length}) must match Values length ({values.Length}).",
+                nameof(indices));
+
+        // Validate strictly increasing indices
+        for (var i = 1; i < indices.Length; i++)
+        {
+            if (indices[i] <= indices[i - 1])
+                throw new ArgumentException(
+                    $"Indices must be strictly increasing; index[{i}]={indices[i]} <= index[{i - 1}]={indices[i - 1]}.",
+                    nameof(indices));
+        }
+
+        Indices = indices;
+        Values = values;
+    }
+
+    public void Deconstruct(out int[] Indices, out double[] Values)
+    {
+        Indices = this.Indices;
+        Values = this.Values;
+    }
+}
 
 /// <summary>
 /// Vector similarity search against a relational database.
@@ -23,7 +61,7 @@ public sealed record SparseVector(
 /// </remarks>
 /// <param name="Table">Table or view name. Schema-qualified if needed.</param>
 /// <param name="VectorColumn">Column storing the vector embedding.</param>
-/// <param name="DenseVector">Dense query vector as a float array.</param>
+/// <param name="DenseVector">Dense query vector as a double array (DB-agnostic; drivers cast as needed).</param>
 /// <param name="SparseVector">Sparse query vector; mutually exclusive with <paramref name="DenseVector"/>.</param>
 /// <param name="TopK">Maximum number of results to return.</param>
 /// <param name="WhereClause">Optional SQL WHERE clause using <c>@param</c> placeholders.</param>
@@ -31,7 +69,7 @@ public sealed record SparseVector(
 public sealed record RelationalVectorSearchRequest(
     string Table,
     string VectorColumn,
-    float[]? DenseVector = null,
+    double[]? DenseVector = null,
     SparseVector? SparseVector = null,
     int TopK = 10,
     string? WhereClause = null,

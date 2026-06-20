@@ -286,9 +286,11 @@ public sealed class PgVectorDriver :
     {
         if (request.DenseVector != null)
         {
+            // pgvector-dotnet's Vector/float[] is fp16.
+            var floatArray = Array.ConvertAll(request.DenseVector, v => (float)v);
             return _dataSource != null
-                ? new Vector(request.DenseVector)
-                : (object)$"[{string.Join(",", request.DenseVector.Select(v => v.ToString("G", System.Globalization.CultureInfo.InvariantCulture)))}]";
+                ? new Vector(floatArray)
+                : (object)$"[{string.Join(",", floatArray.Select(v => v.ToString("G", System.Globalization.CultureInfo.InvariantCulture)))}]";
         }
 
         if (request.SparseVector != null)
@@ -297,8 +299,10 @@ public sealed class PgVectorDriver :
             if (sv.Indices.Length != sv.Values.Length)
                 throw new ArgumentException("Indices and Values must have the same length.");
 
+            // pgvector-dotnet's SparseVector uses float[] for values; cast from double[]
+            var floatValues = Array.ConvertAll(sv.Values, v => (float)v);
             return _dataSource != null
-                ? new Pgvector.SparseVector(request.SparseVector.Values.Length, sv.Indices, sv.Values)
+                ? new Pgvector.SparseVector(sv.Values.Length, sv.Indices, floatValues)
                 : (object)BuildSparseVecString(sv);
         }
 

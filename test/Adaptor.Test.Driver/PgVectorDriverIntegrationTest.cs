@@ -38,7 +38,7 @@ public sealed class PgVectorDriverIntegrationTest : IAsyncLifetime
         driver.Enlist(tx);
 
         var request = new RelationalVectorSearchRequest(
-            "items", "embedding", [0.1f, 0.2f, 0.3f], TopK: 5);
+            "items", "embedding", [0.1, 0.2, 0.3], TopK: 5);
 
         // Act — triggers EnsureExtensionAsync → EnsureTableAsync → Search SQL
         var result = await driver.SearchAsync(request, tx);
@@ -78,7 +78,7 @@ public sealed class PgVectorDriverIntegrationTest : IAsyncLifetime
 
         // Search for a vector close to item 1
         var request = new RelationalVectorSearchRequest(
-            "items", "embedding", [0.11f, 0.21f, 0.31f], TopK: 5);
+            "items", "embedding", [0.11, 0.21, 0.31], TopK: 5);
 
         // Act
         var result = await driver.SearchAsync(request, tx);
@@ -114,11 +114,11 @@ public sealed class PgVectorDriverIntegrationTest : IAsyncLifetime
         await CreateSearchTableAsync("items", "embedding", 3);
 
         // First call
-        await RunSearchAndAssertSuccess("items", "embedding", [0.1f, 0.2f, 0.3f]);
+        await RunSearchAndAssertSuccess("items", "embedding", [0.1, 0.2, 0.3]);
 
         // Second call with a different table — should also succeed
         await CreateSearchTableAsync("other_collection", "embedding", 3);
-        await RunSearchAndAssertSuccess("other_collection", "embedding", [0.4f, 0.5f, 0.6f]);
+        await RunSearchAndAssertSuccess("other_collection", "embedding", [0.4, 0.5, 0.6]);
 
         // Verify extension still exists
         await using var verifyConn = new NpgsqlConnection(_pgContainer!.GetConnectionString());
@@ -145,7 +145,7 @@ public sealed class PgVectorDriverIntegrationTest : IAsyncLifetime
 
         // Create search table manually
         await CreateSearchTableAsync("ds_items", "embedding", 3);
-        await InsertVectorAsync("ds_items", "1", [0.1f, 0.2f, 0.3f]);
+        await InsertVectorAsync("ds_items", "1", [0.1, 0.2, 0.3]);
 
         var driver = new PgVectorDriver(dataSource,
             Substitute.For<ILogger<PgVectorDriver>>());
@@ -154,7 +154,7 @@ public sealed class PgVectorDriverIntegrationTest : IAsyncLifetime
         driver.Enlist(tx);
 
         var request = new RelationalVectorSearchRequest(
-            "ds_items", "embedding", [0.11f, 0.21f, 0.31f], TopK: 5);
+            "ds_items", "embedding", [0.11, 0.21, 0.31], TopK: 5);
 
         // Act — this must NOT throw NullReferenceException from EnsureExtensionAsync
         var result = await driver.SearchAsync(request, tx);
@@ -219,13 +219,14 @@ public sealed class PgVectorDriverIntegrationTest : IAsyncLifetime
     }
 
     /// <summary>Insert a vector row for test data.</summary>
-    private async Task InsertVectorAsync(string tableName, string id, float[] vector)
+    private async Task InsertVectorAsync(string tableName, string id, double[] vector)
     {
         await using var conn = new NpgsqlConnection(_pgContainer!.GetConnectionString());
         await conn.OpenAsync();
 
         await using var cmd = conn.CreateCommand();
-        var vectorStr = $"[{string.Join(",", vector)}]";
+        var floatVec = Array.ConvertAll(vector, v => (float)v);
+        var vectorStr = $"[{string.Join(",", floatVec)}]";
         cmd.CommandText = $"INSERT INTO {tableName} (id, embedding, metadata) " +
                           "VALUES (@id, @vector::vector, '{}'::jsonb)";
         cmd.Parameters.AddWithValue("id", id);
@@ -234,7 +235,7 @@ public sealed class PgVectorDriverIntegrationTest : IAsyncLifetime
     }
 
     /// <summary>Run a SearchAsync call and assert it succeeds.</summary>
-    private async Task RunSearchAndAssertSuccess(string table, string column, float[] vector)
+    private async Task RunSearchAndAssertSuccess(string table, string column, double[] vector)
     {
         var driver = new PgVectorDriver(_pgContainer!.GetConnectionString(),
             Substitute.For<ILogger<PgVectorDriver>>());

@@ -28,7 +28,7 @@ public sealed class VectorSearchPlugin
         [Description("Active transaction ID")] string transactionId,
         [Description("Table name containing vectors")] string table,
         [Description("Vector column name")] string vectorColumn,
-        [Description("Dense vector values (float[])")] float[]? denseVector = null,
+        [Description("Dense vector values (double[])")] double[]? denseVector = null,
         [Description("Sparse vector for keyword search")] SparseVector? sparseVector = null,
         [Description("Number of top results")] int topK = 10,
         [Description("Optional SQL WHERE clause with @params")] string? whereClause = null,

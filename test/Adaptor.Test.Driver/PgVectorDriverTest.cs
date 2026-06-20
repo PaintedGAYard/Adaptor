@@ -66,7 +66,7 @@ public sealed class PgVectorDriverTest
         using var tx = new CommittableTransaction();
 
         var request = new RelationalVectorSearchRequest(
-            "items", "embedding", [0.1f, 0.2f, 0.3f]);
+            "items", "embedding", [0.1, 0.2, 0.3]);
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             driver.SearchAsync(request, tx));
@@ -109,7 +109,7 @@ public sealed class PgVectorDriverTest
         using var tx = new CommittableTransaction();
 
         var request = new RelationalVectorSearchRequest(
-            "items", "embedding", [0.1f, 0.2f, 0.3f], TopK: 5);
+            "items", "embedding", [0.1, 0.2, 0.3], TopK: 5);
 
         // Should fail with "not enlisted" rather than "one of ... must be provided"
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -126,7 +126,7 @@ public sealed class PgVectorDriverTest
 
         var request = new RelationalVectorSearchRequest(
             "items", "sparse_embedding",
-            SparseVector: new SparseVector([0, 5], [0.5f, 0.8f]),
+            SparseVector: new SparseVector([0, 5], [0.5, 0.8]),
             TopK: 3);
 
         // Should fail with "not enlisted" rather than param validation
@@ -144,7 +144,7 @@ public sealed class PgVectorDriverTest
     public void SearchAsync_ShouldAcceptWhereClauseAndParameters()
     {
         var request = new RelationalVectorSearchRequest(
-            "items", "embedding", [0.1f], TopK: 10,
+            "items", "embedding", [0.1], TopK: 10,
             WhereClause: "category = @cat AND price > @min_price",
             Parameters: [
                 new RelationalParameter("@cat", "electronics"),
@@ -204,7 +204,7 @@ public sealed class PgVectorDriverTest
     public void SparseVector_ShouldValidateLengths()
     {
         // Indices and Values must have same length
-        var sv = new SparseVector([0, 1, 2], [0.1f, 0.2f, 0.3f]);
+        var sv = new SparseVector([0, 1, 2], [0.1, 0.2, 0.3]);
         Assert.Equal(3, sv.Indices.Length);
         Assert.Equal(3, sv.Values.Length);
     }
