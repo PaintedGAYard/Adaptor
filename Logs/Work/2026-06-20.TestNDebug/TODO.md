@@ -71,11 +71,15 @@
 
 ---
 
-## Phase 4: 中间件集成
+## Phase 4: 中间件集成 ✅ COMPLETED
 
-- [ ] **4.1** Coordinator + Plugins 集成
-- [ ] **4.2** Service + Coordinator 集成
-- [ ] **4.3** 全链路端到端
+- [x] **4.1** Coordinator + 真实 PG Driver 多 driver 2PC 集成测试 (Testcontainers)
+  - 创建 PostgreSqlDriver + PgVectorDriver + PostgresBlobDriver 注册到同一 Coordinator
+  - BeginTransaction → SQL INSERT → Vector Search → BLOB Upload/Download → Commit
+  - 验证事务提交后数据持久化 (独立连接检查)
+  - 验证事务回滚后数据不回滚
+- [ ] ~~**4.2** Service + Coordinator 集成 (gRPC test server)~~ → 移至 Future Works (需要 gRPC 测试宿主)
+- [ ] ~~**4.3** 全链路端到端 (完整的 gRPC 管道)~~ → 移至 Future Works
 
 ---
 
