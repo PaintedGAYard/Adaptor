@@ -223,7 +223,7 @@ public sealed class SessionManagerTest
     // Session Idle Timeout — 设计文档 REFACTOR §3, §6
     // ──────────────────────────────────────────────
 
-    [Fact]
+    [Fact(Skip = "Manual test — requires configured idle timeout and active wait (see Trait(Manual)))")]
     [Trait("Manual", "true")]
     public void Session_ShouldBeAutoCleanedAfterIdleTimeout()
     {

@@ -41,9 +41,7 @@ services:
   # Adaptor — Distributed Transaction Coordinator
   # ---------------------------------------------------------------------------
   adaptor:
-    build:
-      context: ../../..                  # repo root (where Adaptor.slnx lives)
-      dockerfile: src/Docker/Dockerfile
+    image: painted-ga-yard/cross-db-adaptor:latest
     container_name: adaptor-service
     restart: unless-stopped
     ports:

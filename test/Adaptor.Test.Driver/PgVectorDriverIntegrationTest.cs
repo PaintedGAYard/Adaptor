@@ -131,7 +131,7 @@ public sealed class PgVectorDriverIntegrationTest : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        _pgContainer = new PostgreSqlBuilder("pgvector/pgvector:pg16")
+        _pgContainer = new PostgreSqlBuilder("pgvector/pgvector:0.8.0-pg17")
             .WithCleanUp(true)
             .Build();
 
