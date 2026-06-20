@@ -1,0 +1,1797 @@
+{
+  "source_base_path": "E:/Users/David/Source/Repos/PaintedGAYard/Adaptor",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Resource",
+      "output": {
+        "resource": {
+          "relative_path": "index.json"
+        }
+      }
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.BlobAccessMode.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.BlobAccessMode.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Abstractions.BlobAccessMode",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IBlobDownloadCapability.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IBlobDownloadCapability.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Abstractions.IBlobDownloadCapability",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Coordinator.Abstractions.IBlobRandomAccessCapability.yml\" sourcestartlinenumber=\"1\">Random-access BLOB operations with file-like Seek/Read/Write/Close semantics,\northogonal to the upload/download capabilities.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IBlobUploadCapability.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IBlobUploadCapability.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Abstractions.IBlobUploadCapability",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IHealthCheckCapability.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IHealthCheckCapability.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Abstractions.IHealthCheckCapability",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IRelationalExecuteCapability.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IRelationalExecuteCapability.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Abstractions.IRelationalExecuteCapability",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Coordinator.Abstractions.IRelationalExecuteCapability.yml\" sourcestartlinenumber=\"1\">Capability to execute non-query SQL commands (INSERT / UPDATE / DELETE / DDL).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IRelationalQueryCapability.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IRelationalQueryCapability.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Abstractions.IRelationalQueryCapability",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Coordinator.Abstractions.IRelationalQueryCapability.yml\" sourcestartlinenumber=\"1\">Capability to execute SQL queries that return result sets (SELECT).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IRelationalVectorSearchCapability.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IRelationalVectorSearchCapability.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Abstractions.IRelationalVectorSearchCapability",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IResourceManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.IResourceManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Abstractions.IResourceManager",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Coordinator.Abstractions.IResourceManager.yml\" sourcestartlinenumber=\"1\">Base interface for all storage drivers.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.ITransactionalResourceManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.ITransactionalResourceManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Abstractions.ITransactionalResourceManager",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Coordinator.Abstractions.ITransactionalResourceManager.yml\" sourcestartlinenumber=\"1\">Opt-in interface for drivers that participate in distributed transaction coordination.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.ResourceManagerExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.ResourceManagerExtensions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Abstractions.ResourceManagerExtensions",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.ResourceType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.ResourceType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Abstractions.ResourceType",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.TransactionCapabilities.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.TransactionCapabilities.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Abstractions.TransactionCapabilities",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Abstractions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Abstractions",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Configuration.CoordinatorOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Configuration.CoordinatorOptions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Configuration.CoordinatorOptions",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Configuration.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Configuration.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Configuration",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BeginTransactionResult.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BeginTransactionResult.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.BeginTransactionResult",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobDownloadRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobDownloadRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.BlobDownloadRequest",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Coordinator.Models.BlobDownloadRequest.yml\" sourcestartlinenumber=\"1\">Download a blob by its key (same key used in upload).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobDownloadResult.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobDownloadResult.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.BlobDownloadResult",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobOpenResult.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobOpenResult.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.BlobOpenResult",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobReadResult.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobReadResult.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.BlobReadResult",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobUploadRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobUploadRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.BlobUploadRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobUploadResult.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.BlobUploadResult.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.BlobUploadResult",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.CommitResult.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.CommitResult.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.CommitResult",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.CommitStatus.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.CommitStatus.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.CommitStatus",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.DriverCommitResult.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.DriverCommitResult.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.DriverCommitResult",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalExecuteRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalExecuteRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.RelationalExecuteRequest",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Coordinator.Models.RelationalExecuteRequest.yml\" sourcestartlinenumber=\"1\">Non-query SQL command (INSERT / UPDATE / DELETE / DDL) with optional parameters.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalExecuteResult.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalExecuteResult.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.RelationalExecuteResult",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalParameter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalParameter.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.RelationalParameter",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalQueryRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalQueryRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.RelationalQueryRequest",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Coordinator.Models.RelationalQueryRequest.yml\" sourcestartlinenumber=\"1\">SQL SELECT query with optional parameters.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalQueryResult.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalQueryResult.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.RelationalQueryResult",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalVectorSearchRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.RelationalVectorSearchRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.RelationalVectorSearchRequest",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Coordinator.Models.RelationalVectorSearchRequest.yml\" sourcestartlinenumber=\"1\">Vector similarity search against a relational database.\nProvide either <code class=\"paramref\">DenseVector</code> or <code class=\"paramref\">SparseVector</code>, but not both.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.SessionContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.SessionContext.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.SessionContext",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Coordinator.Models.SessionContext.yml\" sourcestartlinenumber=\"1\">Session context bound to an active transaction.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.SparseVector.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.SparseVector.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.SparseVector",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Coordinator.Models.SparseVector.yml\" sourcestartlinenumber=\"1\">Sparse vector representation for vector search.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.VectorSearchHit.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.VectorSearchHit.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.VectorSearchHit",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.VectorSearchResult.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.VectorSearchResult.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models.VectorSearchResult",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Models.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Models",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.RelationalPlugin.BatchItem.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.RelationalPlugin.BatchItem.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Plugins.RelationalPlugin.BatchItem",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Coordinator.Plugins.RelationalPlugin.BatchItem.yml\" sourcestartlinenumber=\"1\">Represents a batch item: a SQL command with optional parameters.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.RelationalPlugin.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.RelationalPlugin.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Plugins.RelationalPlugin",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Coordinator.Plugins.RelationalPlugin.yml\" sourcestartlinenumber=\"1\">SK Plugin wrapping <xref href=\"Adaptor.Coordinator.Abstractions.IRelationalExecuteCapability\" data-throw-if-not-resolved=\"false\"></xref> and <xref href=\"Adaptor.Coordinator.Abstractions.IRelationalQueryCapability\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.TransactionPlugin.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.TransactionPlugin.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Plugins.TransactionPlugin",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Coordinator.Plugins.TransactionPlugin.yml\" sourcestartlinenumber=\"1\">SK Plugin wrapping <xref href=\"Adaptor.Coordinator.Services.TransactionCoordinator\" data-throw-if-not-resolved=\"false\"></xref> for transaction lifecycle management.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.VectorSearchPlugin.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.VectorSearchPlugin.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Plugins.VectorSearchPlugin",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Coordinator.Plugins.VectorSearchPlugin.yml\" sourcestartlinenumber=\"1\">SK Plugin wrapping <xref href=\"Adaptor.Coordinator.Abstractions.IRelationalVectorSearchCapability\" data-throw-if-not-resolved=\"false\"></xref> for vector search.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Plugins.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Plugins",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.ServiceCollectionExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.ServiceCollectionExtensions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.ServiceCollectionExtensions",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Services.SessionManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Services.SessionManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Services.SessionManager",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Coordinator.Services.SessionManager.yml\" sourcestartlinenumber=\"1\">Manages session-to-consumer mappings, idle timeout, and automatic rollback.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Services.TransactionCoordinator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Services.TransactionCoordinator.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Services.TransactionCoordinator",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Coordinator.Services.TransactionCoordinator.yml\" sourcestartlinenumber=\"1\">Coordinates distributed transactions across multiple resource managers with two-phase commit.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.Services.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.Services.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator.Services",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Coordinator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Coordinator.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Coordinator",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.NpgsqlConnectionManager.ConnectionEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.NpgsqlConnectionManager.ConnectionEntry.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Driver.Postgre.NpgsqlConnectionManager.ConnectionEntry",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Driver.Postgre.NpgsqlConnectionManager.ConnectionEntry.yml\" sourcestartlinenumber=\"1\">Per-transaction connection state.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.NpgsqlConnectionManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.NpgsqlConnectionManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Driver.Postgre.NpgsqlConnectionManager",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Driver.Postgre.NpgsqlConnectionManager.yml\" sourcestartlinenumber=\"1\">Manages Npgsql connections and local transactions for a single driver instance.\nEach driver creates its own manager; the manager is not shared across drivers.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.PgVectorDriver.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.PgVectorDriver.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Driver.Postgre.PgVectorDriver",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Driver.Postgre.PgVectorDriver.yml\" sourcestartlinenumber=\"1\">pgvector Vector Driver providing upsert/search capabilities via the\nPostgreSQL pgvector extension. Shares the same database schema with\n<xref href=\"Adaptor.Driver.Postgre.PostgreSqlDriver\" data-throw-if-not-resolved=\"false\"></xref> and participates in distributed\ntransactions via <xref href=\"Adaptor.Coordinator.Abstractions.ITransactionalResourceManager.Enlist(System.Transactions.Transaction)\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.PostgreSqlDriver.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.PostgreSqlDriver.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Driver.Postgre.PostgreSqlDriver",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Driver.Postgre.PostgreSqlDriver.yml\" sourcestartlinenumber=\"1\">PostgreSQL SQL driver providing Execute/Query capabilities with\n.NET distributed transaction support via <xref href=\"Adaptor.Coordinator.Abstractions.ITransactionalResourceManager.Enlist(System.Transactions.Transaction)\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.PostgresBlobDriver.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.PostgresBlobDriver.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Driver.Postgre.PostgresBlobDriver",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Driver.Postgre.PostgresBlobDriver.yml\" sourcestartlinenumber=\"1\">PostgreSQL BLOB driver providing upload/download capabilities via the\nPostgreSQL Large Object API. Shares the same database schema with\n<xref href=\"Adaptor.Driver.Postgre.PostgreSqlDriver\" data-throw-if-not-resolved=\"false\"></xref> and <xref href=\"Adaptor.Driver.Postgre.PgVectorDriver\" data-throw-if-not-resolved=\"false\"></xref>,\nand participates in distributed transactions via\n<xref href=\"Adaptor.Coordinator.Abstractions.ITransactionalResourceManager.Enlist(System.Transactions.Transaction)\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.ServiceCollectionExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.ServiceCollectionExtensions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Driver.Postgre.ServiceCollectionExtensions",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Driver.Postgre.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Driver.Postgre",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.Abstractions.IConnectionIdProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.Abstractions.IConnectionIdProvider.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.Abstractions.IConnectionIdProvider",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.Abstractions.IConnectionIdProvider.yml\" sourcestartlinenumber=\"1\">Provides the gRPC connection ID for associating transactions with connections.\nAbstracted to enable unit testing without an ASP.NET Core host.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.Abstractions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.Abstractions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.Abstractions",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.AdaptorReflection.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.AdaptorReflection.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.AdaptorReflection",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.AdaptorReflection.yml\" sourcestartlinenumber=\"1\">Holder for reflection information generated from Protos/adaptor.proto</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BatchCommand.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BatchCommand.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BatchCommand",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BeginTransactionRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BeginTransactionRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BeginTransactionRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BeginTransactionResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BeginTransactionResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BeginTransactionResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobDeleteRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobDeleteRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobDeleteRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobDeleteResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobDeleteResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobDeleteResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobDownloadRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobDownloadRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobDownloadRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobDownloadResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobDownloadResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobDownloadResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobListRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobListRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobListRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobListResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobListResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobListResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStream.BlobStreamSessionEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStream.BlobStreamSessionEntry.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobStream.BlobStreamSessionEntry",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.BlobStream.BlobStreamSessionEntry.yml\" sourcestartlinenumber=\"1\">Internal session entry tracking a BlobStream session.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStream.BlobStreamSessionParams.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStream.BlobStreamSessionParams.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobStream.BlobStreamSessionParams",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.BlobStream.BlobStreamSessionParams.yml\" sourcestartlinenumber=\"1\">BlobStream session parameters negotiated by gRPC <code>BeginSession</code>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStream.BlobStreamSessionStore.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStream.BlobStreamSessionStore.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobStream.BlobStreamSessionStore",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.BlobStream.BlobStreamSessionStore.yml\" sourcestartlinenumber=\"1\">BlobStream session store managing session_token to session parameter mappings.\nSupports: gRPC BeginSession (create), WebSocket connect (validate/reconnect),\ngRPC EndSession (invalidate + close WS), and background GC for expired/paused sessions.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStream.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStream.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobStream",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamControl.BlobStreamControlBase.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamControl.BlobStreamControlBase.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobStreamControl.BlobStreamControlBase",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.BlobStreamControl.BlobStreamControlBase.yml\" sourcestartlinenumber=\"1\">Base class for server-side implementations of BlobStreamControl</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamControl.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamControl.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobStreamControl",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamSessionEndRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamSessionEndRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobStreamSessionEndRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamSessionEndResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamSessionEndResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobStreamSessionEndResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamSessionRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamSessionRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobStreamSessionRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamSessionResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobStreamSessionResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobStreamSessionResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobUploadRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobUploadRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobUploadRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.BlobUploadResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.BlobUploadResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.BlobUploadResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.CommitStatus.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.CommitStatus.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.CommitStatus",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.CommitTransactionRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.CommitTransactionRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.CommitTransactionRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.CommitTransactionResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.CommitTransactionResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.CommitTransactionResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.DBBLOB.DBBLOBBase.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.DBBLOB.DBBLOBBase.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.DBBLOB.DBBLOBBase",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.DBBLOB.DBBLOBBase.yml\" sourcestartlinenumber=\"1\">Base class for server-side implementations of DBBLOB</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.DBBLOB.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.DBBLOB.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.DBBLOB",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.DBRelational.DBRelationalBase.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.DBRelational.DBRelationalBase.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.DBRelational.DBRelationalBase",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.DBRelational.DBRelationalBase.yml\" sourcestartlinenumber=\"1\">Base class for server-side implementations of DBRelational</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.DBRelational.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.DBRelational.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.DBRelational",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.DBRelationalVector.DBRelationalVectorBase.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.DBRelationalVector.DBRelationalVectorBase.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.DBRelationalVector.DBRelationalVectorBase",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.DBRelationalVector.DBRelationalVectorBase.yml\" sourcestartlinenumber=\"1\">Base class for server-side implementations of DBRelationalVector</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.DBRelationalVector.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.DBRelationalVector.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.DBRelationalVector",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.DriverCommitResult.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.DriverCommitResult.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.DriverCommitResult",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.GetTransactionStatusRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.GetTransactionStatusRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.GetTransactionStatusRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.GetTransactionStatusResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.GetTransactionStatusResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.GetTransactionStatusResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.GreetReflection.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.GreetReflection.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.GreetReflection",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.GreetReflection.yml\" sourcestartlinenumber=\"1\">Holder for reflection information generated from Protos/greet.proto</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.Greeter.GreeterBase.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.Greeter.GreeterBase.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.Greeter.GreeterBase",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.Greeter.GreeterBase.yml\" sourcestartlinenumber=\"1\">Base class for server-side implementations of Greeter</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.Greeter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.Greeter.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.Greeter",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.Greeter.yml\" sourcestartlinenumber=\"1\">The greeting service definition.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.HelloReply.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.HelloReply.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.HelloReply",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.HelloReply.yml\" sourcestartlinenumber=\"1\">The response message containing the greetings.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.HelloRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.HelloRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.HelloRequest",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.HelloRequest.yml\" sourcestartlinenumber=\"1\">The request message containing the user's name.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.Middleware.GrpcLoggingInterceptor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.Middleware.GrpcLoggingInterceptor.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.Middleware.GrpcLoggingInterceptor",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.Middleware.GrpcLoggingInterceptor.yml\" sourcestartlinenumber=\"1\">gRPC interceptor that logs every request and response at Trace level,\nincluding method name and elapsed time.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.Middleware.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.Middleware.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.Middleware",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.RelationalExecuteBatchRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.RelationalExecuteBatchRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.RelationalExecuteBatchRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.RelationalExecuteBatchResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.RelationalExecuteBatchResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.RelationalExecuteBatchResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.RelationalExecuteRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.RelationalExecuteRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.RelationalExecuteRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.RelationalExecuteResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.RelationalExecuteResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.RelationalExecuteResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.RelationalParameter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.RelationalParameter.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.RelationalParameter",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.RelationalQueryRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.RelationalQueryRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.RelationalQueryRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.RelationalQueryResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.RelationalQueryResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.RelationalQueryResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.RelationalVectorSearchRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.RelationalVectorSearchRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.RelationalVectorSearchRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.RollbackTransactionRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.RollbackTransactionRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.RollbackTransactionRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.RollbackTransactionResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.RollbackTransactionResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.RollbackTransactionResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.Row.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.Row.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.Row",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.Services.AdaptorServiceContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.Services.AdaptorServiceContext.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.Services.AdaptorServiceContext",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.Services.AdaptorServiceContext.yml\" sourcestartlinenumber=\"1\">Shared infrastructure for all gRPC service implementations.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.Services.BlobServiceImpl.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.Services.BlobServiceImpl.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.Services.BlobServiceImpl",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.Services.BlobServiceImpl.yml\" sourcestartlinenumber=\"1\">gRPC DBBLOB service implementation.\nProvides BlobUpload / BlobDownload / BlobDelete / BlobList capabilities.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.Services.BlobStreamSessionServiceImpl.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.Services.BlobStreamSessionServiceImpl.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.Services.BlobStreamSessionServiceImpl",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.Services.BlobStreamSessionServiceImpl.yml\" sourcestartlinenumber=\"1\">gRPC BlobStream control plane: session negotiation and lifecycle management.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.Services.RelationalServiceImpl.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.Services.RelationalServiceImpl.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.Services.RelationalServiceImpl",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.Services.RelationalServiceImpl.yml\" sourcestartlinenumber=\"1\">gRPC DBRelational service implementation.\nProvides Execute / Query / ExecuteBatch capabilities.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.Services.RelationalVectorServiceImpl.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.Services.RelationalVectorServiceImpl.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.Services.RelationalVectorServiceImpl",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.Services.RelationalVectorServiceImpl.yml\" sourcestartlinenumber=\"1\">gRPC DBRelationalVector service implementation.\nProvides vector similarity search only; CRUD is handled via DBRelational native SQL.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.Services.TransactionServiceImpl.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.Services.TransactionServiceImpl.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.Services.TransactionServiceImpl",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.Services.TransactionServiceImpl.yml\" sourcestartlinenumber=\"1\">gRPC Transaction service implementation.\nManages Begin / Commit / Rollback lifecycle.\nStatus queries map from <xref href=\"System.Transactions.TransactionStatus\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.Services.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.Services.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.Services",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.SparseVector.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.SparseVector.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.SparseVector",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.Transaction.TransactionBase.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.Transaction.TransactionBase.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.Transaction.TransactionBase",
+      "Summary": "<p sourcefile=\"src/doc-gen/api/Adaptor.Service.Transaction.TransactionBase.yml\" sourcestartlinenumber=\"1\">Base class for server-side implementations of Transaction</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.Transaction.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.Transaction.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.Transaction",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.TransactionContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.TransactionContext.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.TransactionContext",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.TransactionState.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.TransactionState.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.TransactionState",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.VectorSearchHit.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.VectorSearchHit.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.VectorSearchHit",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.VectorSearchResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.VectorSearchResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service.VectorSearchResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "src/doc-gen/api/Adaptor.Service.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/Adaptor.Service.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Adaptor.Service",
+      "Summary": null
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "src/doc-gen/api/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "src/doc-gen/api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/api/toc.html"
+        },
+        ".json": {
+          "relative_path": "src/doc-gen/api/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "src/doc-gen/articles/architecture.md",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/articles/architecture.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "src/doc-gen/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "src/doc-gen/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "src/doc-gen/toc.html"
+        },
+        ".json": {
+          "relative_path": "src/doc-gen/toc.json"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}

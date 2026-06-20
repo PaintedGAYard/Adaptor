@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Class TransactionCoordinator | Adaptor </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Class TransactionCoordinator | Adaptor ">
+    
+    <meta name="description" content="Coordinates distributed transactions across multiple resource managers with two-phase commit.">
+      <link rel="shortcut icon" href="../../../favicon.ico">
+      <link rel="stylesheet" href="../../../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../../../styles/docfx.css">
+      <link rel="stylesheet" href="../../../styles/main.css">
+      <meta property="docfx:navrel" content="">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator">
+
+
+
+  <h1 id="Adaptor_Coordinator_Services_TransactionCoordinator" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator" class="text-break">Class TransactionCoordinator</h1>
+  <div class="markdown level0 summary"><p>Coordinates distributed transactions across multiple resource managers with two-phase commit.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">object</span></div>
+    <div class="level1"><span class="xref">TransactionCoordinator</span></div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Adaptor.html">Adaptor</a>.<a class="xref" href="Adaptor.Coordinator.html">Coordinator</a>.<a class="xref" href="Adaptor.Coordinator.Services.html">Services</a></h6>
+  <h6><strong>Assembly</strong>: Adaptor.Coordinator.dll</h6>
+  <h5 id="Adaptor_Coordinator_Services_TransactionCoordinator_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sealed class TransactionCoordinator</code></pre>
+  </div>
+  <h5 id="Adaptor_Coordinator_Services_TransactionCoordinator_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>Responsibilities:</p>
+<ol>
+<li>Manage .NET CommittableTransaction lifecycle</li>
+<li>Coordinate multi-driver enlistment (deferred enlistment)</li>
+<li>Execute All-or-Nothing commit/rollback strategy</li>
+<li>Handle timeouts via CommittableTransaction built-in mechanism</li>
+<li>Manage retry logic</li>
+</ol>
+<p>Design principles:</p>
+<ul>
+<li>No TransactionContext or custom state enum</li>
+<li>Concurrency protection delegated to driver layer</li>
+<li>All public methods accept string transactionId (LocalIdentifier)</li>
+</ul>
+</div>
+  <h3 id="constructors">Constructors
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Coordinator_Services_TransactionCoordinator__ctor_System_Collections_Generic_IEnumerable_Adaptor_Coordinator_Abstractions_IResourceManager__Adaptor_Coordinator_Services_SessionManager_Microsoft_Extensions_Options_IOptions_Adaptor_Coordinator_Configuration_CoordinatorOptions__Microsoft_Extensions_Logging_ILogger_Adaptor_Coordinator_Services_TransactionCoordinator__.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Services.TransactionCoordinator.%23ctor(System.Collections.Generic.IEnumerable%7BAdaptor.Coordinator.Abstractions.IResourceManager%7D%2CAdaptor.Coordinator.Services.SessionManager%2CMicrosoft.Extensions.Options.IOptions%7BAdaptor.Coordinator.Configuration.CoordinatorOptions%7D%2CMicrosoft.Extensions.Logging.ILogger%7BAdaptor.Coordinator.Services.TransactionCoordinator%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Coordinator/Services/TransactionCoordinator.cs/#L43">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Services_TransactionCoordinator__ctor_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.#ctor*"></a>
+  <h4 id="Adaptor_Coordinator_Services_TransactionCoordinator__ctor_System_Collections_Generic_IEnumerable_Adaptor_Coordinator_Abstractions_IResourceManager__Adaptor_Coordinator_Services_SessionManager_Microsoft_Extensions_Options_IOptions_Adaptor_Coordinator_Configuration_CoordinatorOptions__Microsoft_Extensions_Logging_ILogger_Adaptor_Coordinator_Services_TransactionCoordinator__" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.#ctor(System.Collections.Generic.IEnumerable{Adaptor.Coordinator.Abstractions.IResourceManager},Adaptor.Coordinator.Services.SessionManager,Microsoft.Extensions.Options.IOptions{Adaptor.Coordinator.Configuration.CoordinatorOptions},Microsoft.Extensions.Logging.ILogger{Adaptor.Coordinator.Services.TransactionCoordinator})">TransactionCoordinator(IEnumerable&lt;IResourceManager&gt;, SessionManager, IOptions&lt;CoordinatorOptions&gt;, ILogger&lt;TransactionCoordinator&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TransactionCoordinator(IEnumerable&lt;IResourceManager&gt; drivers, SessionManager sessionManager, IOptions&lt;CoordinatorOptions&gt; options, ILogger&lt;TransactionCoordinator&gt; logger)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">IEnumerable</span>&lt;<a class="xref" href="Adaptor.Coordinator.Abstractions.IResourceManager.html">IResourceManager</a>&gt;</td>
+        <td><span class="parametername">drivers</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Adaptor.Coordinator.Services.SessionManager.html">SessionManager</a></td>
+        <td><span class="parametername">sessionManager</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">IOptions</span>&lt;<a class="xref" href="Adaptor.Coordinator.Configuration.CoordinatorOptions.html">CoordinatorOptions</a>&gt;</td>
+        <td><span class="parametername">options</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">ILogger</span>&lt;<a class="xref" href="Adaptor.Coordinator.Services.TransactionCoordinator.html">TransactionCoordinator</a>&gt;</td>
+        <td><span class="parametername">logger</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Coordinator_Services_TransactionCoordinator_ActiveTransactionCount.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Services.TransactionCoordinator.ActiveTransactionCount%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Coordinator/Services/TransactionCoordinator.cs/#L353">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Services_TransactionCoordinator_ActiveTransactionCount_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.ActiveTransactionCount*"></a>
+  <h4 id="Adaptor_Coordinator_Services_TransactionCoordinator_ActiveTransactionCount" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.ActiveTransactionCount">ActiveTransactionCount</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int ActiveTransactionCount { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">int</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Coordinator_Services_TransactionCoordinator_BeginBlobStreamTransactionAsync_System_Nullable_System_TimeSpan__System_String_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Services.TransactionCoordinator.BeginBlobStreamTransactionAsync(System.Nullable%7BSystem.TimeSpan%7D%2CSystem.String%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Coordinator/Services/TransactionCoordinator.cs/#L102">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Services_TransactionCoordinator_BeginBlobStreamTransactionAsync_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.BeginBlobStreamTransactionAsync*"></a>
+  <h4 id="Adaptor_Coordinator_Services_TransactionCoordinator_BeginBlobStreamTransactionAsync_System_Nullable_System_TimeSpan__System_String_System_Threading_CancellationToken_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.BeginBlobStreamTransactionAsync(System.Nullable{System.TimeSpan},System.String,System.Threading.CancellationToken)">BeginBlobStreamTransactionAsync(TimeSpan?, string?, CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>Begin a long-lived transaction for Blob Streaming.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;BeginTransactionResult&gt; BeginBlobStreamTransactionAsync(TimeSpan? timeout = null, string? connectionId = null, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">TimeSpan</span>?</td>
+        <td><span class="parametername">timeout</span></td>
+        <td><p>Optional timeout; capped at <a class="xref" href="Adaptor.Coordinator.Configuration.CoordinatorOptions.html#Adaptor_Coordinator_Configuration_CoordinatorOptions_MaxBlobStreamTransactionTimeout">MaxBlobStreamTransactionTimeout</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">string</span></td>
+        <td><span class="parametername">connectionId</span></td>
+        <td><p>Optional gRPC connection ID for session tracking.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<a class="xref" href="Adaptor.Coordinator.Models.BeginTransactionResult.html">BeginTransactionResult</a>&gt;</td>
+        <td><p>Result containing the <span class="xref">System.Transactions.Transaction</span> and its expiration time.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Adaptor_Coordinator_Services_TransactionCoordinator_BeginBlobStreamTransactionAsync_System_Nullable_System_TimeSpan__System_String_System_Threading_CancellationToken__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Uses an independent timeout to avoid constraining streaming operations.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Coordinator_Services_TransactionCoordinator_BeginTransactionAsync_System_Nullable_System_TimeSpan__System_String_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Services.TransactionCoordinator.BeginTransactionAsync(System.Nullable%7BSystem.TimeSpan%7D%2CSystem.String%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Coordinator/Services/TransactionCoordinator.cs/#L64">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Services_TransactionCoordinator_BeginTransactionAsync_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.BeginTransactionAsync*"></a>
+  <h4 id="Adaptor_Coordinator_Services_TransactionCoordinator_BeginTransactionAsync_System_Nullable_System_TimeSpan__System_String_System_Threading_CancellationToken_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.BeginTransactionAsync(System.Nullable{System.TimeSpan},System.String,System.Threading.CancellationToken)">BeginTransactionAsync(TimeSpan?, string?, CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>Begin a new distributed transaction.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;BeginTransactionResult&gt; BeginTransactionAsync(TimeSpan? timeout = null, string? connectionId = null, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">TimeSpan</span>?</td>
+        <td><span class="parametername">timeout</span></td>
+        <td><p>Optional timeout; capped at <a class="xref" href="Adaptor.Coordinator.Configuration.CoordinatorOptions.html#Adaptor_Coordinator_Configuration_CoordinatorOptions_MaxTransactionTimeout">MaxTransactionTimeout</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">string</span></td>
+        <td><span class="parametername">connectionId</span></td>
+        <td><p>Optional gRPC connection ID for session tracking.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<a class="xref" href="Adaptor.Coordinator.Models.BeginTransactionResult.html">BeginTransactionResult</a>&gt;</td>
+        <td><p>Result containing the <span class="xref">System.Transactions.Transaction</span> and its expiration time.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Coordinator_Services_TransactionCoordinator_CommitTransactionAsync_System_String_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Services.TransactionCoordinator.CommitTransactionAsync(System.String%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Coordinator/Services/TransactionCoordinator.cs/#L139">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Services_TransactionCoordinator_CommitTransactionAsync_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.CommitTransactionAsync*"></a>
+  <h4 id="Adaptor_Coordinator_Services_TransactionCoordinator_CommitTransactionAsync_System_String_System_Threading_CancellationToken_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.CommitTransactionAsync(System.String,System.Threading.CancellationToken)">CommitTransactionAsync(string, CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>Commit a transaction using two-phase commit.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;CommitResult&gt; CommitTransactionAsync(string transactionId, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">string</span></td>
+        <td><span class="parametername">transactionId</span></td>
+        <td><p>The transaction's <span class="xref">System.Transactions.TransactionInformation.LocalIdentifier</span>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<a class="xref" href="Adaptor.Coordinator.Models.CommitResult.html">CommitResult</a>&gt;</td>
+        <td><p>Overall commit result including per-driver outcomes.
+Returns <a class="xref" href="Adaptor.Coordinator.Models.CommitStatus.html#Adaptor_Coordinator_Models_CommitStatus_RolledBack">RolledBack</a> if the transaction was already completed or not found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Coordinator_Services_TransactionCoordinator_Dispose.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Services.TransactionCoordinator.Dispose%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Coordinator/Services/TransactionCoordinator.cs/#L404">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Services_TransactionCoordinator_Dispose_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.Dispose*"></a>
+  <h4 id="Adaptor_Coordinator_Services_TransactionCoordinator_Dispose" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.Dispose">Dispose()</h4>
+  <div class="markdown level1 summary"><p>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Dispose()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Coordinator_Services_TransactionCoordinator_ExecuteOnCapabilityAsync__2_System_String_System_Func___0_System_Transactions_Transaction_System_Threading_Tasks_Task___1___System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Services.TransactionCoordinator.ExecuteOnCapabilityAsync%60%602(System.String%2CSystem.Func%7B%60%600%2CSystem.Transactions.Transaction%2CSystem.Threading.Tasks.Task%7B%60%601%7D%7D%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Coordinator/Services/TransactionCoordinator.cs/#L291">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Services_TransactionCoordinator_ExecuteOnCapabilityAsync_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.ExecuteOnCapabilityAsync*"></a>
+  <h4 id="Adaptor_Coordinator_Services_TransactionCoordinator_ExecuteOnCapabilityAsync__2_System_String_System_Func___0_System_Transactions_Transaction_System_Threading_Tasks_Task___1___System_Threading_CancellationToken_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.ExecuteOnCapabilityAsync``2(System.String,System.Func{``0,System.Transactions.Transaction,System.Threading.Tasks.Task{``1}},System.Threading.CancellationToken)">ExecuteOnCapabilityAsync&lt;TCapability, TResult&gt;(string, Func&lt;TCapability, Transaction, Task&lt;TResult&gt;&gt;, CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>Execute an operation using a capability interface within a transaction.
+<code class="typeparamref">TCapability</code> may be any interface; the method finds
+a driver implementing both it and <a class="xref" href="Adaptor.Coordinator.Abstractions.IResourceManager.html">IResourceManager</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;TResult&gt; ExecuteOnCapabilityAsync&lt;TCapability, TResult&gt;(string transactionId, Func&lt;TCapability, Transaction, Task&lt;TResult&gt;&gt; operation, CancellationToken ct = default) where TCapability : class where TResult : class</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">string</span></td>
+        <td><span class="parametername">transactionId</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Func</span>&lt;TCapability, <span class="xref">Transaction</span>, <span class="xref">Task</span>&lt;TResult&gt;&gt;</td>
+        <td><span class="parametername">operation</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;TResult&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TCapability</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="parametername">TResult</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Adaptor_Coordinator_Services_TransactionCoordinator_ExecuteOnCapabilityAsync__2_System_String_System_Func___0_System_Transactions_Transaction_System_Threading_Tasks_Task___1___System_Threading_CancellationToken__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Concurrency protection is the driver's responsibility.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Coordinator_Services_TransactionCoordinator_ExecuteOnDriverAsync__2_System_String_System_Func___0_System_Transactions_Transaction_System_Threading_Tasks_Task___1___System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Services.TransactionCoordinator.ExecuteOnDriverAsync%60%602(System.String%2CSystem.Func%7B%60%600%2CSystem.Transactions.Transaction%2CSystem.Threading.Tasks.Task%7B%60%601%7D%7D%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Coordinator/Services/TransactionCoordinator.cs/#L264">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Services_TransactionCoordinator_ExecuteOnDriverAsync_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.ExecuteOnDriverAsync*"></a>
+  <h4 id="Adaptor_Coordinator_Services_TransactionCoordinator_ExecuteOnDriverAsync__2_System_String_System_Func___0_System_Transactions_Transaction_System_Threading_Tasks_Task___1___System_Threading_CancellationToken_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.ExecuteOnDriverAsync``2(System.String,System.Func{``0,System.Transactions.Transaction,System.Threading.Tasks.Task{``1}},System.Threading.CancellationToken)">ExecuteOnDriverAsync&lt;TDriver, TResult&gt;(string, Func&lt;TDriver, Transaction, Task&lt;TResult&gt;&gt;, CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>Execute an operation on a specific driver within a transaction.
+Auto-enlists if the driver supports <a class="xref" href="Adaptor.Coordinator.Abstractions.ITransactionalResourceManager.html">ITransactionalResourceManager</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;TResult&gt; ExecuteOnDriverAsync&lt;TDriver, TResult&gt;(string transactionId, Func&lt;TDriver, Transaction, Task&lt;TResult&gt;&gt; operation, CancellationToken ct = default) where TDriver : class, IResourceManager where TResult : class</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">string</span></td>
+        <td><span class="parametername">transactionId</span></td>
+        <td><p>The transaction's LocalIdentifier.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Func</span>&lt;TDriver, <span class="xref">Transaction</span>, <span class="xref">Task</span>&lt;TResult&gt;&gt;</td>
+        <td><span class="parametername">operation</span></td>
+        <td><p>Async callback receiving the driver and transaction.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;TResult&gt;</td>
+        <td><p>The result of <code class="paramref">operation</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TDriver</span></td>
+        <td><p>Driver type implementing <a class="xref" href="Adaptor.Coordinator.Abstractions.IResourceManager.html">IResourceManager</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="parametername">TResult</span></td>
+        <td><p>Operation result type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Adaptor_Coordinator_Services_TransactionCoordinator_ExecuteOnDriverAsync__2_System_String_System_Func___0_System_Transactions_Transaction_System_Threading_Tasks_Task___1___System_Threading_CancellationToken__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Concurrency protection is the driver's responsibility.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">InvalidOperationException</span></td>
+        <td><p>Transaction or driver not found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Coordinator_Services_TransactionCoordinator_FindTransaction_System_String_.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Services.TransactionCoordinator.FindTransaction(System.String)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Coordinator/Services/TransactionCoordinator.cs/#L231">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Services_TransactionCoordinator_FindTransaction_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.FindTransaction*"></a>
+  <h4 id="Adaptor_Coordinator_Services_TransactionCoordinator_FindTransaction_System_String_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.FindTransaction(System.String)">FindTransaction(string)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Transaction? FindTransaction(string transactionId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">string</span></td>
+        <td><span class="parametername">transactionId</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Transaction</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Coordinator_Services_TransactionCoordinator_GetDriver__1.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Services.TransactionCoordinator.GetDriver%60%601%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Coordinator/Services/TransactionCoordinator.cs/#L242">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Services_TransactionCoordinator_GetDriver_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.GetDriver*"></a>
+  <h4 id="Adaptor_Coordinator_Services_TransactionCoordinator_GetDriver__1" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.GetDriver``1">GetDriver&lt;TDriver&gt;()</h4>
+  <div class="markdown level1 summary"><p>Get the first driver implementing <code class="typeparamref">TDriver</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TDriver? GetDriver&lt;TDriver&gt;() where TDriver : IResourceManager</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">TDriver</span></td>
+        <td><p>The driver, or <code>null</code> if not found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TDriver</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Coordinator_Services_TransactionCoordinator_GetDrivers__1.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Services.TransactionCoordinator.GetDrivers%60%601%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Coordinator/Services/TransactionCoordinator.cs/#L247">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Services_TransactionCoordinator_GetDrivers_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.GetDrivers*"></a>
+  <h4 id="Adaptor_Coordinator_Services_TransactionCoordinator_GetDrivers__1" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.GetDrivers``1">GetDrivers&lt;TDriver&gt;()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IEnumerable&lt;TDriver&gt; GetDrivers&lt;TDriver&gt;() where TDriver : IResourceManager</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">IEnumerable</span>&lt;TDriver&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TDriver</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Coordinator_Services_TransactionCoordinator_RollbackTransactionAsync_System_String_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Services.TransactionCoordinator.RollbackTransactionAsync(System.String%2CSystem.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Coordinator/Services/TransactionCoordinator.cs/#L201">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Services_TransactionCoordinator_RollbackTransactionAsync_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.RollbackTransactionAsync*"></a>
+  <h4 id="Adaptor_Coordinator_Services_TransactionCoordinator_RollbackTransactionAsync_System_String_System_Threading_CancellationToken_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.RollbackTransactionAsync(System.String,System.Threading.CancellationToken)">RollbackTransactionAsync(string, CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>Roll back a transaction. No-op if the transaction is not found.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task RollbackTransactionAsync(string transactionId, CancellationToken ct = default)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">string</span></td>
+        <td><span class="parametername">transactionId</span></td>
+        <td><p>The transaction's <span class="xref">System.Transactions.TransactionInformation.LocalIdentifier</span>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">CancellationToken</span></td>
+        <td><span class="parametername">ct</span></td>
+        <td><p>Cancellation token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Coordinator_Services_TransactionCoordinator_ShutdownAsync_System_TimeSpan_.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Services.TransactionCoordinator.ShutdownAsync(System.TimeSpan)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Coordinator/Services/TransactionCoordinator.cs/#L360">View Source</a>
+  </span>
+  <a id="Adaptor_Coordinator_Services_TransactionCoordinator_ShutdownAsync_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.ShutdownAsync*"></a>
+  <h4 id="Adaptor_Coordinator_Services_TransactionCoordinator_ShutdownAsync_System_TimeSpan_" data-uid="Adaptor.Coordinator.Services.TransactionCoordinator.ShutdownAsync(System.TimeSpan)">ShutdownAsync(TimeSpan)</h4>
+  <div class="markdown level1 summary"><p>Gracefully shut down the coordinator:</p>
+<ol>
+<li>Wait for in-flight commit tasks to complete (bounded by gracePeriod)</li>
+<li>Roll back remaining active transactions</li>
+</ol>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task ShutdownAsync(TimeSpan gracePeriod)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">TimeSpan</span></td>
+        <td><span class="parametername">gracePeriod</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Coordinator_Services_TransactionCoordinator.md&amp;value=---%0Auid%3A%20Adaptor.Coordinator.Services.TransactionCoordinator%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Edit this page</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Coordinator/Services/TransactionCoordinator.cs/#L27" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      Copyright © 2026 Mingxi "Lucien" Du
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../../../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

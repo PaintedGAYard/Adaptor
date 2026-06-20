@@ -1,0 +1,14 @@
+### YamlMime:ManagedReference
+apiRules:
+- include:
+    uidRegex: ^Adaptor\.
+    type: Type
+- exclude:
+    uidRegex: ^Adaptor\.Test\.
+    type: Type
+- exclude:
+    uidRegex: ^System\.
+    type: Type
+- exclude:
+    uidRegex: ^Microsoft\.
+    type: Type

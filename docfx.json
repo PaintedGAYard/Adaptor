@@ -1,0 +1,56 @@
+{
+  "$schema": "https://aka.ms/docfx/v2.0/schema/docfx.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "src/Coordinator/Adaptor.Coordinator.csproj",
+            "src/Driver/Postgre/Adaptor.Driver.Postgre.csproj",
+            "src/Service/Adaptor.Service.csproj"
+          ]
+        }
+      ],
+      "dest": "src/doc-gen/api",
+      "filter": "src/doc-gen/filter.yml",
+      "properties": {
+        "TargetFramework": "net10.0"
+      }
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "src/doc-gen/*.md",
+          "src/doc-gen/*.yml",
+          "src/doc-gen/api/**/*.md",
+          "src/doc-gen/api/**/*.yml",
+          "src/doc-gen/articles/**/*.md"
+        ],
+        "exclude": [
+          "**/obj/**",
+          "**/bin/**",
+          "_site/**"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": ["src/doc-gen/articles/**/*.png", "src/doc-gen/articles/**/*.jpg", "src/doc-gen/articles/**/*.svg"],
+        "exclude": ["**/obj/**", "**/bin/**", "_site/**"]
+      }
+    ],
+    "overwrite": [],
+    "destination": "Doc",
+    "globalMetadata": {
+      "_appTitle": "Adaptor",
+      "_appFooter": "Copyright © 2026 Mingxi \"Lucien\" Du",
+      "_enableSearch": true,
+      "_gitContributors": false,
+      "_gitContribution": false
+    },
+    "template": ["default"],
+    "postProcess": []
+  }
+}

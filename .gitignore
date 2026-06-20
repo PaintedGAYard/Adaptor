@@ -26,6 +26,7 @@ bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
+!/Log/
 
 # Visual Studio 2015 cache/options directory
 .vs/
@@ -288,3 +289,7 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+
+# DocFX generated documentation
+src/doc-gen/api/*.yml
+src/doc-gen/xrefmap.yml

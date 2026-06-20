@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Class BlobStreamSessionEntry | Adaptor </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Class BlobStreamSessionEntry | Adaptor ">
+    
+    <meta name="description" content="Internal session entry tracking a BlobStream session.">
+      <link rel="shortcut icon" href="../../../favicon.ico">
+      <link rel="stylesheet" href="../../../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../../../styles/docfx.css">
+      <link rel="stylesheet" href="../../../styles/main.css">
+      <meta property="docfx:navrel" content="">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry">
+
+
+
+  <h1 id="Adaptor_Service_BlobStream_BlobStreamSessionEntry" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry" class="text-break">Class BlobStreamSessionEntry</h1>
+  <div class="markdown level0 summary"><p>Internal session entry tracking a BlobStream session.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">object</span></div>
+    <div class="level1"><span class="xref">BlobStreamSessionEntry</span></div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Adaptor.html">Adaptor</a>.<a class="xref" href="Adaptor.Service.html">Service</a>.<a class="xref" href="Adaptor.Service.BlobStream.html">BlobStream</a></h6>
+  <h6><strong>Assembly</strong>: Adaptor.Service.dll</h6>
+  <h5 id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sealed class BlobStreamSessionEntry</code></pre>
+  </div>
+  <h3 id="properties">Properties
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Service_BlobStream_BlobStreamSessionEntry_ConnectionId.md&amp;value=---%0Auid%3A%20Adaptor.Service.BlobStream.BlobStreamSessionEntry.ConnectionId%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Service/BlobStream/BlobStreamSessionStore.cs/#L30">View Source</a>
+  </span>
+  <a id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_ConnectionId_" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.ConnectionId*"></a>
+  <h4 id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_ConnectionId" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.ConnectionId">ConnectionId</h4>
+  <div class="markdown level1 summary"><p>Active WebSocket connection ID; null when disconnected (paused).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string? ConnectionId { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">string</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Service_BlobStream_BlobStreamSessionEntry_CreatedAt.md&amp;value=---%0Auid%3A%20Adaptor.Service.BlobStream.BlobStreamSessionEntry.CreatedAt%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Service/BlobStream/BlobStreamSessionStore.cs/#L20">View Source</a>
+  </span>
+  <a id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_CreatedAt_" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.CreatedAt*"></a>
+  <h4 id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_CreatedAt" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.CreatedAt">CreatedAt</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DateTime CreatedAt { get; init; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">DateTime</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Service_BlobStream_BlobStreamSessionEntry_ExpiresAt.md&amp;value=---%0Auid%3A%20Adaptor.Service.BlobStream.BlobStreamSessionEntry.ExpiresAt%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Service/BlobStream/BlobStreamSessionStore.cs/#L21">View Source</a>
+  </span>
+  <a id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_ExpiresAt_" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.ExpiresAt*"></a>
+  <h4 id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_ExpiresAt" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.ExpiresAt">ExpiresAt</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DateTime ExpiresAt { get; init; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">DateTime</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Service_BlobStream_BlobStreamSessionEntry_IsConnected.md&amp;value=---%0Auid%3A%20Adaptor.Service.BlobStream.BlobStreamSessionEntry.IsConnected%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Service/BlobStream/BlobStreamSessionStore.cs/#L33">View Source</a>
+  </span>
+  <a id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_IsConnected_" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.IsConnected*"></a>
+  <h4 id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_IsConnected" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.IsConnected">IsConnected</h4>
+  <div class="markdown level1 summary"><p>Whether a WebSocket connection is currently established.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsConnected { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">bool</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Service_BlobStream_BlobStreamSessionEntry_Parameters.md&amp;value=---%0Auid%3A%20Adaptor.Service.BlobStream.BlobStreamSessionEntry.Parameters%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Service/BlobStream/BlobStreamSessionStore.cs/#L19">View Source</a>
+  </span>
+  <a id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_Parameters_" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.Parameters*"></a>
+  <h4 id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_Parameters" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.Parameters">Parameters</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public BlobStreamSessionParams Parameters { get; init; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Adaptor.Service.BlobStream.BlobStreamSessionParams.html">BlobStreamSessionParams</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Service_BlobStream_BlobStreamSessionEntry_PauseStartedAt.md&amp;value=---%0Auid%3A%20Adaptor.Service.BlobStream.BlobStreamSessionEntry.PauseStartedAt%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Service/BlobStream/BlobStreamSessionStore.cs/#L39">View Source</a>
+  </span>
+  <a id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_PauseStartedAt_" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.PauseStartedAt*"></a>
+  <h4 id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_PauseStartedAt" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.PauseStartedAt">PauseStartedAt</h4>
+  <div class="markdown level1 summary"><p>Timestamp when the WebSocket disconnected and the session entered pause state.
+Null when not paused.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DateTime? PauseStartedAt { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">DateTime</span>?</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Service_BlobStream_BlobStreamSessionEntry_ReconnectCount.md&amp;value=---%0Auid%3A%20Adaptor.Service.BlobStream.BlobStreamSessionEntry.ReconnectCount%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Service/BlobStream/BlobStreamSessionStore.cs/#L42">View Source</a>
+  </span>
+  <a id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_ReconnectCount_" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.ReconnectCount*"></a>
+  <h4 id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_ReconnectCount" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.ReconnectCount">ReconnectCount</h4>
+  <div class="markdown level1 summary"><p>Number of times the session has reconnected after a pause.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int ReconnectCount { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">int</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Service_BlobStream_BlobStreamSessionEntry_Token.md&amp;value=---%0Auid%3A%20Adaptor.Service.BlobStream.BlobStreamSessionEntry.Token%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Service/BlobStream/BlobStreamSessionStore.cs/#L18">View Source</a>
+  </span>
+  <a id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_Token_" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.Token*"></a>
+  <h4 id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_Token" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.Token">Token</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string Token { get; init; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">string</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Service_BlobStream_BlobStreamSessionEntry_TransactionId.md&amp;value=---%0Auid%3A%20Adaptor.Service.BlobStream.BlobStreamSessionEntry.TransactionId%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Service/BlobStream/BlobStreamSessionStore.cs/#L27">View Source</a>
+  </span>
+  <a id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_TransactionId_" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.TransactionId*"></a>
+  <h4 id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_TransactionId" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.TransactionId">TransactionId</h4>
+  <div class="markdown level1 summary"><p>Associated transaction local identifier; set when a WS connects.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string? TransactionId { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">string</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Service_BlobStream_BlobStreamSessionEntry_WsCancellation.md&amp;value=---%0Auid%3A%20Adaptor.Service.BlobStream.BlobStreamSessionEntry.WsCancellation%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Service/BlobStream/BlobStreamSessionStore.cs/#L24">View Source</a>
+  </span>
+  <a id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_WsCancellation_" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.WsCancellation*"></a>
+  <h4 id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_WsCancellation" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.WsCancellation">WsCancellation</h4>
+  <div class="markdown level1 summary"><p>Set after WebSocket connects; signals gRPC EndSession to close WS.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public CancellationTokenSource? WsCancellation { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">CancellationTokenSource</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Service_BlobStream_BlobStreamSessionEntry_Dispose.md&amp;value=---%0Auid%3A%20Adaptor.Service.BlobStream.BlobStreamSessionEntry.Dispose%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Service/BlobStream/BlobStreamSessionStore.cs/#L44">View Source</a>
+  </span>
+  <a id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_Dispose_" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.Dispose*"></a>
+  <h4 id="Adaptor_Service_BlobStream_BlobStreamSessionEntry_Dispose" data-uid="Adaptor.Service.BlobStream.BlobStreamSessionEntry.Dispose">Dispose()</h4>
+  <div class="markdown level1 summary"><p>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Dispose()</code></pre>
+  </div>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/PaintedGAYard/Adaptor/new/dev/apiSpec/new?filename=Adaptor_Service_BlobStream_BlobStreamSessionEntry.md&amp;value=---%0Auid%3A%20Adaptor.Service.BlobStream.BlobStreamSessionEntry%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Edit this page</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/PaintedGAYard/Adaptor/blob/dev/src/Service/BlobStream/BlobStreamSessionStore.cs/#L16" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      Copyright © 2026 Mingxi "Lucien" Du
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../../../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

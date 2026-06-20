@@ -1,0 +1,6 @@
+- name: Home
+  href: index.md
+- name: Architecture
+  href: articles/architecture.md
+- name: API Reference
+  href: api/index.md
