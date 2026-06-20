@@ -17,8 +17,10 @@ namespace Adaptor.Service.BlobStream;
 /// </summary>
 /// <remarks>
 /// Design principles:
-/// 1. Transaction auto-created on handshake, auto-rolled back on disconnect.
+/// 1. Transaction auto-created on handshake, auto-rolled back on disconnect (or paused).
 /// 2. Binary WebSocket messages carry no tx_id — it is implicitly bound to the connection.
+/// 3. Non-graceful WS disconnect → pause (keep transaction); Graceful close → terminate (rollback).
+/// 4. Reconnection with same session token resumes the paused transaction.
 /// </remarks>
 internal sealed class BlobStreamConnectionHandler
 {
@@ -53,10 +55,10 @@ internal sealed class BlobStreamConnectionHandler
     /// </summary>
     /// <remarks>
     /// 1. Validate session_token (issued by gRPC BeginSession)
-    /// 2. Create dedicated Blob Stream transaction with negotiated parameters
-    /// 3. Send handshake (only message carrying tx_id)
+    /// 2. Attempt reconnection if session has a paused transaction; otherwise create a new transaction.
+    /// 3. Send handshake (with reconnected flag)
     /// 4. Enter message dispatch loop
-    /// 5. Auto-rollback transaction on disconnect
+    /// 5. On disconnect: graceful close → rollback (terminate); non-graceful → pause (keep transaction)
     /// </remarks>
     /// <param name="webSocket">The accepted WebSocket connection.</param>
     /// <param name="connectionId">Connection identifier for logging and session tracking.</param>
@@ -73,37 +75,86 @@ internal sealed class BlobStreamConnectionHandler
             return;
         }
 
-        BeginTransactionResult beginResult;
-        string transactionId;
+        // ── Step 1: Try reconnect or create new transaction ──
+        string transactionId = string.Empty;
         CancellationTokenSource? txTimeoutCts = null;
+        BeginTransactionResult? beginResult = null;
+        bool isReconnect = false;
 
-        try
+        // Attempt reconnection if the session has a stored transaction and no active connection.
+        if (sessionEntry.TransactionId != null && !sessionEntry.IsConnected)
         {
-            beginResult = await _coordinator.BeginBlobStreamTransactionAsync(
-                sessionEntry.Parameters.NegotiatedTimeout,
-                connectionId: connectionId, ct: ct);
-            transactionId = beginResult.Transaction.TransactionInformation.LocalIdentifier;
-
-            var txTimeout = beginResult.ExpiresAt - DateTime.UtcNow;
-            if (txTimeout > TimeSpan.Zero)
+            var reconnected = _sessionStore.TryReconnect(sessionToken, connectionId);
+            if (reconnected != null)
             {
-                txTimeoutCts = new CancellationTokenSource(txTimeout);
+                // Verify the transaction still exists and is active.
+                var existingTx = _coordinator.FindTransaction(sessionEntry.TransactionId);
+                if (existingTx?.TransactionInformation.Status == TxStatus.Active)
+                {
+                    transactionId = sessionEntry.TransactionId;
+                    isReconnect = true;
+                    _logger.LogInformation(
+                        "BlobStream WS {ConnectionId} reconnected to session {Token}, tx={TxId} (reconnect #{Count})",
+                        connectionId, sessionToken, transactionId, sessionEntry.ReconnectCount);
+                }
+                else
+                {
+                    // Transaction is gone or not active — treat as new connection.
+                    _sessionStore.Invalidate(sessionToken);
+                    sessionEntry = _sessionStore.Validate(sessionToken);
+                    if (sessionEntry == null)
+                    {
+                        await CloseWebSocketAsync(webSocket, ServerShutdownStatus, "Session invalidated");
+                        return;
+                    }
+                    isReconnect = false;
+                }
+            }
+            else
+            {
+                // Reconnect refused (pause timeout or session expired).
+                await CloseWebSocketAsync(webSocket, ServerShutdownStatus, "Session expired or paused too long");
+                return;
             }
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogError(ex, "Failed to create BlobStream tx for {ConnectionId}", connectionId);
-            await CloseWebSocketAsync(webSocket, ServerShutdownStatus, "Failed to create transaction");
-            return;
+            isReconnect = false;
         }
 
-        using var sessionCancelCts = new CancellationTokenSource();
-        sessionEntry.WsCancellation = sessionCancelCts;
+        if (!isReconnect)
+        {
+            try
+            {
+                beginResult = await _coordinator.BeginBlobStreamTransactionAsync(
+                    sessionEntry.Parameters.NegotiatedTimeout,
+                    connectionId: connectionId, ct: ct);
+                transactionId = beginResult.Transaction.TransactionInformation.LocalIdentifier;
+                sessionEntry.TransactionId = transactionId;
+
+                var txTimeout = beginResult.ExpiresAt - DateTime.UtcNow;
+                if (txTimeout > TimeSpan.Zero)
+                {
+                    txTimeoutCts = new CancellationTokenSource(txTimeout);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create BlobStream tx for {ConnectionId}", connectionId);
+                await CloseWebSocketAsync(webSocket, ServerShutdownStatus, "Failed to create transaction");
+                return;
+            }
+        }
+
         sessionEntry.ConnectionId = connectionId;
 
+        // ── Step 2: Set up cancellation sources ──
+        using var sessionCancelCts = new CancellationTokenSource();
+        sessionEntry.WsCancellation = sessionCancelCts;
         using var timeoutCts = txTimeoutCts;
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
             ct, sessionCancelCts.Token);
+
         if (txTimeoutCts != null)
         {
             txTimeoutCts.Token.Register(() =>
@@ -113,6 +164,7 @@ internal sealed class BlobStreamConnectionHandler
                 _ = CloseWebSocketAsync(webSocket, TimeoutStatus, "Transaction timeout");
             });
         }
+
         sessionCancelCts.Token.Register(() =>
         {
             if (webSocket.State == WebSocketState.Open)
@@ -125,12 +177,20 @@ internal sealed class BlobStreamConnectionHandler
         });
 
         var linkedToken = linkedCts.Token;
-        _logger.LogInformation("BlobStream WS {ConnectionId} opened, tx={TxId}, timeout={Timeout}",
-            connectionId, transactionId, beginResult.ExpiresAt - DateTime.UtcNow);
+        var expiresAt = isReconnect
+            ? _coordinator.FindTransaction(transactionId)?.TransactionInformation.CreationTime
+                  + TimeSpan.FromHours(24) // Fallback expiry for reconnected sessions
+                  ?? DateTime.UtcNow.AddHours(24)
+            : beginResult!.ExpiresAt;
 
+        _logger.LogInformation(
+            "BlobStream WS {ConnectionId} {Action}, tx={TxId}, reconnect={IsReconnect}",
+            connectionId, isReconnect ? "reconnected" : "opened", transactionId, isReconnect);
+
+        // ── Step 3: Send handshake ──
         try
         {
-            var handshake = BlobStreamMessage.BuildHandshakeResponse(transactionId, beginResult.ExpiresAt);
+            var handshake = BlobStreamMessage.BuildHandshakeResponse(transactionId, expiresAt, isReconnect);
             await webSocket.SendAsync(
                 new ArraySegment<byte>(handshake),
                 WebSocketMessageType.Binary, endOfMessage: true, linkedToken);
@@ -142,10 +202,14 @@ internal sealed class BlobStreamConnectionHandler
         }
         catch (Exception) when (webSocket.State != WebSocketState.Open)
         {
-            await CleanupTransactionAsync(connectionId, transactionId);
+            // WS closed before handshake completed — pause (don't rollback).
+            _sessionStore.MarkPaused(sessionToken);
             return;
         }
 
+        // ── Step 4: Message loop ──
+        bool clientInitiatedClose = false;
+        bool abnormalClose = false;
         byte[] buffer = ArrayPool<byte>.Shared.Rent(InitialBufferSize);
         try
         {
@@ -158,10 +222,28 @@ internal sealed class BlobStreamConnectionHandler
                 }
                 catch (OperationCanceledException) when (linkedToken.IsCancellationRequested)
                 {
+                    // Timeout or EndSession → terminate (rollback).
+                    break;
+                }
+                catch (WebSocketException)
+                {
+                    // Non-graceful disconnect → pause.
+                    abnormalClose = true;
+                    break;
+                }
+                catch (Exception)
+                {
+                    // Non-graceful disconnect → pause.
+                    abnormalClose = true;
                     break;
                 }
 
-                if (message == null) break; // Client initiated close
+                if (message == null)
+                {
+                    // Client initiated graceful close → terminate (rollback).
+                    clientInitiatedClose = true;
+                    break;
+                }
 
                 byte[] response;
                 bool shouldClose = false;
@@ -206,8 +288,23 @@ internal sealed class BlobStreamConnectionHandler
             ArrayPool<byte>.Shared.Return(buffer);
         }
 
-        await CleanupConnectionAsync(connectionId);
-        await CleanupTransactionAsync(connectionId, transactionId);
+        // ── Step 5: Cleanup — pause vs terminate ──
+        if (abnormalClose)
+        {
+            // Non-graceful disconnect: clean handles only, keep transaction (pause).
+            _logger.LogInformation(
+                "BlobStream WS {ConnectionId} disconnected abnormally — pausing tx {TxId}",
+                connectionId, transactionId);
+            await CleanupConnectionAsync(connectionId);
+            _sessionStore.MarkPaused(sessionToken);
+        }
+        else
+        {
+            // Graceful close, timeout, or EndSession: rollback transaction (terminate).
+            await CleanupConnectionAsync(connectionId);
+            await CleanupTransactionAsync(connectionId, transactionId);
+        }
+
         _logger.LogInformation("BlobStream WS closed: {ConnectionId}", connectionId);
     }
 
@@ -276,7 +373,6 @@ internal sealed class BlobStreamConnectionHandler
             OpCode.Write => await HandleWriteAsync(message, transactionId, ct),
             OpCode.Seek => await HandleSeekAsync(message, transactionId, ct),
             OpCode.Truncate => await HandleTruncateAsync(message, transactionId, ct),
-            OpCode.Commit => await HandleCommitAsync(transactionId, ct),
             _ => throw new BlobStreamProtocolException(BlobStreamErrorCode.InvalidOpCode,
                 $"Unknown opcode: 0x{opCode:X2}"),
         };
@@ -472,33 +568,6 @@ internal sealed class BlobStreamConnectionHandler
         finally
         {
             entry.Gate.Release();
-        }
-    }
-
-    #endregion
-
-    #region Commit
-
-    /// <summary>
-    /// Commit the transaction (final semantics — cannot be called more than once).
-    /// </summary>
-    /// <exception cref="BlobStreamProtocolException">Commit failed with <see cref="BlobStreamErrorCode.IoError"/>.</exception>
-    private async Task<byte[]> HandleCommitAsync(string transactionId, CancellationToken ct)
-    {
-        _logger.LogInformation("Commit: committing transaction {TxId}", transactionId);
-
-        var commitResult = await _coordinator.CommitTransactionAsync(transactionId, ct);
-
-        if (commitResult.Status == Coordinator.Models.CommitStatus.Committed)
-        {
-            _logger.LogInformation("Commit: transaction {TxId} committed successfully", transactionId);
-            return BlobStreamMessage.BuildAckResponse(OpCode.Commit);
-        }
-        else
-        {
-            var msg = $"Commit failed: status={commitResult.Status}, error={commitResult.ErrorMessage}";
-            _logger.LogError(msg);
-            throw new BlobStreamProtocolException(BlobStreamErrorCode.IoError, msg);
         }
     }
 

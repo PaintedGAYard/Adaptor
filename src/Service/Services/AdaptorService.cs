@@ -525,24 +525,57 @@ public sealed class BlobServiceImpl : DBBLOB.DBBLOBBase
 
         try
         {
-            // PostgresBlobDriver has DeleteAsync but it is not part of IBlobUploadCapability.
-            // Delete the mapping record via SQL; lo_unlink is handled separately.
-            var sql = $"DELETE FROM adaptor_blob_store WHERE key = @key";
+            // Step 1: Query the OID for the key via IRelationalQueryCapability.
+            int? oid = null;
+            var querySql = "SELECT oid FROM adaptor_blob_store WHERE key = @key";
+            var queryResult = await _ctx.Coordinator.ExecuteOnCapabilityAsync<IRelationalQueryCapability, RelationalQueryResult>(
+                txId,
+                async (driver, transaction) =>
+                {
+                    var internalRequest = new Coordinator.Models.RelationalQueryRequest(
+                        querySql,
+                        new List<Coordinator.Models.RelationalParameter> { new("key", request.Key) });
+                    return await driver.QueryAsync(internalRequest, transaction, context.CancellationToken);
+                },
+                context.CancellationToken);
+
+            if (queryResult.ErrorMessage == null && queryResult.Rows.Count > 0
+                && queryResult.Rows[0].TryGetValue("oid", out var oidObj) && oidObj is int oidVal)
+            {
+                oid = oidVal;
+            }
+
+            // Step 2: If OID found, unlink the Large Object via IRelationalExecuteCapability.
+            if (oid.HasValue)
+            {
+                var unlinkSql = "SELECT lo_unlink(@oid)";
+                await _ctx.Coordinator.ExecuteOnCapabilityAsync<IRelationalExecuteCapability, RelationalExecuteResult>(
+                    txId,
+                    async (driver, transaction) =>
+                    {
+                        var internalRequest = new Coordinator.Models.RelationalExecuteRequest(
+                            unlinkSql,
+                            new List<Coordinator.Models.RelationalParameter> { new("oid", oid.Value) });
+                        return await driver.ExecuteAsync(internalRequest, transaction, context.CancellationToken);
+                    },
+                    context.CancellationToken);
+            }
+
+            // Step 3: Delete the mapping record via IRelationalExecuteCapability.
+            var deleteSql = "DELETE FROM adaptor_blob_store WHERE key = @key";
             await _ctx.Coordinator.ExecuteOnCapabilityAsync<IRelationalExecuteCapability, RelationalExecuteResult>(
                 txId,
                 async (driver, transaction) =>
                 {
                     var internalRequest = new Coordinator.Models.RelationalExecuteRequest(
-                        sql,
-                        new List<Coordinator.Models.RelationalParameter>
-                        {
-                            new("key", request.Key),
-                        });
+                        deleteSql,
+                        new List<Coordinator.Models.RelationalParameter> { new("key", request.Key) });
                     return await driver.ExecuteAsync(internalRequest, transaction, context.CancellationToken);
                 },
                 context.CancellationToken);
 
-            _ctx.Logger.LogDebug("BlobDelete: key={Key} record removed (LO unlink is manual)", request.Key);
+            _ctx.Logger.LogDebug("BlobDelete: key={Key} deleted (oid={Oid}, lo_unlink={Unlinked})",
+                request.Key, oid, oid.HasValue);
             return new BlobDeleteResponse { Success = true };
         }
         catch (Exception ex)

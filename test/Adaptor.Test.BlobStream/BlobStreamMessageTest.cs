@@ -37,7 +37,6 @@ public sealed class BlobStreamMessageTest
         Assert.Equal(0x04u, OpCode.Write);
         Assert.Equal(0x05u, OpCode.Seek);
         Assert.Equal(0x06u, OpCode.Truncate);
-        Assert.Equal(0x07u, OpCode.Commit);
         Assert.Equal(0xFFu, OpCode.Error);
     }
 
@@ -127,7 +126,7 @@ public sealed class BlobStreamMessageTest
         var (opCode, bodyLen) = BlobStreamMessage.ParseHeader(response);
         Assert.Equal(OpCode.Handshake, opCode);
 
-        // Body: [4B txIdLen][UTF8 txId][8B expiresAtUnixMs]
+        // Body: [4B txIdLen][UTF8 txId][8B expiresAtUnixMs][1B flags]
         var body = response.AsSpan(OpCode.HeaderSize);
         var txIdLen = System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(body);
         Assert.Equal(txId.Length, txIdLen);
@@ -138,6 +137,31 @@ public sealed class BlobStreamMessageTest
         var unixMs = System.Buffers.Binary.BinaryPrimitives.ReadInt64BigEndian(body.Slice(4 + txIdLen, 8));
         var expectedUnixMs = new DateTimeOffset(expiresAt).ToUnixTimeMilliseconds();
         Assert.Equal(expectedUnixMs, unixMs);
+
+        // Verify flags byte (default = 0 = not reconnected)
+        var flags = body[4 + txIdLen + 8];
+        Assert.Equal(0, flags);
+    }
+
+    [Fact]
+    public void BuildHandshakeResponse_ShouldIncludeReconnectedFlag()
+    {
+        var txId = "test-tx-12345";
+        var expiresAt = new DateTime(2026, 12, 31, 23, 59, 59, DateTimeKind.Utc);
+
+        // Test with reconnected = true
+        var response = BlobStreamMessage.BuildHandshakeResponse(txId, expiresAt, reconnected: true);
+
+        var body = response.AsSpan(OpCode.HeaderSize);
+        var txIdLen = System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(body);
+        var flags = body[4 + txIdLen + 8];
+        Assert.Equal(1, flags);
+
+        // Test with reconnected = false (explicit)
+        var response2 = BlobStreamMessage.BuildHandshakeResponse(txId, expiresAt, reconnected: false);
+        var body2 = response2.AsSpan(OpCode.HeaderSize);
+        var flags2 = body2[4 + txIdLen + 8];
+        Assert.Equal(0, flags2);
     }
 
     // ──────────────────────────────────────────────

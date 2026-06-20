@@ -44,19 +44,22 @@ internal static class BlobStreamMessage
 
     /// <summary>
     /// Build a handshake response (first message after WebSocket connect).
-    /// Body: [4B txIdLen][UTF8 txId][8B expiresAtUnixMs]
+    /// Body: [4B txIdLen][UTF8 txId][8B expiresAtUnixMs][1B flags]
+    /// Flags: bit 0 = reconnected (session was paused and this is a reconnection).
     /// </summary>
-    public static byte[] BuildHandshakeResponse(string txId, DateTime expiresAt)
+    public static byte[] BuildHandshakeResponse(string txId, DateTime expiresAt, bool reconnected = false)
     {
         var txIdBytes = Encoding.UTF8.GetBytes(txId);
         var unixMs = new DateTimeOffset(expiresAt.ToUniversalTime()).ToUnixTimeMilliseconds();
-        var body = new byte[4 + txIdBytes.Length + 8];
+        var body = new byte[4 + txIdBytes.Length + 8 + 1];
         var offset = 0;
         BinaryPrimitives.WriteInt32BigEndian(body.AsSpan(offset, 4), txIdBytes.Length);
         offset += 4;
         txIdBytes.CopyTo(body, offset);
         offset += txIdBytes.Length;
         BinaryPrimitives.WriteInt64BigEndian(body.AsSpan(offset, 8), unixMs);
+        offset += 8;
+        body[offset] = reconnected ? (byte)0x01 : (byte)0x00;
         return BuildResponse(OpCode.Handshake, body);
     }
 

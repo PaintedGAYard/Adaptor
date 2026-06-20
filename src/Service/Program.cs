@@ -1,5 +1,6 @@
 using System.Net;
 using Adaptor.Coordinator;
+using Adaptor.Coordinator.Services;
 using Adaptor.Driver.Postgre;
 using Adaptor.Service.Abstractions;
 using Adaptor.Service.BlobStream;
@@ -83,5 +84,27 @@ app.MapGet("/", () => "Adaptor gRPC Service — Distributed Transaction Coordina
     "See proto definitions for available services.");
 
 #endregion
+
+// Graceful shutdown: wait for pending commits, then roll back remaining transactions.
+app.Lifetime.ApplicationStopping.Register(() =>
+{
+    var coordinator = app.Services.GetRequiredService<TransactionCoordinator>();
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    var gracePeriod = TimeSpan.FromSeconds(5);
+
+    logger.LogInformation(
+        "Application stopping: shutting down coordinator with {GracePeriod} grace period",
+        gracePeriod);
+
+    try
+    {
+        coordinator.ShutdownAsync(gracePeriod).GetAwaiter().GetResult();
+        logger.LogInformation("Coordinator shutdown complete");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error during coordinator shutdown");
+    }
+});
 
 app.Run();

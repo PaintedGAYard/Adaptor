@@ -19,9 +19,6 @@ internal static class OpCode
     public const uint Seek = 0x05;
     /// <summary>Request: truncate a BLOB</summary>
     public const uint Truncate = 0x06;
-    /// <summary>Request: commit the transaction (final semantics, cannot be retried)</summary>
-    public const uint Commit = 0x07;
-
     /// <summary>Response: error</summary>
     public const uint Error = 0xFF;
 
