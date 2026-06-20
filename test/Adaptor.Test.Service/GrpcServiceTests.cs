@@ -3,6 +3,7 @@ using Grpc.Core;
 using Microsoft.AspNetCore.Http;
 using System.Transactions;
 using Adaptor.Service;
+using Adaptor.Service.Abstractions;
 
 namespace Adaptor.Test.Service;
 
@@ -22,6 +23,14 @@ public sealed class GrpcServiceTests
     // ──────────────────────────────────────────────
     // Helpers
     // ──────────────────────────────────────────────
+
+    /// <summary>A fixed connection ID provider that bypasses GetHttpContext().</summary>
+    private sealed class FixedConnectionIdProvider : IConnectionIdProvider
+    {
+        public string GetConnectionId(ServerCallContext context) => "test-connection-id";
+    }
+
+    private static readonly IConnectionIdProvider FixedConnectionId = new FixedConnectionIdProvider();
 
     /// <summary>Create a lightweight ServerCallContext for testing.</summary>
     private static ServerCallContext CreateCallContext(CancellationToken ct = default)
@@ -65,11 +74,11 @@ public sealed class GrpcServiceTests
     // TransactionServiceImpl
     // ──────────────────────────────────────────────
 
-    [Fact(Skip = "BeginTransaction uses GetHttpContext() which requires ASP.NET Core hosting. Cannot unit-test without gRPC test server.")]
+    [Fact]
     public async Task TransactionService_BeginTransaction_ShouldReturnResponse()
     {
         var (coord, ctx) = CreateRealContext();
-        var svc = new TransactionServiceImpl(ctx);
+        var svc = new TransactionServiceImpl(ctx, FixedConnectionId);
         var callContext = CreateCallContext();
 
         var response = await svc.BeginTransaction(new BeginTransactionRequest(), callContext);

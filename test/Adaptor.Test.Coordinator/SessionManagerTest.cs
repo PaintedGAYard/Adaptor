@@ -223,13 +223,13 @@ public sealed class SessionManagerTest
     // Session Idle Timeout — 设计文档 REFACTOR §3, §6
     // ──────────────────────────────────────────────
 
-    [Fact(Skip = "Manual test — requires configured idle timeout and active wait (see Trait(Manual)))")]
-    [Trait("Manual", "true")]
+    [Fact]
     public void Session_ShouldBeAutoCleanedAfterIdleTimeout()
     {
         var options = new CoordinatorOptions
         {
-            SessionIdleTimeout = TimeSpan.FromSeconds(40),
+            SessionIdleTimeout = TimeSpan.FromSeconds(1),
+            SessionCleanupInterval = TimeSpan.FromMilliseconds(100), // Fast cleanup for testing
         };
 
         var sessionManager = new SessionManager(
@@ -239,9 +239,8 @@ public sealed class SessionManagerTest
         var tx = CreateDummyTransaction();
         var session = sessionManager.CreateSession(tx);
 
-        // Cleanup timer fires every 30s by default; wait > 2 cycles to ensure
-        // the session expires (idle 80s >= 40s timeout) and gets collected.
-        Thread.Sleep(80_000);
+
+        Thread.Sleep(TimeSpan.FromSeconds(1.5)); // Wait for cleanup timer to fire and exceed idle timeout
 
         Assert.Null(sessionManager.GetSession(session.SessionId));
     }

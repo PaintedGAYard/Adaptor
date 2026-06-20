@@ -7,6 +7,7 @@ using Adaptor.Coordinator.Abstractions;
 using Adaptor.Coordinator.Configuration;
 using Adaptor.Coordinator.Models;
 using Adaptor.Coordinator.Services;
+using Adaptor.Service.Abstractions;
 
 namespace Adaptor.Service.Services;
 
@@ -113,17 +114,20 @@ public sealed class AdaptorServiceContext
 public sealed class TransactionServiceImpl : Transaction.TransactionBase
 {
     private readonly AdaptorServiceContext _ctx;
+    private readonly IConnectionIdProvider _connectionIdProvider;
 
-    public TransactionServiceImpl(AdaptorServiceContext ctx)
+    public TransactionServiceImpl(AdaptorServiceContext ctx, IConnectionIdProvider? connectionIdProvider = null)
     {
         _ctx = ctx;
+        _connectionIdProvider = connectionIdProvider
+            ?? new Middleware.DefaultConnectionIdProvider();
     }
 
     public override async Task<BeginTransactionResponse> BeginTransaction(
         BeginTransactionRequest request, ServerCallContext context)
     {
         var timeout = request.Timeout?.ToTimeSpan();
-        var connectionId = context.GetHttpContext().Connection.Id;
+        var connectionId = _connectionIdProvider.GetConnectionId(context);
 
         var result = await _ctx.Coordinator.BeginTransactionAsync(
             timeout, connectionId, context.CancellationToken);

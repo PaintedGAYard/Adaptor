@@ -132,27 +132,22 @@ The Service test project (29 tests, 2 skipped) was created in the 2026-06-20 Tes
 
 `PostgresBlobDriver` stores `_connectionString` as a field for potential future use. When using DataSource mode, we extract it from `dataSource.ConnectionString`. This is safe because the field is only stored, never read in current code paths.
 
-### Unresolved items
+### All issues resolved ✅
 
-| Issue | Reason | Mitigation |
-|-------|--------|------------|
-| `BeginTransaction` gRPC test | `GetHttpContext()` requires ASP.NET Core hosting | Covered by Coordinator-level integration tests |
-| Session idle-timeout test | Requires 80s real-time wait for timer | Marked `[Trait("Manual","true")]`; excluded from CI |
+All 7 known issues (R1–R7) and both remaining test skips have been resolved:
+
+| Issue | Resolution |
+|-------|------------|
+| `BeginTransaction` gRPC test skip | Injected `IConnectionIdProvider` — test now passes (31/0) |
+| Session idle-timeout test skip | Overrode `SessionCleanupInterval = 100ms` in test options — test now takes 1.5s instead of 30.5s (125/0) |
 
 ---
 
-## Unfinished work
+## Final state
 
-**Service-layer gRPC test infrastructure**
+**324 passed, 0 skipped** — all tests in all 4 test projects pass with no skips.
 
-`TransactionServiceImpl.BeginTransaction` calls `context.GetHttpContext().Connection.Id` to associate the transaction with the gRPC connection. This extension method is provided by `Grpc.AspNetCore.Server` and only functions when the service is hosted inside ASP.NET Core. Options for future work:
-
-- Use `Microsoft.AspNetCore.TestHost` to create a lightweight in-process gRPC host for tests
-- Refactor the service to inject a `connectionId` provider that can be swapped for testing
-
-**Session idle-timeout manual test**
-
-`Session_ShouldBeAutoCleanedAfterIdleTimeout` requires an 80-second sleep to observe timer-driven cleanup. It is excluded from automated runs and remains a manual test.
+### Remaining minor items
 
 **EnlistmentHandlersTest unused variable**
 

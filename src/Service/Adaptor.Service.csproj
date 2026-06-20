@@ -23,5 +23,6 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Adaptor.Test.BlobStream" />
+    <InternalsVisibleTo Include="Adaptor.Test.Service" />
   </ItemGroup>
 </Project>

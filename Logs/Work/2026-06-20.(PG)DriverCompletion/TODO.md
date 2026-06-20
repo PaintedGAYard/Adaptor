@@ -10,9 +10,9 @@
 - [x] **0.1** 运行现有测试，确认基线：319 pass / 3 skip
   - 解决 slnx 中缺少 Service 测试项目的问题
   - BlobStream: 80/0 | Service: 29/2 | Coordinator: 123/1 | Driver: 87/0
-- [ ] **0.2** 确认项目可构建
+- [x] **0.2** 确认项目可构建
   - `dotnet build` 全部项目无错误
-- [ ] **0.3** 检查所有 `[Fact(Skip)]` 标记
+- [x] **0.3** 检查所有 `[Fact(Skip)]` 标记
 
 ---
 
@@ -70,10 +70,16 @@
 - [x] `PgVectorDriverTest` 中无脆弱的格式化断言 - 均为基于设计的契约测试
 - [x] 旧格式化方法（`DenseVectorToString`/`SparseVectorToString`）已在重构阶段删除
 
-### 4.3 R6: Service gRPC BeginTransaction 测试
+### 4.3 R6: Service gRPC BeginTransaction 测试 ✅
 
-- [ ] 当前保持 Skip（需要 ASP.NET Core 宿主）
-- [ ] 由 Coordinator 集成测试间接覆盖
+- [x] 注入 `IConnectionIdProvider` 接口，测试提供 `FixedConnectionIdProvider`
+- [x] 移除 `[Fact(Skip)]`，测试现在正常通过
+
+### 4.4 Session idle-timeout 测试优化 ✅
+
+- [x] 测试中设置 `SessionCleanupInterval = 100ms`，将等待时间从 30.5s 减为 1.5s
+- [x] 移除 `[Fact(Skip)]`，测试现在可自动运行
+- [x] **至此 0 skipped** 🎉
 
 ---
 
@@ -95,21 +101,21 @@
 ## Phase 6: 回归测试 & 收尾 ✅
 
 - [x] **6.1** 全面回归测试
-  - `dotnet test` 确认 **322 pass / 2 skip**（Service: 30/1, Coordinator: 124/1, BlobStream: 80/0, Driver: 88/0）
+  - `dotnet test` 确认 **324 pass / 0 skip**（Service: 31/0, Coordinator: 125/0, BlobStream: 80/0, Driver: 88/0）
 - [x] **6.2** 确认 0 new failures
 - [x] **6.3** 更新 `Work Summary.md`
 - [x] **6.4** 更新 `Plan.md` 状态为 Complete
 
 ---
 
-## 已知问题跟踪
+## 已知问题跟踪 ✅ 全部关闭
 
 | ID | 问题 | Phase | 状态 |
 |:--:|------|:-----:|:----:|
-| R1 | `AddAdaptorPgVectorDriver` 未创建 DataSource | 2 | ⏳ Pending |
-| R2 | `EnsureExtensionAsync` DataSource 模式下 `_connectionString` 为 null | 1 | ⏳ Pending |
-| R3 | `CommitTransactionAsync` 对已回滚事务抛异常 | 3 | ⏳ Pending |
-| R4 | 缺少 pgvector-dotnet 类型映射测试 | 4 | ⏳ Pending |
-| R5 | `ReadLargeObjectAsync` 5 参数需重构 | 5 | ⏳ Pending |
-| R6 | Service gRPC `BeginTransaction` 无法单元测试 | 4 | ⏳ Pending (保持 skip) |
-| R7 | `PgVectorDriverTest` 向量参数断言需更新 | 4 | ⏳ Pending |
+| R1 | `AddAdaptorPgVectorDriver` 未创建 DataSource | 2 | ✅ 已解决 |
+| R2 | `EnsureExtensionAsync` DataSource 模式下 `_connectionString` 为 null | 1 | ✅ 已修复 |
+| R3 | `CommitTransactionAsync` 对已回滚事务抛异常 | 3 | ✅ 已修复 |
+| R4 | 缺少 pgvector-dotnet 类型映射测试 | 4 | ✅ 已添加 |
+| R5 | `ReadLargeObjectAsync` 5 参数需重构 | 5 | ✅ 已重构 |
+| R6 | Service gRPC `BeginTransaction` 无法单元测试 | 4 | ✅ 已解决（注入 IConnectionIdProvider） |
+| R7 | `PgVectorDriverTest` 向量参数断言需更新 | 4 | ✅ 无需修改 |

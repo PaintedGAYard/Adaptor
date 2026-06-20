@@ -1,6 +1,7 @@
 using System.Net;
 using Adaptor.Coordinator;
 using Adaptor.Driver.Postgre;
+using Adaptor.Service.Abstractions;
 using Adaptor.Service.BlobStream;
 using Adaptor.Service.Middleware;
 using Adaptor.Service.Services;
@@ -25,6 +26,9 @@ builder.Services.AddSingleton<AdaptorServiceContext>();
 builder.Services.AddSingleton<BlobStreamSessionStore>();
 builder.Services.AddSingleton<HandleManager>();
 builder.Services.AddSingleton<BlobStreamConnectionHandler>();
+
+// Register the default connection ID provider (uses GetHttpContext)
+builder.Services.AddSingleton<IConnectionIdProvider, DefaultConnectionIdProvider>();
 
 builder.Services.AddGrpc(options =>
 {
