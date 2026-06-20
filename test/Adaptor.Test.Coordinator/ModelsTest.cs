@@ -282,6 +282,55 @@ public sealed class ModelsTest
     }
 
     // ──────────────────────────────────────────────
+    // Models edge cases — 设计文档 3.4
+    // ──────────────────────────────────────────────
+
+    [Fact]
+    public void RelationalExecuteRequest_WithNullCommand_ShouldStoreNull()
+    {
+        var request = new RelationalExecuteRequest(null!);
+        Assert.Null(request.Command);
+    }
+
+    [Fact]
+    public void BlobDownloadResult_WithNullData_ShouldStoreNull()
+    {
+        var result = new BlobDownloadResult("key", null!, null);
+        Assert.Null(result.Data);
+    }
+
+    [Fact]
+    public void BlobUploadResult_WithErrorMessage_ShouldStoreError()
+    {
+        var result = new BlobUploadResult("key", 0, "upload failed");
+        Assert.Equal("upload failed", result.ErrorMessage);
+    }
+
+    [Fact]
+    public void SparseVector_WithMismatchedLengths_ShouldStillConstruct()
+    {
+        // The record doesn't validate lengths — it's the consumer's responsibility.
+        // This test documents the current behavior.
+        var sv = new SparseVector([0, 1], [0.5f]); // 2 indices, 1 value
+        Assert.Equal(2, sv.Indices.Length);
+        Assert.Equal(1, sv.Values.Length);
+    }
+
+    [Fact]
+    public void VectorSearchHit_WithNullMetadata_ShouldStoreNull()
+    {
+        var hit = new VectorSearchHit("id", 0.5f, null);
+        Assert.Null(hit.Metadata);
+    }
+
+    [Fact]
+    public void CommitResult_WithEmptyDriverResults_ShouldStoreEmpty()
+    {
+        var result = new CommitResult(CommitStatus.Committed, []);
+        Assert.Empty(result.DriverResults);
+    }
+
+    // ──────────────────────────────────────────────
     // SessionContext — 设计文档 REFACTOR §2
     // ──────────────────────────────────────────────
 

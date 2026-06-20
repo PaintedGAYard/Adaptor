@@ -1,7 +1,8 @@
 # Work Summary — 2026-06-20 Test & Debug
 
 > **Phase**: Phase 1 (Driver.Postgre) — ✅ Completed  
-> **Next**: Phase 2 (Coordinator)
+> **Phase**: Phase 2 (Coordinator) — ✅ Completed  
+> **Next**: Phase 3 (Service)
 
 ---
 
@@ -50,11 +51,12 @@
 
 ## 测试覆盖率变化
 
-| 指标 | 之前 | 之后 |
-|------|------|------|
-| Driver 单元测试 | 62 | 62 (不变) |
-| Driver 集成测试 | 0 | 23 (新增) |
-| **总测试数** | **62** | **85** |
+| 项目 | Phase 1 前 | Phase 1 后 | Phase 2 后 |
+|------|-----------|-----------|-----------|
+| Driver 单元测试 | 62 | 62 | 62 |
+| Driver 集成测试 | 0 | 23 | 23 |
+| Coordinator 测试 | 97 | 97 | **123** (+26) |
+| **通过 / 跳过 / 总计** | **62 / 0 / 62** | **82 / 4 / 86** | **205 / 5 / 210** |
 
 ---
 

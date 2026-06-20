@@ -231,4 +231,94 @@ public sealed class CoordinatorPluginsTest
         Assert.NotNull(method);
         Assert.Single(method.GetCustomAttributes(typeof(Microsoft.SemanticKernel.KernelFunctionAttribute), false));
     }
+
+    // ──────────────────────────────────────────────
+    // Plugin error propagation
+    // ──────────────────────────────────────────────
+
+    [Fact]
+    public async Task TransactionPlugin_CommitOnNonexistentTx_ShouldThrow()
+    {
+        var coordinator = CreateCoordinator();
+        var plugin = new TransactionPlugin(coordinator, Substitute.For<ILogger<TransactionPlugin>>());
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            plugin.CommitTransactionAsync("nonexistent-id"));
+    }
+
+    [Fact]
+    public async Task TransactionPlugin_RollbackOnNonexistentTx_ShouldBeNoOp()
+    {
+        var coordinator = CreateCoordinator();
+        var plugin = new TransactionPlugin(coordinator, Substitute.For<ILogger<TransactionPlugin>>());
+
+        // Should not throw — RollbackTransactionAsync is designed as no-op for unknown IDs
+        await plugin.RollbackTransactionAsync("nonexistent-id");
+    }
+
+    // ──────────────────────────────────────────────
+    // Plugin parameter passing
+    // ──────────────────────────────────────────────
+
+    [Fact]
+    public async Task RelationalPlugin_ExecuteWithParameters_ShouldForwardToCoordinator()
+    {
+        var coordinator = CreateCoordinator(drivers: [new FakeRelationalDriver()]);
+        var plugin = new RelationalPlugin(coordinator, Substitute.For<ILogger<RelationalPlugin>>());
+
+        var beginResult = await coordinator.BeginTransactionAsync();
+        var txId = beginResult.Transaction.TransactionInformation.LocalIdentifier;
+
+        var result = await plugin.ExecuteAsync(txId, "INSERT INTO t VALUES (@v)",
+            [new RelationalParameter("@v", 42)]);
+
+        Assert.Equal(1, result.AffectedRows);
+    }
+
+    [Fact]
+    public async Task RelationalPlugin_QueryWithParameters_ShouldForwardToCoordinator()
+    {
+        var coordinator = CreateCoordinator(drivers: [new FakeRelationalDriver()]);
+        var plugin = new RelationalPlugin(coordinator, Substitute.For<ILogger<RelationalPlugin>>());
+
+        var beginResult = await coordinator.BeginTransactionAsync();
+        var txId = beginResult.Transaction.TransactionInformation.LocalIdentifier;
+
+        var result = await plugin.QueryAsync(txId, "SELECT * FROM t WHERE id = @id",
+            [new RelationalParameter("@id", 1)]);
+
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public async Task RelationalPlugin_ExecuteBatchWithEmptyArray_ShouldReturnZero()
+    {
+        var coordinator = CreateCoordinator(drivers: [new FakeRelationalDriver()]);
+        var plugin = new RelationalPlugin(coordinator, Substitute.For<ILogger<RelationalPlugin>>());
+
+        var beginResult = await coordinator.BeginTransactionAsync();
+        var txId = beginResult.Transaction.TransactionInformation.LocalIdentifier;
+
+        var totalAffected = await plugin.ExecuteBatchAsync(txId, []);
+
+        Assert.Equal(0, totalAffected);
+    }
+
+    [Fact]
+    public async Task VectorSearchPlugin_SearchWithWhereClause_ShouldForwardToCoordinator()
+    {
+        var coordinator = CreateCoordinator(drivers: [new FakeVectorDriver()]);
+        var plugin = new VectorSearchPlugin(coordinator, Substitute.For<ILogger<VectorSearchPlugin>>());
+
+        var beginResult = await coordinator.BeginTransactionAsync();
+        var txId = beginResult.Transaction.TransactionInformation.LocalIdentifier;
+
+        var result = await plugin.SearchAsync(txId, "my_table", "embedding",
+            denseVector: [0.1f, 0.2f, 0.3f],
+            topK: 20,
+            whereClause: "category = @cat",
+            parameters: [new RelationalParameter("@cat", "electronics")]);
+
+        Assert.NotNull(result);
+    }
 }

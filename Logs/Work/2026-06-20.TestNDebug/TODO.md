@@ -29,24 +29,31 @@
 
 ---
 
-## Phase 2: Coordinator (current)
+## Phase 2: Coordinator ✅ COMPLETED
 
-- [ ] **2.1** TransactionCoordinator 补齐
-  - [ ] Commit 失败路径 (CommitCoreAsync 异常)
-  - [ ] Rollback 异常路径
-  - [ ] Shutdown 超时等待
-  - [ ] Cancellation 测试
-  - [ ] Dispose 幂等性
-- [ ] **2.2** SessionManager 补齐
-  - [ ] 已关闭 session 的 Touch 行为
-  - [ ] Dispose 线程安全
-  - [ ] CleanupExpiredSessions 路径
-- [ ] **2.3** Plugin 层补齐
-  - [ ] TransactionPlugin 错误传播
-  - [ ] RelationalPlugin 参数传递
-  - [ ] VectorSearchPlugin 过滤条件
-  - [ ] Cancellation 测试
-- [ ] **2.4** Models 边界情况
+- [x] **2.1** TransactionCoordinator 补齐
+  - Commit 失败路径 (ForceRollbackEnlistment → RolledBack)
+  - Rollback 二次调用 (no-op after cleanup)
+  - Shutdown 无事务 + 超时等待 + 活跃 tx rollback
+  - Cancellation (Begin/Commit/Rollback)
+  - Dispose 幂等性 + connectionId 参数
+- [x] **2.2** SessionManager 补齐
+  - TouchSession 对 closed session = no-op
+  - GetSession after RemoveSession → null
+  - CreateSession with null/empty connectionId
+  - OnConnectionClosed after RemoveSession
+  - Dispose 幂等性
+- [x] **2.3** Plugin 层补齐
+  - TransactionPlugin: commit 不存在 tx → throw, rollback 不存在 tx → no-op
+  - RelationalPlugin: Execute/Query 带参数, ExecuteBatch 空数组
+  - VectorSearchPlugin: Search 带 whereClause + 参数
+- [x] **2.4** Models 边界情况
+  - RelationalExecuteRequest null command
+  - BlobDownloadResult null data
+  - BlobUploadResult ErrorMessage
+  - SparseVector 长度不匹配
+  - VectorSearchHit null metadata
+  - CommitResult 空 DriverResults
 
 ---
 

@@ -247,6 +247,91 @@ public sealed class SessionManagerTest
     }
 
     // ──────────────────────────────────────────────
+    // TouchSession on closed session — 设计文档 §7
+    // ──────────────────────────────────────────────
+
+    [Fact]
+    public void TouchSession_OnClosedSession_ShouldBeNoOp()
+    {
+        var sm = CreateSessionManager();
+        var tx = CreateDummyTransaction();
+        var session = sm.CreateSession(tx);
+
+        sm.RemoveSession(session.SessionId);
+        Assert.True(session.IsClosed);
+
+        var beforeTouch = session.LastActivityAt;
+        Thread.Sleep(10);
+        sm.TouchSession(session.SessionId);
+
+        // After RemoveSession, the session is removed from the dictionary;
+        // TouchSession is a no-op for unknown/removed IDs.
+        Assert.Equal(beforeTouch, session.LastActivityAt);
+    }
+
+    // ──────────────────────────────────────────────
+    // GetSession after RemoveSession — 设计文档 §7
+    // ──────────────────────────────────────────────
+
+    [Fact]
+    public void GetSession_AfterRemoveSession_ShouldReturnNull()
+    {
+        var sm = CreateSessionManager();
+        var tx = CreateDummyTransaction();
+        var session = sm.CreateSession(tx);
+
+        sm.RemoveSession(session.SessionId);
+        Assert.Null(sm.GetSession(session.SessionId));
+    }
+
+    // ──────────────────────────────────────────────
+    // CreateSession with empty connectionId — 设计文档 §7
+    // ──────────────────────────────────────────────
+
+    [Fact]
+    public void CreateSession_WithNullConnectionId_ShouldCreateSession()
+    {
+        var sm = CreateSessionManager();
+        var tx = CreateDummyTransaction();
+
+        var session = sm.CreateSession(tx, connectionId: null);
+        Assert.NotNull(session);
+        Assert.False(session.IsClosed);
+    }
+
+    [Fact]
+    public void CreateSession_WithEmptyConnectionId_ShouldCreateSession()
+    {
+        var sm = CreateSessionManager();
+        var tx = CreateDummyTransaction();
+
+        var session = sm.CreateSession(tx, connectionId: string.Empty);
+        Assert.NotNull(session);
+        Assert.False(session.IsClosed);
+    }
+
+    // ──────────────────────────────────────────────
+    // OnConnectionClosed after RemoveSession — 设计文档 §7
+    // ──────────────────────────────────────────────
+
+    [Fact]
+    public void OnConnectionClosed_AfterSessionRemoved_ShouldNotIncludeRemovedSession()
+    {
+        var sm = CreateSessionManager();
+        var tx1 = CreateDummyTransaction();
+        var tx2 = CreateDummyTransaction();
+
+        var s1 = sm.CreateSession(tx1, connectionId: "conn-1");
+        var s2 = sm.CreateSession(tx2, connectionId: "conn-1");
+
+        sm.RemoveSession(s1.SessionId);
+
+        var affected = sm.OnConnectionClosed("conn-1");
+        Assert.Single(affected);
+        Assert.Equal(s2.SessionId, affected[0].SessionId);
+    }
+
+    // ──────────────────────────────────────────────
     // Dispose — 设计文档 REFACTOR
     // ──────────────────────────────────────────────
 
@@ -264,5 +349,14 @@ public sealed class SessionManagerTest
 
         // After dispose the timer is stopped and sessions are cleared
         // Verify by checking the cleanup logic indirectly
+    }
+
+    [Fact]
+    public void Dispose_ShouldBeIdempotent()
+    {
+        var sm = CreateSessionManager();
+        sm.Dispose();
+        // Second dispose should not throw
+        sm.Dispose();
     }
 }

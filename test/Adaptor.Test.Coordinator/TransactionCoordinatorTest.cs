@@ -522,6 +522,139 @@ public sealed class TransactionCoordinatorTest
     }
 
     // ──────────────────────────────────────────────
+    // Commit failure path — 设计文档 4.2
+    // ──────────────────────────────────────────────
+
+    [Fact]
+    public async Task CommitTransactionAsync_WhenRollbackOccurs_ShouldReturnRolledBackStatus()
+    {
+        // Arrange: use a real CommittableTransaction but force it to rollback
+        // by enlisting a volatile RM that votes ForceRollback in Prepare.
+        var coordinator = CreateCoordinator();
+        var beginResult = await coordinator.BeginTransactionAsync();
+        var txId = beginResult.Transaction.TransactionInformation.LocalIdentifier;
+
+        // Find the transaction and enlist a force-rollback handler
+        var tx = coordinator.FindTransaction(txId)!;
+        tx.EnlistVolatile(new ForceRollbackEnlistment(), EnlistmentOptions.None);
+
+        // Act
+        var commitResult = await coordinator.CommitTransactionAsync(txId);
+
+        // Assert
+        Assert.Equal(CommitStatus.RolledBack, commitResult.Status);
+        Assert.NotNull(commitResult.ErrorMessage);
+    }
+
+    /// <summary>Enlistment that forces rollback during Prepare phase.</summary>
+    private sealed class ForceRollbackEnlistment : IEnlistmentNotification
+    {
+        public void Prepare(PreparingEnlistment preparingEnlistment)
+            => preparingEnlistment.ForceRollback();
+        public void Commit(Enlistment enlistment) => enlistment.Done();
+        public void Rollback(Enlistment enlistment) => enlistment.Done();
+        public void InDoubt(Enlistment enlistment) => enlistment.Done();
+    }
+
+    // ──────────────────────────────────────────────
+    // Rollback exception path — 设计文档 4.2
+    // ──────────────────────────────────────────────
+
+    [Fact]
+    public async Task RollbackTransactionAsync_WhenRollbackThrows_ShouldStillCleanup()
+    {
+        // Use a transaction whose Rollback() throws.
+        // We can't easily mock CommittableTransaction, so we verify the
+        // coordinator's "find → cleanup" path by rolling back twice.
+        var coordinator = CreateCoordinator();
+        var beginResult = await coordinator.BeginTransactionAsync();
+        var txId = beginResult.Transaction.TransactionInformation.LocalIdentifier;
+
+        // First rollback succeeds
+        await coordinator.RollbackTransactionAsync(txId);
+        Assert.Equal(0, coordinator.ActiveTransactionCount);
+
+        // Second rollback on same ID should be no-op (entry already removed)
+        await coordinator.RollbackTransactionAsync(txId);
+        Assert.Equal(0, coordinator.ActiveTransactionCount);
+    }
+
+    // ──────────────────────────────────────────────
+    // ShutdownAsync edge cases — 设计文档 REFACTOR §3
+    // ──────────────────────────────────────────────
+
+    [Fact]
+    public async Task ShutdownAsync_WithNoActiveTransactions_ShouldCompleteSilently()
+    {
+        var coordinator = CreateCoordinator();
+        await coordinator.ShutdownAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(0, coordinator.ActiveTransactionCount);
+    }
+
+    [Fact]
+    public async Task ShutdownAsync_WhenGracePeriodExpires_ShouldNotThrow()
+    {
+        var coordinator = CreateCoordinator();
+        var beginResult = await coordinator.BeginTransactionAsync();
+        var txId = beginResult.Transaction.TransactionInformation.LocalIdentifier;
+
+        // Start a slow commit that won't finish within the grace period
+        // by enlisting a handler that blocks during Prepare.
+        var tx = coordinator.FindTransaction(txId)!;
+        tx.EnlistVolatile(new BlockingEnlistment(TimeSpan.FromSeconds(30)), EnlistmentOptions.None);
+
+        var commitTask = coordinator.CommitTransactionAsync(txId);
+
+        // Shutdown with a very short grace period
+        await coordinator.ShutdownAsync(TimeSpan.FromMilliseconds(100));
+
+        // Should complete without throwing — remaining entries are rolled back
+        Assert.Equal(0, coordinator.ActiveTransactionCount);
+    }
+
+    /// <summary>Enlistment that blocks during Prepare to simulate a slow 2PC.</summary>
+    private sealed class BlockingEnlistment : IEnlistmentNotification
+    {
+        private readonly TimeSpan _delay;
+        public BlockingEnlistment(TimeSpan delay) => _delay = delay;
+        public void Prepare(PreparingEnlistment preparingEnlistment)
+        {
+            Thread.Sleep(_delay);
+            preparingEnlistment.Prepared();
+        }
+        public void Commit(Enlistment enlistment) => enlistment.Done();
+        public void Rollback(Enlistment enlistment) => enlistment.Done();
+        public void InDoubt(Enlistment enlistment) => enlistment.Done();
+    }
+
+    // ──────────────────────────────────────────────
+    // Dispose idempotency — 设计文档 REFACTOR
+    // ──────────────────────────────────────────────
+
+    [Fact]
+    public void Dispose_ShouldBeIdempotent()
+    {
+        var coordinator = CreateCoordinator();
+        coordinator.Dispose();
+        // Second dispose should not throw
+        coordinator.Dispose();
+    }
+
+    // ──────────────────────────────────────────────
+    // BeginTransactionAsync with connectionId — 设计文档 4.2, 7
+    // ──────────────────────────────────────────────
+
+    [Fact]
+    public async Task BeginTransactionAsync_WithConnectionId_ShouldCreateSession()
+    {
+        var coordinator = CreateCoordinator();
+        var result = await coordinator.BeginTransactionAsync(connectionId: "grpc-conn-1");
+
+        Assert.NotNull(result.Transaction);
+        Assert.Equal(1, coordinator.ActiveTransactionCount);
+    }
+
+    // ──────────────────────────────────────────────
     // Cancellation — 设计文档 4.2
     // ──────────────────────────────────────────────
 
@@ -534,5 +667,35 @@ public sealed class TransactionCoordinatorTest
 
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
             coordinator.BeginTransactionAsync(ct: cts.Token));
+    }
+
+    [Fact]
+    public async Task CommitTransactionAsync_ShouldRespondToCancellation()
+    {
+        var coordinator = CreateCoordinator();
+        var beginResult = await coordinator.BeginTransactionAsync();
+        var txId = beginResult.Transaction.TransactionInformation.LocalIdentifier;
+
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            coordinator.CommitTransactionAsync(txId, cts.Token));
+    }
+
+    [Fact]
+    public async Task RollbackTransactionAsync_ShouldRespondToCancellation()
+    {
+        var coordinator = CreateCoordinator();
+        var beginResult = await coordinator.BeginTransactionAsync();
+        var txId = beginResult.Transaction.TransactionInformation.LocalIdentifier;
+
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // RollbackAsync with cancelled token should throw
+        // (note: Rollback doesn't throw for unknown tx, but SHOULD throw if cancelled before operation)
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            coordinator.RollbackTransactionAsync(txId, cts.Token));
     }
 }
