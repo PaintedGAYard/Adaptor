@@ -34,6 +34,14 @@ public sealed class PostgreSqlDriver :
         _logger = logger;
     }
 
+    /// <summary>Create with an NpgsqlDataSource (recommended for connection pooling).</summary>
+    public PostgreSqlDriver(NpgsqlDataSource dataSource, ILogger<PostgreSqlDriver>? logger = null)
+    {
+        ArgumentNullException.ThrowIfNull(dataSource);
+        _connectionManager = new NpgsqlConnectionManager(dataSource, Name, logger);
+        _logger = logger;
+    }
+
     #region ITransactionalResourceManager
 
     public void Enlist(Transaction transaction)

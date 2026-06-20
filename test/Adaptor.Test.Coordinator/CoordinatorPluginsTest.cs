@@ -237,13 +237,15 @@ public sealed class CoordinatorPluginsTest
     // ──────────────────────────────────────────────
 
     [Fact]
-    public async Task TransactionPlugin_CommitOnNonexistentTx_ShouldThrow()
+    public async Task TransactionPlugin_CommitOnNonexistentTx_ShouldReturnRolledBack()
     {
         var coordinator = CreateCoordinator();
         var plugin = new TransactionPlugin(coordinator, Substitute.For<ILogger<TransactionPlugin>>());
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            plugin.CommitTransactionAsync("nonexistent-id"));
+        var result = await plugin.CommitTransactionAsync("nonexistent-id");
+
+        Assert.Equal(CommitStatus.RolledBack, result.Status);
+        Assert.NotNull(result.ErrorMessage);
     }
 
     [Fact]

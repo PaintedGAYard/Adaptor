@@ -126,7 +126,7 @@ public sealed class GrpcServiceTests
         Assert.Equal(global::Adaptor.Service.TransactionState.Unspecified, response.State);
     }
 
-    [Fact(Skip = "Design: commit after rollback should return RolledBack status, but current Coordinator throws InvalidOperationException. Fix when refactoring TransactionCoordinator cleanup logic.")]
+    [Fact]
     public async Task TransactionService_CommitOnRolledBackTx_ShouldReturnRolledBack()
     {
         var (coord, ctx) = CreateRealContext();

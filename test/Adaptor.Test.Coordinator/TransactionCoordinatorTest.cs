@@ -169,14 +169,31 @@ public sealed class TransactionCoordinatorTest
     }
 
     [Fact]
-    public async Task CommitTransactionAsync_OnUnknownId_ShouldThrowInvalidOperationException()
+    public async Task CommitTransactionAsync_OnUnknownId_ShouldReturnRolledBack()
     {
         var coordinator = CreateCoordinator();
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            coordinator.CommitTransactionAsync("nonexistent-id"));
+        var result = await coordinator.CommitTransactionAsync("nonexistent-id");
 
-        Assert.Contains("not found", ex.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(CommitStatus.RolledBack, result.Status);
+        Assert.NotNull(result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task CommitTransactionAsync_AfterRollback_ShouldReturnRolledBack()
+    {
+        var coordinator = CreateCoordinator();
+        var beginResult = await coordinator.BeginTransactionAsync();
+        var txId = beginResult.Transaction.TransactionInformation.LocalIdentifier;
+
+        // Rollback first — this cleans up the entry
+        await coordinator.RollbackTransactionAsync(txId);
+
+        // Commit after rollback should return RolledBack, not throw
+        var result = await coordinator.CommitTransactionAsync(txId);
+
+        Assert.Equal(CommitStatus.RolledBack, result.Status);
+        Assert.NotNull(result.ErrorMessage);
     }
 
     [Fact]

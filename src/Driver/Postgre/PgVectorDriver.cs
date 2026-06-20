@@ -223,10 +223,13 @@ public sealed class PgVectorDriver :
     /// Ensure the pgvector extension is installed.
     /// Uses a separate non-transactional connection because PostgreSQL
     /// does not allow <c>CREATE EXTENSION</c> inside a transaction block.
+    /// Supports both DataSource and connection-string modes.
     /// </summary>
     private async Task EnsureExtensionAsync(CancellationToken ct)
     {
-        await using var conn = new NpgsqlConnection(_connectionString);
+        await using var conn = _dataSource != null
+            ? _dataSource.CreateConnection()
+            : new NpgsqlConnection(_connectionString);
         await conn.OpenAsync(ct).ConfigureAwait(false);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = "CREATE EXTENSION IF NOT EXISTS vector";

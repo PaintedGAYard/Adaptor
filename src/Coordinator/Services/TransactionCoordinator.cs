@@ -134,14 +134,24 @@ public sealed class TransactionCoordinator : IDisposable
     /// </summary>
     /// <param name="transactionId">The transaction's <see cref="TransactionInformation.LocalIdentifier"/>.</param>
     /// <param name="ct">Cancellation token.</param>
-    /// <returns>Overall commit result including per-driver outcomes.</returns>
-    /// <exception cref="InvalidOperationException">Transaction not found or already completed.</exception>
+    /// <returns>Overall commit result including per-driver outcomes.
+    /// Returns <see cref="CommitStatus.RolledBack"/> if the transaction was already completed or not found.</returns>
     public async Task<CommitResult> CommitTransactionAsync(
         string transactionId,
         CancellationToken ct = default)
     {
-        var entry = FindEntry(transactionId)
-            ?? throw new InvalidOperationException($"Transaction '{transactionId}' not found or already completed.");
+        var entry = FindEntry(transactionId);
+
+        if (entry == null)
+        {
+            _logger.LogWarning(
+                "Transaction '{LocalId}': not found or already completed, returning RolledBack",
+                transactionId);
+            return new CommitResult(
+                CommitStatus.RolledBack,
+                Array.Empty<DriverCommitResult>(),
+                $"Transaction '{transactionId}' not found or already completed.");
+        }
 
         _logger.LogInformation("Transaction '{LocalId}': starting two-phase commit", transactionId);
 

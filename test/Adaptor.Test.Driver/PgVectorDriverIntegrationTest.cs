@@ -1,4 +1,6 @@
 using Npgsql;
+using Pgvector;
+using Pgvector.Npgsql;
 using Testcontainers.PostgreSql;
 
 namespace Adaptor.Test.Driver;
@@ -125,6 +127,46 @@ public sealed class PgVectorDriverIntegrationTest : IAsyncLifetime
         extCmd.CommandText = "SELECT 1 FROM pg_extension WHERE extname = 'vector'";
         var extExists = await extCmd.ExecuteScalarAsync();
         Assert.NotNull(extExists);
+    }
+
+    /// <summary>
+    /// Verify that PgVectorDriver works correctly when created with an NpgsqlDataSource
+    /// that has UseVector() configured. This exercises the DataSource constructor path,
+    /// including EnsureExtensionAsync which must not use _connectionString (which is null
+    /// in DataSource mode).
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_ShouldWorkWithDataSourceMode()
+    {
+        // Arrange — create a DataSource with UseVector()
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(_pgContainer!.GetConnectionString());
+        dataSourceBuilder.UseVector();
+        var dataSource = dataSourceBuilder.Build();
+
+        // Create search table manually
+        await CreateSearchTableAsync("ds_items", "embedding", 3);
+        await InsertVectorAsync("ds_items", "1", [0.1f, 0.2f, 0.3f]);
+
+        var driver = new PgVectorDriver(dataSource,
+            Substitute.For<ILogger<PgVectorDriver>>());
+
+        using var tx = new CommittableTransaction();
+        driver.Enlist(tx);
+
+        var request = new RelationalVectorSearchRequest(
+            "ds_items", "embedding", [0.11f, 0.21f, 0.31f], TopK: 5);
+
+        // Act — this must NOT throw NullReferenceException from EnsureExtensionAsync
+        var result = await driver.SearchAsync(request, tx);
+
+        // Assert
+        Assert.Null(result.ErrorMessage);
+        Assert.NotEmpty(result.Hits);
+        Assert.Equal("1", result.Hits[0].Id);
+
+        tx.Rollback();
+        driver.Dispose();
+        await dataSource.DisposeAsync();
     }
 
     #region IAsyncLifetime

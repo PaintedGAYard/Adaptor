@@ -10,5 +10,6 @@
     <project Path="test/Adaptor.Test.Coordinator/Adaptor.Test.Coordinator.csproj" />
     <project Path="test/Adaptor.Test.BlobStream/Adaptor.Test.BlobStream.csproj" />  
     <project Path="test/Adaptor.Test.Driver/Adaptor.Test.Driver.csproj" />  
+    <project Path="test/Adaptor.Test.Service/Adaptor.Test.Service.csproj" />
   </Folder>
 </Solution>
