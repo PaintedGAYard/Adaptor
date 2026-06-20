@@ -1,0 +1,1 @@
+docker buildx build -f .\src\docker\Dockerfile -t painted-ga-yard/cross-db-adaptor --no-cache .

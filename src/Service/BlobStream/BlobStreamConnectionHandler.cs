@@ -264,6 +264,10 @@ internal sealed class BlobStreamConnectionHandler
     {
         var (opCode, _) = BlobStreamMessage.ParseHeader(message);
 
+        _logger.LogTrace(
+            "BlobStream WS {ConnectionId} opcode=0x{OpCode:X2} ({OpName})",
+            connectionId, (byte)opCode, opCode);
+
         return opCode switch
         {
             OpCode.Open => await HandleOpenAsync(message, transactionId, connectionId, ct),

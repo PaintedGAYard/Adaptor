@@ -2,6 +2,7 @@ using System.Net;
 using Adaptor.Coordinator;
 using Adaptor.Driver.Postgre;
 using Adaptor.Service.BlobStream;
+using Adaptor.Service.Middleware;
 using Adaptor.Service.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,7 +26,10 @@ builder.Services.AddSingleton<BlobStreamSessionStore>();
 builder.Services.AddSingleton<HandleManager>();
 builder.Services.AddSingleton<BlobStreamConnectionHandler>();
 
-builder.Services.AddGrpc();
+builder.Services.AddGrpc(options =>
+{
+    options.Interceptors.Add<GrpcLoggingInterceptor>();
+});
 
 builder.Services.Configure<WebSocketOptions>(options =>
 {

@@ -1,0 +1,36 @@
+# =============================================================================
+#  Adaptor — .dockerignore
+#  Exclude files/folders from the Docker build context for faster builds
+# =============================================================================
+
+# .NET build artifacts
+bin/
+obj/
+
+# IDE / editor specific
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+docker-compose*.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Design docs (not needed at run time)
+Design/
+
+# Tests (not included in the production image)
+test/
+
+# Tests
+test/

@@ -221,9 +221,13 @@ public sealed class PgVectorDriver :
     }
 
     /// <summary>Auto-create the vector store and dimension tracking tables if they do not exist.</summary>
-    /// <remarks>Requires the pgvector extension; otherwise <c>vector</c>/<c>sparsevec</c> types will not be recognised.</remarks>
+    /// <remarks>Requires the pgvector extension; otherwise <c>vector</c>/<c>sparsevec</c> types will not be recognised.
+    /// The <c>vector</c> extension is created first via a separate non-transactional connection
+    /// because <c>CREATE EXTENSION</c> cannot run inside a transaction block.</remarks>
     private async Task EnsureTableAsync(NpgsqlConnection connection, NpgsqlTransaction transaction, CancellationToken ct)
     {
+        await EnsureExtensionAsync(ct).ConfigureAwait(false);
+
         await using var cmd = connection.CreateCommand();
         cmd.Transaction = transaction;
 
@@ -252,6 +256,21 @@ public sealed class PgVectorDriver :
 
         _logger?.LogDebug("PgVectorDriver ensured tables {Table} and {DimTable} exist",
             DefaultTableName, DimensionTableName);
+    }
+
+    /// <summary>
+    /// Ensure the pgvector extension is installed.
+    /// Uses a separate non-transactional connection because PostgreSQL
+    /// does not allow <c>CREATE EXTENSION</c> inside a transaction block.
+    /// </summary>
+    private async Task EnsureExtensionAsync(CancellationToken ct)
+    {
+        await using var conn = new NpgsqlConnection(_connectionString);
+        await conn.OpenAsync(ct).ConfigureAwait(false);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = "CREATE EXTENSION IF NOT EXISTS vector";
+        await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
+        _logger?.LogDebug("PgVectorDriver ensured pgvector extension exists");
     }
 
     /// <summary>Validate or record the expected vector dimension for a collection.</summary>

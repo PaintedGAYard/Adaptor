@@ -1,0 +1,68 @@
+# =============================================================================
+#  Adaptor + PostgreSQL — local development / testing compose file
+# =============================================================================
+#
+# Usage:
+#   docker compose -f deployment/docker/docker-compose.yml up -d
+#
+# This will:
+#   1. Start a PostgreSQL 17 instance (exposed on host port 5432)
+#   2. Build and start the Adaptor middleware (gRPC on host port 5000)
+#
+# The Adaptor service waits for PostgreSQL to become healthy before starting.
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL database
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: pgvector/pgvector:0.8.0-pg17
+    container_name: adaptor-driver-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: adaptor
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    # ports:
+    #   - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d adaptor"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - adaptor-network
+
+  # ---------------------------------------------------------------------------
+  # Adaptor — Distributed Transaction Coordinator
+  # ---------------------------------------------------------------------------
+  adaptor:
+    build:
+      context: ../../..                  # repo root (where Adaptor.slnx lives)
+      dockerfile: src/Docker/Dockerfile
+    container_name: adaptor-service
+    restart: unless-stopped
+    ports:
+      - "59677:80"                     # gRPC endpoint (HTTP/2)
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:80
+      ConnectionStrings__PostgreSQL: "Host=adaptor-driver-postgres;Port=5432;Database=adaptor;Username=postgres;Password=postgres"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - adaptor-network
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  adaptor-network:
+    name: adaptor-network
+    driver: bridge
