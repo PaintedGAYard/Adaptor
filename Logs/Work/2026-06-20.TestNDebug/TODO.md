@@ -57,10 +57,17 @@
 
 ---
 
-## Phase 3: Service
+## Phase 3: Service ✅ COMPLETED
 
-- [ ] **3.1** AdaptorServiceContext 工具方法
-- [ ] **3.2** gRPC Service 实现
+- [x] **3.1** AdaptorServiceContext 工具方法 (21 tests)
+  - ConvertStatus / ConvertTransactionStatus 所有枚举映射
+  - ObjectToValue: null, string, int, long, float, double, bool, Dictionary, List, 嵌套, fallback
+- [x] **3.2** gRPC Service 实现 (10 tests, 2 skipped)
+  - TransactionServiceImpl: Begin (skipped: needs gRPC hosting), Commit, Rollback, GetStatus, CommitAfterRollback (skipped: Coordinator throws)
+  - RelationalServiceImpl: Execute, Query (with fake driver)
+  - RelationalVectorServiceImpl: Search (with fake driver)
+  - BlobServiceImpl: Upload, Download (with fake driver)
+- [x] 新建 `test/Adaptor.Test.Service/` 项目
 
 ---
 

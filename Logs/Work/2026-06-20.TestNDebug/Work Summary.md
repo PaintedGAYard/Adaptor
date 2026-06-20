@@ -2,7 +2,8 @@
 
 > **Phase**: Phase 1 (Driver.Postgre) — ✅ Completed  
 > **Phase**: Phase 2 (Coordinator) — ✅ Completed  
-> **Next**: Phase 3 (Service)
+> **Phase**: Phase 3 (Service) — ✅ Completed  
+> **Next**: Phase 4 (Integration)
 
 ---
 
@@ -16,6 +17,8 @@
 | `SeekAsync_ShouldAffectSubsequentReadPosition` | `PostgresBlobDriverIntegrationTest.cs` | Seek 后 Read 应从新位置读 | 总是从 offset 0 读 |
 | `WriteAsync_ShouldRespectSeekPosition` | `PostgresBlobDriverIntegrationTest.cs` | Write 应在当前 seek 位置写入 | 总是在 offset 0 写 |
 | `TruncateAsync_ShouldShortenBlob` | `PostgresBlobDriverIntegrationTest.cs` | Truncate 应缩短大对象 | no-op stub |
+| `TransactionService_BeginTransaction_ShouldReturnResponse` | `GrpcServiceTests.cs` | Begin 应返回 tx ID | GetHttpContext() 需 ASP.NET Core 宿主 |
+| `TransactionService_CommitOnRolledBackTx_ShouldReturnRolledBack` | `GrpcServiceTests.cs` | 回滚后提交应返回 RolledBack | Coordinator 当前 throw 而非返回状态 |
 
 ### 其他已知不可自动运行的测试
 
@@ -56,7 +59,8 @@
 | Driver 单元测试 | 62 | 62 | 62 |
 | Driver 集成测试 | 0 | 23 | 23 |
 | Coordinator 测试 | 97 | 97 | **123** (+26) |
-| **通过 / 跳过 / 总计** | **62 / 0 / 62** | **82 / 4 / 86** | **205 / 5 / 210** |
+| Service 测试 | 0 | 0 | **29** (+29, 2 skipped) |
+| **通过 / 跳过 / 总计** | **62 / 0 / 62** | **82 / 4 / 86** | **234 / 9 / 243** |
 
 ---
 
