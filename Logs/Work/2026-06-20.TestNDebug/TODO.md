@@ -88,16 +88,39 @@
 - 不再需要手动 `DenseVectorToString` / `SparseVectorToString` 格式化
 - SQL 中可直接使用 `@vector::vector` 或 `@vector::sparsevec`，无需字符串转换
 
-### BLOB Driver 重构 (优先级: 中)
-- 当前随机访问路径 (`OpenAsync`/`ReadAsync`/`WriteAsync` 等) 已改为使用 `lo_get`/`lo_put`
-- `SeekAsync` 和 `CloseAsync` 现在是 no-op (因为 `lo_get`/`lo_put` 不维护位置状态)
-- `TruncateAsync` 是 stub
-- pgvector-dotnet 重构时应清理这些实现
+### BLOB Driver 随机访问路径重构 (优先级: 中)
+当前实现使用 `lo_get`/`lo_put` 替代了 `lo_open`/`loread`/`lowrite`/`lo_close` 流程，跳过了一些需要位置状态的功能。以下 4 个 skipped test 对应需要实现的设计行为：
+
+| Skipped Test | 设计行为 | 当前实现 |
+|---|---|---|
+| `CloseAsync_ShouldReleaseDescriptor` | 关闭 loFd 后读取应失败 | no-op |
+| `SeekAsync_ShouldAffectSubsequentReadPosition` | Seek 后 Read 应从新位置读 | 总是从 offset 0 读 |
+| `WriteAsync_ShouldRespectSeekPosition` | Write 应在当前 seek 位置写入 | 总是在 offset 0 写 |
+| `TruncateAsync_ShouldShortenBlob` | Truncate 应缩短大对象 | no-op stub |
+
+重构方案：维护本地 offset 状态，用 `lo_get(oid, offset, len)` / `lo_put(oid, offset, data)` 替换无状态调用。或改用 SQL 函数 `lo_from_bytea` / `lo_put` / `lo_get` 简化 UploadAsync 流程。
+
+### Coordinator 事务生命周期完善 (优先级: 中)
+| Skipped / 缺失行为 | 设计期望 | 当前实现 |
+|---|---|---|
+| `CommitOnRolledBackTx_ShouldReturnRolledBack` | 回滚后提交应返回 `CommitStatus.RolledBack` | `TransactionCoordinator` 在 Commit 时对已清理的 tx throw `InvalidOperationException` |
+
+修复方向：`CommitTransactionAsync` 应在 `FindEntry` 返回 null 时通过 try-catch 捕获 `CommittableTransaction.Commit()` 异常并返回 `RolledBack`，而非直接 throw。
+
+### Service 层测试基础设施 (优先级: 低)
+| Skipped Test | 原因 |
+|---|---|
+| `TransactionService_BeginTransaction_ShouldReturnResponse` | `BeginTransaction` 调用 `GetHttpContext()` 获取 connectionId，该方法仅在 ASP.NET Core gRPC 宿主中可用 |
+
+方案：使用 `Microsoft.AspNetCore.TestHost` 或 `Grpc.Testing` 建立轻量级 gRPC 测试宿主，或重构 Service 层使其可注入 connectionId。
+
+### SessionManager 手工测试 (优先级: 低)
+- `Session_ShouldBeAutoCleanedAfterIdleTimeout` — 标记 `Manual`，需要 80s 等待验证超时清理逻辑。
 
 ### 大对象 SQL 函数参考
 来自 PostgreSQL 17 Manual (§33.4 Server-Side Functions):
-- `lo_from_bytea(loid oid, data bytea)` → oid — 创建并写入 LO
+- `lo_from_bytea(loid oid, data bytea)` → oid — 创建并写入 LO（可简化 UploadAsync）
 - `lo_put(loid oid, offset bigint, data bytea)` → void — 在偏移处写入
 - `lo_get(loid oid [, offset bigint, length integer])` → bytea — 读取内容
-- `loread(fd integer, len integer)` → bytea — 从描述符读取
-- `lowrite(fd integer, data bytea)` → integer — 写入描述符
+- `loread(fd integer, len integer)` → bytea — 从描述符读取（需先 lo_open）
+- `lowrite(fd integer, data bytea)` → integer — 写入描述符（需先 lo_open）

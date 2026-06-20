@@ -34,6 +34,9 @@ Given that this is an **LLM** tool project, for conciseness, logical **clarity**
 11. **Shared mutable state**
     - Instance-level mutable state (e.g., accumulators, phase trackers) must be documented with thread/coroutine safety considerations.
     - If a method modifies shared state, that is a **side-effect** and must be declared in the interface contract (see item 1.1).
+12. **DO NOT HANDCRAFT COMMANDS WITH STRING CONCAT**
+    - **Always** use parameterized query
+    - **Always** use script function with parameters
 
 # Language Usage Guideline
 
