@@ -7,11 +7,6 @@ public sealed class CoordinatorOptions
     /// <summary>Idle timeout before automatic session rollback.</summary>
     public TimeSpan SessionIdleTimeout { get; set; } = TimeSpan.FromSeconds(60);
 
-    /// <summary>Max retry attempts per driver during the commit phase.</summary>
-    public int MaxRetryCount { get; set; } = 3;
-
-    public TimeSpan RetryBackoffBase { get; set; } = TimeSpan.FromMilliseconds(100);
-
     /// <summary>Server-enforced cap on user-supplied transaction timeouts.</summary>
     public TimeSpan MaxTransactionTimeout { get; set; } = TimeSpan.FromMinutes(5);
 

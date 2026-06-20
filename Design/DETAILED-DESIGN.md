@@ -354,9 +354,9 @@ message VectorSearchHit {
 
 1.  管理 .NET `CommittableTransaction` 的生命周期
 2.  协调多个 Driver 的 Enlistment
-3.  执行 All or Nothing 策略（Prepare → Commit/Rollback）
+3.  委托 .NET `System.Transactions` 执行 All or Nothing 策略
 4.  处理超时和自动回滚
-5.  管理重试逻辑
+5.  映射 `System.Transactions.TransactionStatus` 到应用层 CommitStatus
 
 ### 4.2 System.Transactions 使用策略
 
@@ -794,71 +794,71 @@ S3BlobDriver         : IResourceManager
 
 ### 6.1 All or Nothing 策略
 
-#### Phase 1 — Prepare（投票）
+### 6.1 All or Nothing 策略
+
+Coordinator **不手动遍历 Driver 执行 2PC**。两阶段提交的协调委托给 .NET `System.Transactions` 完成。Driver 在 `Enlist()` 时通过 `Transaction.EnlistVolatile()` 注册自身并实现 `IEnlistmentNotification` 回调接口。
 
 ```
-TransactionCoordinator.Commit():
-  for each Driver:
-    try:
-      driver.Prepare(preparingEnlistment)
-    catch:
-      → ForceRollback for all Drivers
-      → 全部进入 Rollback 流程
+Consumer: CommitTransaction(tx_id)
+  → TransactionCoordinator.CommitTransactionAsync()
+    → 查找 TransactionEntry
+    → committableTransaction.Commit()
+      │
+      ▼
+    .NET Transaction Manager 内部协调 2PC:
 
-  全部通过:
-    → 进入 Phase 2
+      Phase 1 — Prepare（投票）:
+        for each enlisted RM (Driver):
+          → IEnlistmentNotification.Prepare(PreparingEnlistment)
+          → Driver 验证本地事务可提交:
+            ✅ → PreparingEnlistment.Prepared()
+            ❌ → PreparingEnlistment.ForceRollback()
+
+        全部 Prepared → 进入 Phase 2
+        任一 ForceRollback → .NET TM 通知所有 Driver.Rollback()
+
+      Phase 2 — Commit（决定）:
+        for each enlisted RM (Driver):
+          → IEnlistmentNotification.Commit(Enlistment)
+          → Driver 提交本地事务
+          → Enlistment.Done()
+
+        全部成功 → TransactionStatus = Committed
+        任一失败 → TransactionStatus = InDoubt
+
+    │
+    ▼
+    Coordinator 映射结果:
+      Committed → CommitStatus.Committed
+      Aborted   → CommitStatus.RolledBack
+      InDoubt   → CommitStatus.Partial（需人工介入）
 ```
 
-#### Phase 2 — Commit（决定 + 重试）
-
-```
-TransactionCoordinator.Commit() (Phase 1 通过后):
-  for each Driver:
-    success = false
-    for retry in 1..MaxRetryCount:
-      try:
-        driver.Commit(enlistment)
-        success = true
-        break
-      catch:
-        if retry < MaxRetryCount:
-          wait(backoff)  // 指数退避
-          continue
-        else:
-          → 重试耗尽，进入 Rollback 流程
-
-  全部成功:
-    → 事务完成 (COMMITTED)
-
-  任一失败 (重试耗尽):
-    → Rollback for all Drivers (补偿)
-    → 返回 COMMIT_STATUS_PARTIAL 及详细错误
-```
+> **Phase 2 的 Commit 回调不可重试**。如果 Driver 的 `Commit()` 抛出异常，.NET TM 捕获后标记事务为 `InDoubt`，不会自动重试。`InDoubt` 是极罕见的终态，需要人工检查各存储的实际状态。
 
 ### 6.2 配置参数
 
 | 参数 | 默认值 | 说明 |
 |------|--------|------|
-| `MaxRetryCount` | 3 | 每个 Driver Commit 阶段的最大重试次数 |
-| `RetryBackoffBase` | 100ms | 指数退避基数 (`backoff * 2^retry`) |
 | `DefaultTransactionTimeout` | 30s | 事务默认超时时间 |
 | `SessionIdleTimeout` | 60s | 会话空闲超时（超时未操作自动回滚） |
 
 ### 6.3 回滚流程
 
-```
-TransactionCoordinator.Rollback():
-  for each enlisted Driver:
-    try:
-      driver.Rollback(enlistment)
-    catch:
-      log_error("Driver {name} rollback failed, manual intervention required")
+与提交相同，回滚也委托给 .NET `System.Transactions`：
 
-  清理事务状态
-  通知 Consumer
+```
+Consumer: RollbackTransaction(tx_id)
+  → TransactionCoordinator.RollbackTransactionAsync()
+    → committableTransaction.Rollback()
+    → .NET TM 通知所有 enlisted RM: IEnlistmentNotification.Rollback()
+    → 各 Driver 回滚本地事务 → Enlistment.Done()
+    → TransactionStatus = Aborted
+    → Coordinator 清理事务状态
+    → 返回 Consumer
 ```
 
-> 注：Rollback 阶段的失败仅记录日志，不阻塞整体流程。此时需要人工介入处理不一致状态。
+> 注：如果 .NET 的 `Rollback()` 抛出异常（如连接断开），Coordinator 记录日志后继续清理。此时需要人工介入检查不一致状态。
 
 ### 6.4 超时管理
 
